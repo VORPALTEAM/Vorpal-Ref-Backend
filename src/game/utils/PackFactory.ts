@@ -71,7 +71,7 @@ export class PackFactory {
         isMiss?: boolean
     }): string {
         return JSON.stringify({
-            action: PackTitle.attack,
+            title: PackTitle.attack,
             type: 'laser',
             data: aData
         });
@@ -83,7 +83,7 @@ export class PackFactory {
         state: 'start' | 'end'
     }): string {
         return JSON.stringify({
-            action: PackTitle.attack,
+            title: PackTitle.attack,
             type: 'ray',
             data: aData
         });
