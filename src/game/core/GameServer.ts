@@ -15,7 +15,7 @@ import { PackTitle } from '../types/Messages';
 
 const web3 = new Web3(Web3.givenProvider);
 
-export class GameIoServer {
+export class GameServer {
   private players: PlayerRow[] = [];
   private Rooms: GameRoom[] = [];
   private ws_port = Number(

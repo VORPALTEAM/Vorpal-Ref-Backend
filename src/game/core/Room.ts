@@ -1,12 +1,10 @@
 import { PlayerRow, UserEvent } from '../types/interfaces';
-import { GameIoServer } from './Server';
 import { PlayerState } from '../types';
 import { WriteLog } from '../../database/log';
 import * as config from '../config';
 import Star from '../gameplay/Star';
 import ObjectListManager from './ListManager';
 import Planet from '../gameplay/Planet';
-import { coords, objectDisplayInfo, objectMapInfo } from '../types/gameplay';
 import { PackTitle, Classes, ObjectInfo, ObjectCreationData, ObjectUpdateData } from '../types/Messages';
 import { defCoords, gameField, shipCreationStartTime } from '../config';
 import { Ship } from '../gameplay/Ship';
@@ -14,10 +12,11 @@ import { BattlesShip } from '../gameplay/BattleShip';
 import Store from '../store/store';
 import { race, raceArr } from '../types/user';
 import { PackFactory } from '../utils/PackFactory';
+import { GameServer } from './GameServer';
 
 export class GameRoom {
   private players: PlayerRow[] = [];
-  private server: GameIoServer;
+  private server: GameServer;
   private roomItselfId: number = -1;
   private isActive: boolean = false;
   private manager: ObjectListManager<any>;
@@ -25,7 +24,7 @@ export class GameRoom {
   private battleShipCreationTimer: NodeJS.Timer;
   private store: Store;
 
-  constructor(_server: GameIoServer, _players: PlayerRow[]) {
+  constructor(_server: GameServer, _players: PlayerRow[]) {
     this.server = _server;
     this.players = _players;
     const race1: race = raceArr[Math.floor(Math.random() * raceArr.length)];
@@ -496,15 +495,16 @@ export class GameRoom {
       );
     });
 
-    SaveGameResult({
-      playerOne: this.players[0].publicKey,
-      playerTwo: this.players[1].publicKey,
-      winner: winner === 0 ? 1 : 2,
-      planet_id_one: this.players[0].state.planetId,
-      planet_id_two: this.players[1].state.planetId,
-      star_id_one: this.players[0].state.starId,
-      star_id_two: this.players[1].state.starId,
-      date: dt.getTime(),
-    });
+    // SaveGameResult({
+    //   playerOne: this.players[0].publicKey,
+    //   playerTwo: this.players[1].publicKey,
+    //   winner: winner === 0 ? 1 : 2,
+    //   planet_id_one: this.players[0].state.planetId,
+    //   planet_id_two: this.players[1].state.planetId,
+    //   star_id_one: this.players[0].state.starId,
+    //   star_id_two: this.players[1].state.starId,
+    //   date: dt.getTime(),
+    // });
+
   }
 }

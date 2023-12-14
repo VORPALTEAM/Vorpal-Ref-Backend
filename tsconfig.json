@@ -1,18 +1,15 @@
 {
     "compilerOptions": {
+        "target": "ES2018",
+        "module": "NodeNext",
+        // "types": ["node"],
+        "lib": ["ES6"],
+        "jsx": "react",
+        "moduleResolution": "NodeNext",
         "baseUrl": "src",
         "outDir": "./dist",
-        "target": "es5",
-        "module": "commonjs",
-        "types": ["node"],
-        "lib": ["es6"],
-        "jsx": "react",
-        "moduleResolution": "node",
         "allowJs": false,
         "preserveConstEnums": true,
-        "removeComments": true,
-        "sourceMap": true,
-        "skipLibCheck": true,
         "strictNullChecks": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
@@ -21,7 +18,19 @@
         "isolatedModules": false,
         "noFallthroughCasesInSwitch": true,
         "downlevelIteration": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "removeComments": true,
     },
-    "include": ["src"],
-    "exclude": ["node_modules", "build"]
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "build",
+        "dist"
+    ],
+    "ts-node": {
+        "esm": true
+    }
 }
