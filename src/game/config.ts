@@ -10,6 +10,7 @@ export const SyncInterval = 1000;
 export const shipMovingTime = 5000;
 export const shipCreationStartTime = 60000; // 147580;
 export const planetRotationSpeed = 0.064;
+export const shipRotationSpeed = 0.05;
 export const planetYearAngle = 0.004185;
 export const defShipHealth = 100;
 export const defBattleShipHealth = 300;
@@ -22,7 +23,7 @@ export const playerStartGold = 100;
 export const playerExpPerLevel = 200;
 export const playerMaxLevel = 16;
 export const moveFrame = 100; // step in ms
-export const shipRange = 200;
+export const shipRange = 160;
 export const shipSpeed = 8;
 export const bShipSpeed = 4;
 export const defCoords = {
@@ -51,18 +52,18 @@ export const defCoords = {
   },
   star1: {
     x: 400,
-    y: 250,
+    y: 750,
   },
   star2: {
     x: 400,
-    y: 750,
+    y: 250,
   },
   planet1: {
     x: 400,
-    y: 50,
+    y: 950,
   },
   planet2: {
     x: 400,
-    y: 950,
+    y: 50,
   },
 };

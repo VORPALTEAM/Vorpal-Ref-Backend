@@ -10,6 +10,7 @@ import {
   moveFrame,
   shipMovingTime,
   shipRange,
+  shipRotationSpeed,
   shipSpeed,
 } from '../config';
 import { GameRoom } from '../core/Room';
@@ -27,7 +28,6 @@ export class Ship extends GameObject {
   private hp: number;
   private dir: boolean = true; // true - up, false - down
   private hitChance: number = defShipHitChance;
-  private TargetStar: Star;
   private attackRange: number;
   private listIndex: number = 0;
   private isOnStarPosition: boolean = false;
@@ -36,6 +36,7 @@ export class Ship extends GameObject {
 
   public isAttacking: boolean = false;
   public targetPosition: coords;
+  private TargetStar: Star;
 
   constructor(
     _room: GameRoom,
@@ -44,12 +45,14 @@ export class Ship extends GameObject {
     _radius: number,
     _manager: ObjectListManager<any>,
     dir: boolean,
+    _angle?: number
   ) {
-    super(_room, _owner, _coords, _radius, Classes.ship, _manager);
+    super(_room, _owner, _coords, _radius, Classes.ship, _manager, _angle);
     this.dir = dir;
     this.attackRange = shipRange;
     this.onCreate();
     this.speed = shipSpeed;
+    this.angleSpeed = shipRotationSpeed;
   }
 
   public Activate(_listIndex?: number) {
@@ -67,15 +70,8 @@ export class Ship extends GameObject {
         this.TargetStar,
       );
       this.TargetStar.HoldPosition(this.targetPosition);
-      this.room.SendLog(
-        'StarPosition',
-        this.targetPosition,
-        'reserve?',
-        this.targetPosition === this.ReservePosition(),
-      );
     } else {
       this.targetPosition = this.ReservePosition();
-      // this.room.SendLog('StarReservePosition', this.targetPosition);
     }
     this.isActive = true;
   }
@@ -83,23 +79,23 @@ export class Ship extends GameObject {
   public AttackStar(_id = this.id, coords = this.center) {
 
     const trg = this.TargetStar;
+    this.angle = this.manager.calcDisplayAngle(this.center, trg.center);
     if (trg) {
 
       this.isAttacking = true;
       this.speed = 0;
       this.isOnStarPosition = true;
+      this.room.ReSendMessage(PackFactory.getInstance().attackRay({
+        idFrom: this.id,
+        idTo: trg.getId(),
+        state: 'start',
+      }));
       this.timer = setInterval(() => {
         trg.TakeDamage(1);
         this.TakeDamage(1);
-        this.room.ReSendMessage(PackFactory.getInstance().attack({
-          from: this.id,
-          to: trg.getId(),
-          damage: 1,
-          hit: true
-        }));
       }, FrameInterval);
     }
-    return () => { };
+    return this.TargetStar.getId();
   }
 
   protected onCreate() {
@@ -131,12 +127,6 @@ export class Ship extends GameObject {
       return 0;
     });
 
-    const logMsg = {
-      action: PackTitle.log,
-      ...positions,
-    };
-    this.room.ReSendMessage(JSON.stringify(logMsg));
-
     if (positions.length === 0) {
       return this.ReservePosition();
     }
@@ -155,12 +145,11 @@ export class Ship extends GameObject {
       target.TakeDamage(damage);
     } 
 
-    this.room.ReSendMessage(PackFactory.getInstance().attack({
-      from: this.id,
-      to: target.getId(),
+    this.room.ReSendMessage(PackFactory.getInstance().attackLaser({
+      idFrom: this.id,
+      idTo: target.getId(),
       damage: damage,
-      angle: this.manager.calcAngle(this.center, target.center),
-      hit: isHit
+      isMiss: !isHit
     }));
 
   }
@@ -178,14 +167,9 @@ export class Ship extends GameObject {
   }
 
   public StartAttacking(target: Ship | BattlesShip) {
-    this.room.SendLog(
-      'Attacking',
-      this.center,
-      target.center,
-      this.manager.calcRange(this.center, target.center),
-    );
     this.isAttacking = true;
     this.speed = 0;
+    this.angle = this.manager.calcAngle(this.center, target.center);
     this.attackTimeout = setInterval(() => {
       const trg = this.manager.getObjectById(target.getId());
       if (trg && this.manager.calcRange(this.center, trg.center) <= shipRange) {
@@ -205,7 +189,6 @@ export class Ship extends GameObject {
       const isUnhold =
         this.TargetStar?.UnHoldPosition(this.targetPosition) ||
         this.TargetStar?.UnHoldPosition(this.center);
-      this.room.SendLog('UnHolded', isUnhold);
     } catch (e) {
       this.room.SendLog('error', e.message);
     }

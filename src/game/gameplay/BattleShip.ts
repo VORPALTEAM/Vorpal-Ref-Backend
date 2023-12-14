@@ -23,8 +23,9 @@ export class BattlesShip extends GameObject {
     _coords: play.coords,
     _radius: number,
     _manager: ObjectListManager<any>,
+    _angle?: number
   ) {
-    super(_room, _owner, _coords, _radius, Classes.battleship, _manager);
+    super(_room, _owner, _coords, _radius, Classes.battleship, _manager, _angle);
     this.manager = _manager;
     this.speed = bShipSpeed;
     this.onCreate();
@@ -32,7 +33,6 @@ export class BattlesShip extends GameObject {
 
   private onCreate() {
     this.hp = defBattleShipHealth;
-    this.room.SendLog("BattleShip created", "10s");
     
     const stars = this.manager.getObjectsByClassName(Classes.star).filter((st: Star) => {
       return st.owner !== this.owner;
@@ -55,12 +55,6 @@ export class BattlesShip extends GameObject {
 
   private AttackStar() {
     this.speed = 0;
-    this.room.ReSendMessage(PackFactory.getInstance().attack({
-      from: this.id,
-      to: this.targetStar.getId(),
-      damage: 1,
-      hit: true
-    }));
     this.targetStar.TakeDamage(1);
   }
 
@@ -74,11 +68,11 @@ export class BattlesShip extends GameObject {
       target.TakeDamage(damage);
     } 
 
-    this.room.ReSendMessage(PackFactory.getInstance().attack({
-      from: this.id,
-      to: target.getId(),
+    this.room.ReSendMessage(PackFactory.getInstance().attackLaser({
+      idFrom: this.id,
+      idTo: target.getId(),
       damage: damage,
-      hit: isHit
+      isMiss: !isHit
     }));
   }
 
@@ -88,6 +82,11 @@ export class BattlesShip extends GameObject {
 
   public AttackState() {
     this.isAttacking = true;
+    this.room.ReSendMessage(PackFactory.getInstance().attackRay({
+      idFrom: this.id,
+      idTo: this.targetStar.getId(),
+      state: 'start'
+    }));
     this.timer = setInterval(() => {
        this.AttackStar();
        const enemyShips = this.manager.getClosestObjects(this.id, [Classes.ship]);
