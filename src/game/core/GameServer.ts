@@ -1,10 +1,9 @@
-import WebSocket, { Server } from 'ws';
+import WebSocket from 'ws';
 import Web3 from 'web3';
 import {
   FrameInterval,
   default_ws_port,
   gameTimerValue,
-  pingPongDelay,
   signTimeout,
 } from '../config';
 import { WriteLog } from '../../database/log';
@@ -19,7 +18,7 @@ export class GameServer {
   private players: PlayerRow[] = [];
   private Rooms: GameRoom[] = [];
   private ws_port = Number(
-    process.env.WS_PORT ? process.env.WS_PORT : default_ws_port,
+    process.env.WS_PORT ? process.env.WS_PORT : default_ws_port
   );
   // private wss = new WebSocket.Server({ port: this.ws_port });
   private timer: any;
@@ -150,8 +149,10 @@ export class GameServer {
 
   public Start() {
     const wss = new WebSocket.Server({ port: this.ws_port });
+
     wss.on('connection', (ws: WebSocket) => {
       const cId = this.GenerateId();
+
       const authTimer = setTimeout(() => {
         if (!this.GetPlayerByParam(ws)) {
           ws.send(
@@ -163,13 +164,16 @@ export class GameServer {
           ws.close();
         }
       }, signTimeout);
+
       // WriteLog('0x0032', 'New connection, id : ' + cId);
       ws.send(JSON.stringify(this.AuthRequestMsg));
+
       ws.on('message', (message: string) => {
         if (String(message) === 'ping') {
           ws.send('pong');
           return;
         }
+
         // WriteLog('0x0033', 'Received : ' + message);
         let msg: any;
         try {
@@ -177,21 +181,22 @@ export class GameServer {
         } catch (e) {
           return;
         }
+
         switch (msg.action) {
+
           case PackTitle.ping:
-            ws.send(
-              JSON.stringify({
-                action: PackTitle.pong,
-              }),
-            );
+            ws.send(JSON.stringify({ action: PackTitle.pong }));
             break;
+          
           case PackTitle.auth:
             if (!msg.signature) return;
             try {
+              
               const recoverMsg = this.AuthMsg();
               const publicKey = web3.eth.accounts
                 .recover(recoverMsg, msg.signature)
                 .toLowerCase();
+              
               this.players.forEach((player) => {
                 if (player.publicKey === publicKey) {
                   ws.send(
@@ -204,12 +209,9 @@ export class GameServer {
                   return;
                 }
               });
+
               clearInterval(authTimer);
-              const inserted = this.InsertPlayer({
-                id: cId,
-                ws: ws,
-                publicKey: publicKey,
-              });
+
               ws.send(
                 JSON.stringify({
                   action: PackTitle.auth,
@@ -217,10 +219,12 @@ export class GameServer {
                   playerId: publicKey,
                 }),
               );
+
             } catch (e: any) {
               WriteLog('0x0089', e.message);
             }
             break;
+          
           case PackTitle.entergame:
             const player = this.GetPlayerByParam(ws);
             WriteLog('0x005', 'Player : ' + JSON.stringify(player));
@@ -254,6 +258,7 @@ export class GameServer {
               );
             }
             break;
+          
           case PackTitle.withdrawgame:
             const playerW = this.GetPlayerByParam(ws);
             if (playerW) {
@@ -280,6 +285,7 @@ export class GameServer {
             return;
         }
       });
+
       ws.on('close', () => {
         const player = this.GetPlayerByParam(ws);
         if (player && player.state.roomId > -1) {
@@ -291,6 +297,7 @@ export class GameServer {
         }
         this.DeletePlayer(cId);
       });
+
     });
     this.generator = this.RoomGenerator();
 

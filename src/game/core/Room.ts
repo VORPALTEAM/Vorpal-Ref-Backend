@@ -47,7 +47,9 @@ export class GameRoom {
         }
         try {
           msg = JSON.parse(String(msg));
-        } catch (e) {}
+        } catch (e) {
+          
+        }
         // WriteLog(player.publicKey, `Received in game : ${String(message)}`)
 
         switch (msg.action) {
