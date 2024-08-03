@@ -48,7 +48,7 @@ export const StartHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     await SendPhotoWithSave (bot, chatId, introPhotoPath, messages.duelStart, true, {
       reply_markup: InlineKeyboard(['enterGame', 'duel', 'joinCommunity', 'referrals']),
     });
-    await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
+    // await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
 
   } catch (e) {
     console.log('Start cmd exception: ', e);

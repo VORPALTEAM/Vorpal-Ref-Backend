@@ -52,7 +52,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       console.log(e.message);
     }
 
-    await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
+    // await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
 
     /* if (!msg.from.username) {
       SendMessageWithSave(bot, chatId, messages.noUsername);

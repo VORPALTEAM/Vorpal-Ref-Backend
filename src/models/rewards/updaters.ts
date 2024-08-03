@@ -135,7 +135,7 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
     String(telegramData?.id || ''),
     String(telegramData.username || telegramData.first_name),
   );
-  if (telegramData) {
+  /* if (telegramData) {
     const subscribes = await GetChannelSubscribeList(telegramData.id);
     if (subscribes.length === 0) {
       const trendsValue = 5 + Math.round(Math.random() * 5);
@@ -143,8 +143,8 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
       // WHERE ownerAddress IN (SELECT ownerAddress FROM boxes WHERE id = ${boxId})`;
       // await connection.query(trendsUpQuery);
       await  resourceTransactionWithReferrals (owner, 'trends', trendsValue, rewardmessage);
-    }
-  }
+    } 
+  } */
   await  resourceTransactionWithReferrals (owner, 'token', valueVRP, rewardmessage);
   // const vrpQuery = `UPDATE resources SET token = token + ${valueVRP} 
   //     WHERE ownerAddress IN (SELECT ownerAddress FROM boxes WHERE id = ${boxId})`;

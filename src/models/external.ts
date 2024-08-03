@@ -24,7 +24,7 @@ export async function NotifyDuelFinishFor(login: string, duelId: string) {
       return false;
     });
     console.log('Result: ', url, responce.status);
-    return responce.status === 200 ? true : false;
+    return responce;
   } catch (e) {
     console.log(e.message);
     return false;
