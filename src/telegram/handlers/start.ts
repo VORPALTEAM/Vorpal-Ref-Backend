@@ -12,12 +12,9 @@ import { DeleteMessagesByChatId, SaveMessage } from '../../models/telegram/histo
 export const introPhotoPath = '/app/public/entry.png';
 
 export const StartHandler = async (bot: TelegramBot, msg: TelegramBot.Message, match: any) => {
-  console.log('Start handler called');
   const chatId = msg.chat.id;
-  console.log('Chat started: ', chatId);
   SaveMessage(chatId, msg.message_id);
   if (!msg.from) return;
-  // await SendMessageWithSave (bot, msg.chat.id, messages.welocme, MarkupKeyboard());
   try {
     const linkAuthDataPrev: TelegramAuthData = {
       auth_date: GetDaylyAuthDate(),

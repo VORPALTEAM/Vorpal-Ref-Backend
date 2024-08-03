@@ -25,8 +25,8 @@ export const usingRegExps: RegExp[] = [
 
 export const messages = {
     old: `Now we are moved to new bot, go: https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
-    welocme: `
-      Welocme to a Star defender game app powered by Vorpal engine!
+    welcome: `
+      Welcome to a Star defender game app powered by VORPAL Engine!
       You now can start a duel with your friend or play demo with bot`,
     noUsername: `
       Welcome! You need to have a Telegram username to enter a duel or to start it
@@ -37,7 +37,7 @@ export const messages = {
     duelRefiseInvitation: (login2: string) => {
       return `@${login2} cancelled an invitation. You can challenge a new player`
     },
-    duelStart: `Hello! Welocme to a Star defender game app powered by Vorpal engine! You now can start a duel with your friend or play demo with bot. Enter command from list below:`,
+    duelStart: `Hello! Welcome to a Star defender game app powered by VORPAL Engine! You now can start a duel with your friend or play demo with bot. Enter command from list below:`,
     duelStartWithWelcome: `Welcome! Enter duel command to play with friends`,
     duelAlready: `You already in duel, got to Starmap to enter a battle`,
     duelToForward: `Forvard this message to challenge your friend:`,

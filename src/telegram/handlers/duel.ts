@@ -147,7 +147,6 @@ export const TxnHistoryAction = async (
   bot: TelegramBot,
   query: TelegramBot.CallbackQuery,
 ) => {
-  console.log('History requested');
   if (!query.message) return;
   if (!query.from) {
     SendMessageWithSave(bot, query.message.chat.id, messages.noUsername);
@@ -155,10 +154,8 @@ export const TxnHistoryAction = async (
   } 
   const transactions = await GetUserTransactions(String(query.from?.id || ""));
   const historyText = `<b>Your transactions:</b>\n ${transactions.map((txn) => {
-    console.log('Find txn: ', txn);
-    return `${txn.resource} ${txn.amount} ${txn.reason}\n`;
+    return `${txn.resource === 'token' ? 'tVRP' : txn.resource} ${txn.amount} ${txn.reason}\n`;
   })}`;
-  console.log('History: ', historyText);
   SendMessageWithSave(bot, query.message.chat.id, historyText, {
     parse_mode: 'HTML',
   });

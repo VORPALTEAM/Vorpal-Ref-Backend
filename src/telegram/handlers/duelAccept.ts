@@ -26,7 +26,6 @@ import { GetUserInviter } from '../../models/telegram/referral';
 
 export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) => {
   const chatId = msg.chat.id;
-  console.log('Match params', match);
   try {
     /* if (!msg.from.username) {
       SendMessageWithSave(bot, chatId, messages.noUsername);
