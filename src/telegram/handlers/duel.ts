@@ -45,16 +45,16 @@ export const duelCancelAction = async (
       await DeleteDuel(duel.duel_id);
       // await FinishDuel(duel.duel_id, '');
       SendMessageWithSave(bot, chatId, messages.duelCancelled, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
     } else {
       SendMessageWithSave(bot, chatId, messages.duelNotFound, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
     }
   } else {
     SendMessageWithSave(bot, chatId, messages.duelNotFound, {
-      reply_markup: InlineKeyboard(['duel']),
+      reply_markup: InlineKeyboard(['enterGame', 'duel']),
     });
   }
 };
@@ -137,7 +137,7 @@ export const duelRefuseAction = async (
     const removeResult = await RemoveDuelOpponent(String(caller));
 
     SendMessageWithSave(bot, query.message.chat.id, messages.duelRefused, {
-      reply_markup: InlineKeyboard(['duel']),
+      reply_markup: InlineKeyboard(['enterGame', 'duel']),
     });
   }
 

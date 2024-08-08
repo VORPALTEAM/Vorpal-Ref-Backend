@@ -61,7 +61,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
 
     if (!inviterId) {
       SendMessageWithSave(bot, chatId, messages.noInviter, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
       return;
     }
@@ -77,7 +77,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
 
     if (!createdDuel) {
       SendMessageWithSave(bot, chatId, messages.duelNotFound, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
       return;
     }
@@ -89,7 +89,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       timeNow - createdDuel.creation <= duel_lifetime
     ) {
       SendMessageWithSave(bot, chatId, messages.duelCancelled, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame','duel']),
       });
       return;
     }
@@ -99,7 +99,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       timeNow - createdDuel.creation > duel_lifetime
     ) {
       SendMessageWithSave(bot, chatId, messages.duelExpired, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame','duel']),
       });
       return;
     }
@@ -112,7 +112,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       timeNow - createdDuel.creation > duel_lifetime
     ) {
       SendMessageWithSave(bot, chatId, messages.duelBusy, {
-        reply_markup: InlineKeyboard(['duel']),
+        reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
       return;
     }
