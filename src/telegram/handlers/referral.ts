@@ -48,7 +48,7 @@ export const referralTotalCountAction = async (bot: TelegramBot, query: Telegram
   if (!query.message) return;
   const counts = await GetReferralTotalRewardsByUser(String(query.from.id));
   const historyText = counts.length > 0 ? `<b>Your total rewards for referrals:</b>\n ${counts.map((item) => {
-    return `Resource: ${item.item}, amount: +${item.amount}\n`
+    return `Resource: ${item.item === 'token' ? 'tVRP' : item.item}: +${item.amount}\n`
   })}` : `Still no rewards`
   SendMessageWithSave (bot, query.message.chat.id, historyText,
     {
