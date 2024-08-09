@@ -64,7 +64,7 @@ export const referralLastTxnAction = async (bot: TelegramBot, query: TelegramBot
         return;
     }
     const historyText = `<b>Last receipts from your referrals:</b>\n ${transactions.map((txn) => {
-      return `Level: ${txn.level}, resource: ${txn.resource === 'token' ? 'tVRP' : txn.resource}, ${txn.amount}\n`
+      return `Level: ${txn.level}, ${txn.resource === 'token' ? 'tVRP' : txn.resource}, ${txn.amount}\n`
     })}`
     SendMessageWithSave (bot, query.message.chat.id, historyText,
     {
