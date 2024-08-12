@@ -49,8 +49,6 @@ export const DuelCreationHandler = async (
     username = query.from.username?.toLowerCase();
   }
 
-  console.log('Duel handler called');
-
   const linkAuthDataPrev: TelegramAuthData = {
     auth_date: GetDaylyAuthDate(),
     last_name: lastName?.replace(' ', '') || '',
@@ -59,8 +57,6 @@ export const DuelCreationHandler = async (
     username: username?.toLowerCase() || '',
     hash: '',
   };
-
-  console.log('Duel from user: ', linkAuthDataPrev);
 
   /* if (!linkAuthDataPrev.username) {
     SendMessageWithSave(bot, chatId, messages.noUsername);
@@ -79,7 +75,6 @@ export const DuelCreationHandler = async (
       userLastDuel.id1 &&
       userLastDuel.id2
     ) {
-      console.log('Duel not created, already exists');
       SendMessageWithSave(bot, chatId, messages.duelAlready);
       return;
     }

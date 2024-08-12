@@ -21,7 +21,6 @@ export function TelegramBotLaunch() {
   bot.onText(/\/start/, async (msg, match) => {
     const startDuelRegex = /\/start (.+)/;
     if (msg.text && startDuelRegex.test(msg.text)) {
-        console.log("Condition to no call start")
         return;
     }
 
@@ -44,7 +43,6 @@ export function TelegramBotLaunch() {
   });
 
   bot.onText(/\/start(?:\?startapp=([^]+))?/, async (msg, match) => {
-    console.log("Start app called")
     const inviterLogin = match ? match[1] : "" // Если inviterId присутствует в ссылке, он будет доступен здесь
     if (inviterLogin) {
         bot.sendMessage(msg.chat.id, `You have invited by: ${inviterLogin}`);
