@@ -1,12 +1,12 @@
 import { WatchBlocks, WatchContracts } from '../blockchain/WatchBlocks'
 const { 
-    FindLinkByReferral, 
-    FindLinkOwner,
-    GetValueByKey,
-    SetValueByKey,
-    UpdateScheduledBalance,
-    CreateVesting, 
-    UpdateVestings } = require('./database/balances')
+    findLinkByReferral, 
+    findLinkOwner,
+    getValueByKey,
+    setValueByKey,
+    updateScheduledBalance,
+    createVesting, 
+    updateVestings } = require('./database/balances')
 const Web3 = require('web3')
 const { config }= require('./blockchain/config')
 

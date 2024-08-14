@@ -1,28 +1,28 @@
 import md5 from 'md5';
 import { duel_lifetime } from '../../config';
 import { DuelInfo } from '../../types';
-import { GetValueByKey, SetValueByKey } from '../balances';
+import { getValueByKey, setValueByKey } from '../balances';
 import { runQuery as Q } from '../connection';
-import { GetPersonalDataById } from './personal';
+import { getPersonalDataById } from './personal';
 
 const onlineCountKey = 'DUEL_ONLINE_COUNT';
 
-export async function SetOnlineCount(count: number) {
-  await SetValueByKey(onlineCountKey, count);
+export async function setOnlineCount(count: number) {
+  await setValueByKey(onlineCountKey, count);
   return true;
 }
 
-export async function GetOnlineCount() {
-  return await GetValueByKey(onlineCountKey);
+export async function getOnlineCount() {
+  return await getValueByKey(onlineCountKey);
 }
 
-export async function AddDuelOpponent(duelId: string, login: string) {
+export async function addDuelOpponent(duelId: string, login: string) {
   const query = `UPDATE "duels" SET "login2" = '${login}' WHERE "duel_id" = '${duelId}';`;
   const result = await Q(query, false);
   return result ? true : false;
 }
 
-export async function GetDuelPairCount(
+export async function getDuelPairCount(
   part1: string,
   part2: string,
 ): Promise<number> {
@@ -33,7 +33,7 @@ export async function GetDuelPairCount(
   return result && result.length > 0 ? result[0].count : 0;
 }
 
-export async function IsUserInDuel(user: string) {
+export async function isUserInDuel(user: string) {
   const login = user.toLowerCase();
   const query = `SELECT "duel_id", "creation", "login1", "login2" FROM "duels" WHERE ("login1" = '${login}' OR "login2" = '${login}') AND isfinished = false;`;
   const result = await Q(query);
@@ -44,7 +44,7 @@ export async function IsUserInDuel(user: string) {
   const timeS = Math.round(new Date().getTime() / 1000);
   const duelTime = Number(duelRow.creation);
   if (timeS - duelTime > duel_lifetime) {
-    await FinishDuel(duelRow.duel_id, '');
+    await finishDuel(duelRow.duel_id, '');
     return null;
   }
   if (!duelRow.login1 || !duelRow.login2) {
@@ -53,13 +53,13 @@ export async function IsUserInDuel(user: string) {
   return duelRow.duel_id;
 }
 
-export async function GetDuelData(duelId: string): Promise<DuelInfo | null> {
+export async function getDuelData(duelId: string): Promise<DuelInfo | null> {
   const query = `SELECT "login1", "login2", "creation", "isfinished", "winner" FROM "duels" WHERE "duel_id" = '${duelId}';`;
   const result = await Q(query, true);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
-  const userPersonal1 = await GetPersonalDataById(Number(row.login1));
-  const userPersonal2 = await GetPersonalDataById(Number(row.login2));
+  const userPersonal1 = await getPersonalDataById(Number(row.login1));
+  const userPersonal2 = await getPersonalDataById(Number(row.login2));
   const duelInfo: DuelInfo = {
     duel_id: duelId,
     id1: String(row.login1),
@@ -74,13 +74,13 @@ export async function GetDuelData(duelId: string): Promise<DuelInfo | null> {
   return duelInfo;
 }
 
-export async function GetOpponent(login: string) {
+export async function getOpponent(login: string) {
   const query = `SELECT "login2" FROM "duels" WHERE "isfinished" = false AND "login1" = '${login.toLowerCase()}';`;
   const result = await Q(query);
   return !result || result.length === 0 ? null : result[0].login2;
 }
 
-export async function RemoveDuelOpponent(login: string) {
+export async function removeDuelOpponent(login: string) {
   const findDuelQuery = `SELECT "duel_id", "login1" FROM "duels" WHERE "isfinished" = false AND "login2" = '${login.toLowerCase()}';`;
   const result = await Q(findDuelQuery);
   const duelId = result && result.length > 0 ? result[0].duel_id : null;
@@ -90,7 +90,7 @@ export async function RemoveDuelOpponent(login: string) {
   return removeResult ? true : false;
 }
 
-export async function GetDuelDataByUser(
+export async function getDuelDataByUser(
   login: string,
 ): Promise<DuelInfo | null> {
   const filteredLogin = String(login).toLowerCase();
@@ -99,8 +99,8 @@ export async function GetDuelDataByUser(
   const result = await Q(query);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
-  const userPersonal1 = await GetPersonalDataById(Number(row.login1));
-  const userPersonal2 = await GetPersonalDataById(Number(row.login2));
+  const userPersonal1 = await getPersonalDataById(Number(row.login1));
+  const userPersonal2 = await getPersonalDataById(Number(row.login2));
   const duelInfo: DuelInfo = {
     duel_id: row.duel_id,
     id1: String(row.login1),
@@ -115,7 +115,7 @@ export async function GetDuelDataByUser(
   return duelInfo;
 }
 
-export async function GetDuelDataByInviter(
+export async function getDuelDataByInviter(
   login: string,
 ): Promise<DuelInfo | null> {
   const filteredLogin = String(login).toLowerCase();
@@ -124,8 +124,8 @@ export async function GetDuelDataByInviter(
   const result = await Q(query);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
-  const userPersonal1 = await GetPersonalDataById(Number(row.login1));
-  const userPersonal2 = await GetPersonalDataById(Number(row.login2));
+  const userPersonal1 = await getPersonalDataById(Number(row.login1));
+  const userPersonal2 = await getPersonalDataById(Number(row.login2));
   const duelInfo: DuelInfo = {
     duel_id: row.duel_id,
     id1: String(row.login1),
@@ -140,7 +140,7 @@ export async function GetDuelDataByInviter(
   return duelInfo;
 }
 
-export async function FinishDuel(duelId: string, winner: string) {
+export async function finishDuel(duelId: string, winner: string) {
   console.log('Finish duel called');
   const filteredLogin = String(winner).toLowerCase();
   const query = `UPDATE "duels" SET isfinished = true, isexpired = true, winner = '${filteredLogin}' WHERE "duel_id" = '${duelId}';`;
@@ -148,14 +148,14 @@ export async function FinishDuel(duelId: string, winner: string) {
   return result ? true : null;
 }
 
-export async function DeleteDuel(duelId: string) {
+export async function deleteDuel(duelId: string) {
   const query = `DELETE FROM "duels" WHERE "duel_id" = '${duelId}';`;
   console.log('Delete duel called');
   const result = await Q(query, false);
   return result ? true : false;
 }
 
-export async function CreateDuel(login1: string, login2: string = '') {
+export async function createDuel(login1: string, login2: string = '') {
   const fLogin1 = String(login1).toLowerCase();
   const fLogin2 = String(login2).toLowerCase();
   if (!fLogin1) {

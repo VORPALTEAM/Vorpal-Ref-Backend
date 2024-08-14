@@ -6,19 +6,19 @@ import {
 } from '../../types';
 
 
-export async function GetUserInviter(username: string): Promise<string> {
+export async function getUserInviter(username: string): Promise<string> {
   const query = `SELECT "inviter" FROM "telegram_personal" WHERE "username" = '${username}';`;
   const result = await Q(query);
   return result && result.length > 0 ? result[0].inviter : "";
 }
 
-export async function GetUserInviterById(userId: string): Promise<string> {
+export async function getUserInviterById(userId: string): Promise<string> {
   const query = `SELECT "inviter" FROM "telegram_personal" WHERE "user_id" = '${userId}';`;
   const result = await Q(query);
   return result && result.length > 0 ? result[0].inviter : "";
 }
 
-export async function WriteReferralStats(data: {
+export async function writeReferralStats(data: {
   to: string;
   for: string;
   resource: string;
@@ -36,7 +36,7 @@ export async function WriteReferralStats(data: {
   return result ? true : false;
 }
 
-export async function GetReferralList(inviter: string): Promise<string[]> {
+export async function getReferralList(inviter: string): Promise<string[]> {
   const query = `SELECT "user_id", "username", "first_name", "last_name" FROM "telegram_personal" WHERE "inviter" = '${inviter}';`;
   const result = await Q(query);
   return result ? result.map((row) => {
@@ -44,7 +44,7 @@ export async function GetReferralList(inviter: string): Promise<string[]> {
   }) : []
 }
 
-export async function GetReferralCount(inviter: string): Promise<{level1: number; level2: number;}> {
+export async function getReferralCount(inviter: string): Promise<{level1: number; level2: number;}> {
   const query1 = `SELECT COUNT(*) FROM "telegram_personal" WHERE "inviter" = '${inviter.toLowerCase()}';`;
   const level1 = await Q(query1, true);
   if (!level1) {
@@ -69,7 +69,7 @@ WHERE "inviter" IN (
   })
 }
 
-export async function GetReferralStatsByUser(
+export async function getReferralStatsByUser(
   login: string,
   limit = 5
 ): Promise<ReferralStatsData[]> {
@@ -89,7 +89,7 @@ export async function GetReferralStatsByUser(
   }) : [];
 }
 
-export async function GetReferralTotalRewardsByUser(login: string): Promise<{item: string; amount: number}[]> {
+export async function getReferralTotalRewardsByUser(login: string): Promise<{item: string; amount: number}[]> {
   const query = `
      SELECT resource, SUM(amount) as total_amount
        FROM "telegram_referral_stats"

@@ -1,7 +1,9 @@
-export async function TestStartHandler (bot, msg) {
+import { Bot } from '../bot';
+
+export async function testStartHandler (Bot, msg) {
     try {
       console.log("Test handler");
-      await bot.sendMessage(msg.chat.id, `Received: ${msg.text}`);
+      await Bot.sendMessage(msg.chat.id, `Received: ${msg.text}`);
     } catch (error) {
       console.error("Error handling message:", error);
     }

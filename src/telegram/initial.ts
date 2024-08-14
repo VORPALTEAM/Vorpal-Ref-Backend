@@ -1,55 +1,55 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { TxnHistoryAction, duelAcceptAction, duelCancelAction, duelRefuseAction } from './handlers/duel';
-import { StartHandler } from './handlers/start';
+import { txnHistoryAction, duelAcceptAction, duelCancelAction, duelRefuseAction } from './handlers/duel';
+import { startHandler } from './handlers/start';
 import { duelText, messages, startText, tg_token, usingRegExps } from './constants';
-import { bot } from './bot';
-import { DuelCreationHandler } from './handlers/duelCreate';
-import { DuelAcceptHandler } from './handlers/duelAccept';
-import { SendMessageWithSave } from './handlers/utils';
+import { Bot } from './bot';
+import { duelCreationHandler } from './handlers/duelCreate';
+import { duelAcceptHandler } from './handlers/duelAccept';
+import { sendMessageWithSave } from './handlers/utils';
 import { MarkupKeyboard } from './handlers/keyboard';
-import { NotABusyRegex } from '../utils/text';
-import { referralLastTxnAction, ReferralStatsAction, ReferralStatsHandler, referralTotalCountAction } from './handlers/referral';
+import { notABusyRegex } from '../utils/text';
+import { referralLastTxnAction, referralStatsAction, referralStatsHandler, referralTotalCountAction } from './handlers/referral';
 import { SetupBotMenuCommands } from './cmdSetup';
-import { GetPersonalDataById, GetPersonalDataByUsername } from '../models/telegram';
+import { getPersonalDataById, getPersonalDataByUsername } from '../models/telegram';
 import { initOldBot } from './old';
 
 
-export function TelegramBotLaunch() {
+export function telegramBotLaunch() {
 
   SetupBotMenuCommands ();
 
-  bot.onText(/\/start/, async (msg, match) => {
+  Bot.onText(/\/start/, async (msg, match) => {
     const startDuelRegex = /\/start (.+)/;
     if (msg.text && startDuelRegex.test(msg.text)) {
         return;
     }
 
-    await StartHandler(bot, msg, match);
+    await startHandler(Bot, msg, match);
   });
 
-  bot.onText(/\/duel/, async (msg, match) => {
+  Bot.onText(/\/duel/, async (msg, match) => {
 
-    await DuelCreationHandler (bot, msg);
+    await duelCreationHandler (Bot, msg);
   });
 
-  bot.onText(/\/referral/, async (msg, match) => {
+  Bot.onText(/\/referral/, async (msg, match) => {
 
-    await ReferralStatsHandler (bot, msg);
+    await referralStatsHandler (Bot, msg);
   });
 
-  bot.onText(/\/start (.+)/, async (msg, match) => {
+  Bot.onText(/\/start (.+)/, async (msg, match) => {
 
-    await  DuelAcceptHandler(bot, msg, match);
+    await  duelAcceptHandler(Bot, msg, match);
   });
 
-  bot.onText(/\/start(?:\?startapp=([^]+))?/, async (msg, match) => {
+  Bot.onText(/\/start(?:\?startapp=([^]+))?/, async (msg, match) => {
     const inviterLogin = match ? match[1] : "" // Если inviterId присутствует в ссылке, он будет доступен здесь
     if (inviterLogin) {
-        bot.sendMessage(msg.chat.id, `You have invited by: ${inviterLogin}`);
+        Bot.sendMessage(msg.chat.id, `You have invited by: ${inviterLogin}`);
     } 
   });
 
-  bot.on('inline_query', async (query) => {
+  Bot.on('inline_query', async (query) => {
     const deepLink = `https://t.me/${
       process.env.TELEGRAM_BOT_NAME
     }?start=${query.from.username?.replace(' ', '')}`;
@@ -75,71 +75,71 @@ export function TelegramBotLaunch() {
       },
     ];
 
-    await bot.answerInlineQuery(query.id, results);
+    await Bot.answerInlineQuery(query.id, results);
     return;
   });
 
-  bot.on('callback_query', async (query: TelegramBot.CallbackQuery) => {
+  Bot.on('callback_query', async (query: TelegramBot.CallbackQuery) => {
     if (!query.data) return; 
     const inviter = query.data.split("%")[1] || ""
     switch (true) {
       case query.data === "duel":
-        await DuelCreationHandler (bot, query);
+        await duelCreationHandler (Bot, query);
         break;
       case query.data === "transactions":
-        await TxnHistoryAction (bot, query);
+        await txnHistoryAction (Bot, query);
         break;
       case query.data === "referrals":
-        await ReferralStatsAction (bot, query)
+        await referralStatsAction (Bot, query)
         break;
       case query.data.indexOf("duelconfirm") > -1:
-        await duelAcceptAction (bot, query, inviter);
+        await duelAcceptAction (Bot, query, inviter);
         break;
       case query.data.indexOf("duelrefuse") > -1:
-        await duelRefuseAction (bot, query, inviter);
+        await duelRefuseAction (Bot, query, inviter);
         break;
       case query.data.indexOf("totalRef") >-1:
-        await referralTotalCountAction(bot, query);
+        await referralTotalCountAction(Bot, query);
         break;
       case query.data.indexOf("refTxnList") >-1:
-          await referralLastTxnAction(bot, query);
+          await referralLastTxnAction(Bot, query);
           break;
       case  query.data.indexOf("duelcancel") > -1:
-        await duelCancelAction (bot, query,  inviter);
+        await duelCancelAction (Bot, query,  inviter);
         break;
     }
   });
 
-  bot.on('message', async (msg, match) => {
+  Bot.on('message', async (msg, match) => {
     const txt: string = msg.text || "";
     switch (true) {
       case txt === "Start": 
-        await StartHandler (bot, msg, match)
+        await startHandler (Bot, msg, match)
         break;
       case txt === "Duel": 
-        await DuelCreationHandler (bot, msg)
+        await duelCreationHandler (Bot, msg)
         break;
       case txt === "start": 
-        await StartHandler (bot, msg, match)
+        await startHandler (Bot, msg, match)
         break;
       case txt.length < 3:
-        await StartHandler (bot, msg, match)
+        await startHandler (Bot, msg, match)
         break;
-      case NotABusyRegex (txt, usingRegExps):
-        await StartHandler (bot, msg, match)
+      case notABusyRegex (txt, usingRegExps):
+        await startHandler (Bot, msg, match)
         break;
     }
   });
 
-  bot.on('polling_error', (error) => {
+  Bot.on('polling_error', (error) => {
     console.error('Polling error:', error);
   });
 
-  bot.on('webhook_error', (error) => {
+  Bot.on('webhook_error', (error) => {
     console.error('Webhook error:', error);
   });
 
-  bot.on('error', (error) => {
+  Bot.on('error', (error) => {
     console.error('Bot error:', error);
   });
 }

@@ -1,10 +1,10 @@
 import { runQuery as Q } from '../connection'
-import { WriteLog }  from '../log';
+import { writeLog }  from '../log';
 import Web3 from 'web3';
 import sha256 from 'sha256';
 import { config } from '../../config';
 
-export function GenerateAuthMessage ( msgtext = 'getcontent_' ) {
+export function generateAuthMessage ( msgtext = 'getcontent_' ) {
     const dt = new Date().getTime()
     const timeMark = dt - (dt % 600000)
     const msgstring = `${msgtext}${String(timeMark)}` 
@@ -13,14 +13,14 @@ export function GenerateAuthMessage ( msgtext = 'getcontent_' ) {
     return String(hash);
 }
 
-export async function CheckRights ( signature, msgtext = 'getcontent_' ) {
+export async function checkRights ( signature, msgtext = 'getcontent_' ) {
 
     if ( !signature ) {
         return null;
     }
 
     const web3 = new Web3(config.rpcUrl)
-    const msg = GenerateAuthMessage ( msgtext )
+    const msg = generateAuthMessage ( msgtext )
     let request_address = ''
 
     try {
@@ -35,9 +35,9 @@ export async function CheckRights ( signature, msgtext = 'getcontent_' ) {
     const user_query = await Q(admins_query);
 
     if (!user_query || user_query.length === 0) {
-        WriteLog(request_address, "Auth failed")
+        writeLog(request_address, "Auth failed")
         return null
     }
-    WriteLog(user_query[0].address, "Auth success, msg : " + msgtext)
+    writeLog(user_query[0].address, "Auth success, msg : " + msgtext)
     return user_query[0].address
 }

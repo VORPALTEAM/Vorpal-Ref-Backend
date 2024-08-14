@@ -1,8 +1,8 @@
 require('dotenv').config();
 import { runQuery as Q } from './connection';
-import { GenerateLink } from '../generateLink';
+import { generateLink } from '../generateLink';
 
-function IsWrongString ( arg ) {
+function isWrongString ( arg ) {
   if (!arg) return true
   if (arg.indexOf(";") > -1) return true
   if (arg.indexOf(" ") > -1) return true
@@ -11,9 +11,9 @@ function IsWrongString ( arg ) {
 }
 
 // Trying to add an address if it's not exists
-async function SetupBalances (owner) {
+async function setupBalances (owner) {
 
-  if (IsWrongString(owner)) return null
+  if (isWrongString(owner)) return null
   
   const addOwnerQuery = `INSERT INTO balances (address, balance_scheduled, balance_available, balance_withdrawn)
    VALUES ( '${owner.toLowerCase()}', 0, 0, 0) ON CONFLICT (address) DO NOTHING;`;
@@ -24,8 +24,8 @@ async function SetupBalances (owner) {
 }
 
 //New link generation, returns new link
-async function AddNewLink ( owner, reward1 = 90, reward2 = 10 ) {
-   if (IsWrongString(owner)) return null
+async function addNewLink ( owner, reward1 = 90, reward2 = 10 ) {
+   if (isWrongString(owner)) return null
    if (typeof(reward1) !== 'number' || typeof(reward2) !== 'number'  || ( reward2 + reward1 > 100)) return null
 
    const CheckQuery = `select count(*) from referral_owner where address = '${owner}';`;
@@ -36,13 +36,13 @@ async function AddNewLink ( owner, reward1 = 90, reward2 = 10 ) {
       return ""
    }
 
-   const newLink = GenerateLink(owner)
+   const newLink = generateLink(owner)
    const linkAddQuery = `INSERT INTO referral_owner(address, link_key, value_primary, value_secondary) VALUES('${owner}', '${newLink}', '${reward1}', '${reward2}');`
 
    await Q(linkAddQuery)
 
    try {
-      SetupBalances (owner)  
+      setupBalances (owner)  
    } catch (e) {
      console.log(e.message)
    }
@@ -52,9 +52,9 @@ async function AddNewLink ( owner, reward1 = 90, reward2 = 10 ) {
 
 //Registering a new referral. Only one referral link to address, 
 //returns true is it was registered, false if not
-async function RegisterReferral ( address, link ) {
+async function registerReferral ( address, link ) {
 
-   if( IsWrongString ( address ) || IsWrongString ( link )) return {
+   if( isWrongString ( address ) || isWrongString ( link )) return {
       result: false,
       error: "Incorrect entry"
    }
@@ -104,9 +104,9 @@ async function RegisterReferral ( address, link ) {
 
 }
 
-async function GetLinksByOwner (owner : string) {
+async function getLinksByOwner (owner : string) {
 
-  if (IsWrongString ( owner )) return []
+  if (isWrongString ( owner )) return []
   
    const getterQuery = `SELECT address, link_key, value_primary, value_secondary FROM referral_owner WHERE address = '${owner}';`
 
@@ -115,7 +115,7 @@ async function GetLinksByOwner (owner : string) {
    return links || []
 }
 
-async function GetRefCount ( link: any ) {
+async function getRefCount ( link: any ) {
    
    const countQuery = `SELECT COUNT(*) from address_to_referral WHERE link_key = '${link}';`;
 
@@ -125,10 +125,10 @@ async function GetRefCount ( link: any ) {
 }
 
 export {
-     IsWrongString,
-     SetupBalances,
-     AddNewLink,
-     RegisterReferral,
-     GetLinksByOwner,
-     GetRefCount
+     isWrongString,
+     setupBalances,
+     addNewLink,
+     registerReferral,
+     getLinksByOwner,
+     getRefCount
 }

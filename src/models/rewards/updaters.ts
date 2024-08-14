@@ -1,17 +1,17 @@
 require('dotenv').config();
 import { TelegramAuthData, boxOpenResults } from 'types';
 import { pool } from '../connection';
-import { WriteLog } from '../log';
-import { GetBoxOwner, GetHolderData, GetUserBalanceRow, IsHolderExists } from './getters';
-import { GetChannelSubscribeList } from '../../telegram/handlers/subscribe';
-import { GetUserInviter, GetUserInviterById, WriteReferralStats } from '../telegram/referral';
+import { writeLog } from '../log';
+import { getBoxOwner, getHolderData, getUserBalanceRow, isHolderExists } from './getters';
+import { getChannelSubscribeList } from '../../telegram/handlers/subscribe';
+import { getUserInviter, getUserInviterById, writeReferralStats } from '../telegram/referral';
 import { referralPart1, referralPart2 } from '../../config';
 
 const rewardmessage = "Reward from box";
 const rewardrefmessage = "Reward for referral";
 
 
-export async function CreateNewBox(
+export async function createNewBox(
   level: number,
   ownerAddress: string = '',
   ownerLogin: string = '',
@@ -19,7 +19,7 @@ export async function CreateNewBox(
   const Holer = ownerAddress.toLowerCase();
   console.log('Box creation called for: ', ownerLogin);
   if (!Holer && !ownerLogin) return false;
-  const holderData = await IsHolderExists(Holer);
+  const holderData = await isHolderExists(Holer);
   if (!holderData) {
     await createNewHolder(Holer, ownerLogin.toLowerCase());
   }
@@ -34,14 +34,14 @@ export async function CreateNewBox(
   return info.rows[0];
 }
 
-export async function GiveResources(
+export async function giveResources(
   ownerAddress: string = '',
   ownerLogin: string = '',
   resource: string,
   amount: number,
 ) {
   const Holer = ownerAddress.toLowerCase();
-  const holderData = await IsHolderExists(Holer);
+  const holderData = await isHolderExists(Holer);
 
   if (!holderData) {
     const creation = await createNewHolder(Holer, ownerLogin.toLowerCase());
@@ -49,12 +49,12 @@ export async function GiveResources(
   const balanceQuery = `UPDATE resources SET ${resource} = ${resource} + ${amount} 
   WHERE ownerAddress = '${Holer}';`;
   await pool.query(balanceQuery);
-  return await GetUserBalanceRow(Holer, ownerLogin.toLowerCase());
+  return await getUserBalanceRow(Holer, ownerLogin.toLowerCase());
 }
 
 export async function createNewHolder(address: string, login?: string) {
   const ownerLogin = (login || address).toLowerCase();
-  const isUserExists = await IsHolderExists(address.toLowerCase());
+  const isUserExists = await isHolderExists(address.toLowerCase());
   if (isUserExists) {
     return false;
   }
@@ -92,12 +92,12 @@ export async function updateResourceTransaction(
 }
 
 export async function sendRewardsToReferrals (user: string, resource: string, amount: number) {
-  const referral1 = await GetUserInviterById (user);
+  const referral1 = await getUserInviterById (user);
   if (!referral1) return([]);
-  const referral2 = await GetUserInviterById (referral1);
-  await WriteReferralStats ({ to: referral1, for: user, resource, amount: amount * referralPart1, level: 1 })
+  const referral2 = await getUserInviterById (referral1);
+  await writeReferralStats ({ to: referral1, for: user, resource, amount: amount * referralPart1, level: 1 })
   if (referral2) {
-    await WriteReferralStats ({ to: referral2, for: user, resource, amount: amount * referralPart1, level: 2 })
+    await writeReferralStats ({ to: referral2, for: user, resource, amount: amount * referralPart1, level: 2 })
   }
   return Promise.all([
     updateResourceTransaction(referral1, resource, amount * referralPart1, rewardrefmessage),
@@ -128,7 +128,7 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
       error: 'Box is already open',
     };
   }
-  const owner = await GetBoxOwner(boxId);
+  const owner = await getBoxOwner(boxId);
   const value = Math.round(Math.random() * 10000);
   const valueVRP = Math.round(Math.random() * 5) + 5;
   await createNewHolder(

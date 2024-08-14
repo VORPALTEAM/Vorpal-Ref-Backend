@@ -24,7 +24,7 @@ export const usingRegExps: RegExp[] = [
 ];
 
 export const messages = {
-    old: `Now we are moved to new bot, go: https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
+    old: `Now we are moved to new Bot, go: https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
     welcome: `
       Welcome to a Star defender game app powered by VORPAL Engine!
       You now can start a duel with your friend or play demo with bot`,

@@ -1,14 +1,14 @@
-import { oldBot } from "./bot"
+import { OldBot } from "./bot"
 import { messages } from "./constants";
 
 
 export function initOldBot () {
-    if (!oldBot) {
+    if (!OldBot) {
         console.log("No old bot present");
         return;
     }
     console.log("Old bot notify started");
-    oldBot?.on('message', (msg) => {
-        oldBot?.sendMessage(msg.chat.id, messages.old);
+    OldBot?.on('message', (msg) => {
+        OldBot?.sendMessage(msg.chat.id, messages.old);
     })
  }

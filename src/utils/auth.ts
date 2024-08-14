@@ -3,12 +3,12 @@ import { TelegramAuthData, TelegramAuthDataNoHash, TGInitData } from '../types';
 
 const token = process.env.TELEGRAM_API_TOKEN || '';
 
-export function GetDaylyAuthDate(): number {
+export function getDaylyAuthDate(): number {
   const dt = new Date().getTime();
   return Math.round((dt - (dt % 86400000)) / 1000);
 }
 
-export function GetSignableMessage(): string {
+export function getSignableMessage(): string {
   const dt = new Date().getTime();
   return 'auth_' + String(dt - (dt % 600000));
 }
@@ -18,7 +18,7 @@ export function getQueryParam(param, url) {
   return urlParams.get(param);
 }
 
-export function CreateTelegramAuthHash(auth_data: TelegramAuthDataNoHash) {
+export function createTelegramAuthHash(auth_data: TelegramAuthDataNoHash) {
   // Sorting the restData keys alphabetically
   const data_check_arr = Object.entries(auth_data)
     .sort(([a], [b]) => (a > b ? 1 : -1))
@@ -45,7 +45,7 @@ export function CreateTelegramAuthHash(auth_data: TelegramAuthDataNoHash) {
 }
   */
 // Data from url params
-export function CheckTelegramAuth(params: TelegramAuthData): {
+export function checkTelegramAuth(params: TelegramAuthData): {
   success: boolean;
   error: string;
 } {
@@ -84,7 +84,7 @@ export function CheckTelegramAuth(params: TelegramAuthData): {
   };
 }
 // Telegram webApp init data
-export function ValidateByInitData (initData: any, botToken = token) {
+export function validateByInitData (initData: any, botToken = token) {
   const urlSearchParams = new URLSearchParams(initData);
   const data = Object.fromEntries(urlSearchParams.entries());
 

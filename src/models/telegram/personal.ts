@@ -1,7 +1,7 @@
 import { runQuery as Q } from '../connection';
 import { TelegramAuthData, TelegramAuthNote, tgUserTxnData } from '../../types';
 
-export async function SetPersonalData(
+export async function setPersonalData(
   data: TelegramAuthData,
   chat?: number,
   inviter?: string
@@ -36,7 +36,7 @@ export async function SetPersonalData(
   });
 }
 
-export async function GetPersonalDataById(
+export async function getPersonalDataById(
   id: number,
 ): Promise<TelegramAuthNote | null> {
   return new Promise(async (resolve, reject) => {
@@ -58,7 +58,7 @@ export async function GetPersonalDataById(
   });
 }
 
-export async function GetPersonalDataByUsername(
+export async function getPersonalDataByUsername(
   username: string,
 ): Promise<TelegramAuthNote | null> {
   return new Promise(async (resolve, reject) => {
@@ -80,7 +80,7 @@ export async function GetPersonalDataByUsername(
   });
 }
 
-export async function GetUserTransactions (login: string) {
+export async function getUserTransactions (login: string) {
   const query = `SELECT * FROM "resource_txn_log" WHERE "userlogin" = '${login.toLowerCase()}' ORDER BY "time" DESC;`;
   const txns = await Q(query);
   return txns && txns.length > 0 ? txns : []

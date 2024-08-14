@@ -1,52 +1,52 @@
 import { Request, Response } from "express";
-import { CheckTelegramAuth, decodeTgInitData, ValidateByInitData } from "../utils/auth";
-import { BuyItem, GetStoreItems, GetUserAllItemBalances, GetUserItemBalance, IsItemAvailableToBuy } from "../models/telegram";
+import { checkTelegramAuth, decodeTgInitData, validateByInitData } from "../utils/auth";
+import { buyItem, getStoreItems, getUserAllItemBalances, getUserItemBalance, isItemAvailableToBuy } from "../models/telegram";
 
-export const GetStoreItemsResponce = async (req: Request, res: Response) => {
-    const items = await GetStoreItems();
+export const getStoreItemsResponce = async (req: Request, res: Response) => {
+    const items = await getStoreItems();
     res.status(200).send(JSON.stringify({
         items
     }))
 }
 
-export const BalanceResponce = async (req: Request, res: Response) => {
+export const balanceResponce = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.itemId || !body.login) {
         res.status(400).send("Nessesary parameters missed")
     }
 
-    const balance = await GetUserItemBalance (body.login, body.itemId);
+    const balance = await getUserItemBalance (body.login, body.itemId);
     res.status(200).send(JSON.stringify({
         balance: balance || 0
     }))
 }
 
-export const BalanceAllResponce = async (req: Request, res: Response) => {
+export const balanceAllResponce = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.login) {
         res.status(400).send({ error: "Nessesary parameters missed"})
     }
 
-    const balance = await GetUserAllItemBalances (body.login);
+    const balance = await getUserAllItemBalances (body.login);
     res.status(200).send(JSON.stringify({
         balance: balance || 0
     }))
 }
 
-export const CheckAvailableResponce = async (req: Request, res: Response) => {
+export const checkAvailableResponce = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.itemId || !body.login || !body.amount) {
         res.status(400).send(JSON.stringify({error: "Nessesary parameters missed"}))
     }
 
-    const isAvailable = await IsItemAvailableToBuy (body.login, body.itemId, body.amount);
+    const isAvailable = await isItemAvailableToBuy (body.login, body.itemId, body.amount);
     res.status(200).send(JSON.stringify(isAvailable))
 }
 
-export const BuyResponce = async (req: Request, res: Response) => {
+export const buyResponce = async (req: Request, res: Response) => {
     const body = req.body;
     console.log("Buy request body: ", req.body);
     if (!body.telegramInitData && !body.telegramData.id) {
@@ -61,8 +61,8 @@ export const BuyResponce = async (req: Request, res: Response) => {
 
     try {
         const telegramDataValidation = 
-        body.telegramInitData ? ValidateByInitData (body.telegramInitData) :
-        body.telegramData? CheckTelegramAuth(body.telegramData).success : null;
+        body.telegramInitData ? validateByInitData (body.telegramInitData) :
+        body.telegramData? checkTelegramAuth(body.telegramData).success : null;
     
         const telegramUserId = String(body.telegramInitData ? decodeTgInitData(body.telegramInitData)?.user?.id: body.telegramData.id)
         
@@ -72,7 +72,7 @@ export const BuyResponce = async (req: Request, res: Response) => {
         if (!telegramDataValidation || !telegramUserId) {
             res.status(403).send(JSON.stringify({error: "Auth failed"}))
         }
-        const buy = await BuyItem (telegramUserId, body.itemId, body.amount);
+        const buy = await buyItem (telegramUserId, body.itemId, body.amount);
         res.status(200).send(JSON.stringify(buy));
     } catch (e) {
         console.log(e);

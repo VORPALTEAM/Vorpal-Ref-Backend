@@ -3,7 +3,7 @@ import { runQuery as Q } from '../connection';
 
 // const filePath = '../../../admin.log';
 
-export function WriteLog ( address, message ) {
+export function writeLog ( address, message ) {
     const time = new Date()
     const year = time.getFullYear();
     const month = ('0' + (time.getMonth() + 1)).slice(-2);

@@ -1,16 +1,16 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { TelegramAuthData, tgChannelData } from '../../types';
-import { GetDaylyAuthDate, CreateTelegramAuthHash } from '../../utils/auth';
-import { SendSubscribeMessage } from './subscribe';
+import { getDaylyAuthDate, createTelegramAuthHash } from '../../utils/auth';
+import { sendSubscribeMessage } from './subscribe';
 import { duel_lifetime, tg_chat_history_lifetime } from '../../config';
 import { InlineKeyboard } from './keyboard';
 import {
-  AddDuelOpponent,
-  GetDuelDataByInviter,
-  GetDuelDataByUser,
-  GetOpponent,
-  GetPersonalDataById,
-  SetPersonalData,
+  addDuelOpponent,
+  getDuelDataByInviter,
+  getDuelDataByUser,
+  getOpponent,
+  getPersonalDataById,
+  setPersonalData,
 } from '../../models/telegram';
 import {
   duelConfirmText,
@@ -20,21 +20,22 @@ import {
   messages,
   startText,
 } from '../constants';
-import { SaveMessage } from '../../models/telegram/history';
-import { SendMessageWithSave, TruncateChat } from './utils';
-import { GetUserInviter } from '../../models/telegram/referral';
+import { saveMessage } from '../../models/telegram/history';
+import { sendMessageWithSave, truncateChat } from './utils';
+import { getUserInviter } from '../../models/telegram/referral';
+import { Bot } from '../bot';
 
-export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) => {
+export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) => {
   const chatId = msg.chat.id;
   try {
     /* if (!msg.from.username) {
-      SendMessageWithSave(bot, chatId, messages.noUsername);
+      SendMessageWithSave(Bot, chatId, messages.noUsername);
       return;
     } */
-    SaveMessage(chatId, msg.message_id);
+    saveMessage(chatId, msg.message_id);
 
     const linkAuthDataPrev: TelegramAuthData = {
-      auth_date: GetDaylyAuthDate(),
+      auth_date: getDaylyAuthDate(),
       last_name: msg.from.last_name?.replace(' ', '') || '',
       first_name: msg.from.first_name?.replace(' ', ''),
       id: msg.from.id,
@@ -44,10 +45,10 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
 
     const inviterLogin = match[1]?.toLowerCase();
 
-    const inviterId = (await GetPersonalDataById (inviterLogin))?.id;
+    const inviterId = (await getPersonalDataById (inviterLogin))?.id;
 
     try {
-      SetPersonalData(linkAuthDataPrev, chatId, String(inviterId || ""));
+      setPersonalData(linkAuthDataPrev, chatId, String(inviterId || ""));
     } catch (e) {
       console.log(e.message);
     }
@@ -55,28 +56,28 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
     // await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
 
     /* if (!msg.from.username) {
-      SendMessageWithSave(bot, chatId, messages.noUsername);
+      SendMessageWithSave(Bot, chatId, messages.noUsername);
       return;
     } */
 
     if (!inviterId) {
-      SendMessageWithSave(bot, chatId, messages.noInviter, {
+      sendMessageWithSave(Bot, chatId, messages.noInviter, {
         reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
       return;
     }
 
     if (inviterId === linkAuthDataPrev.id) {
-      SendMessageWithSave(bot, chatId, messages.inviteSelf);
+      sendMessageWithSave(Bot, chatId, messages.inviteSelf);
       return;
     }
 
     const createdDuel = inviterId
-      ? await GetDuelDataByInviter(String(inviterId))
+      ? await getDuelDataByInviter(String(inviterId))
       : null;
 
     if (!createdDuel) {
-      SendMessageWithSave(bot, chatId, messages.duelNotFound, {
+      sendMessageWithSave(Bot, chatId, messages.duelNotFound, {
         reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
       return;
@@ -88,7 +89,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       createdDuel.isfinished &&
       timeNow - createdDuel.creation <= duel_lifetime
     ) {
-      SendMessageWithSave(bot, chatId, messages.duelCancelled, {
+      sendMessageWithSave(Bot, chatId, messages.duelCancelled, {
         reply_markup: InlineKeyboard(['enterGame','duel']),
       });
       return;
@@ -98,7 +99,7 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       createdDuel.isexpired ||
       timeNow - createdDuel.creation > duel_lifetime
     ) {
-      SendMessageWithSave(bot, chatId, messages.duelExpired, {
+      sendMessageWithSave(Bot, chatId, messages.duelExpired, {
         reply_markup: InlineKeyboard(['enterGame','duel']),
       });
       return;
@@ -111,22 +112,22 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       createdDuel.isfinished ||
       timeNow - createdDuel.creation > duel_lifetime
     ) {
-      SendMessageWithSave(bot, chatId, messages.duelBusy, {
+      sendMessageWithSave(Bot, chatId, messages.duelBusy, {
         reply_markup: InlineKeyboard(['enterGame', 'duel']),
       });
       return;
     }
 
-    await AddDuelOpponent(createdDuel.duel_id, String(linkAuthDataPrev.id));
-    SendMessageWithSave(bot, chatId, messages.duelAccept(inviterLogin), {
+    await addDuelOpponent(createdDuel.duel_id, String(linkAuthDataPrev.id));
+    sendMessageWithSave(Bot, chatId, messages.duelAccept(inviterLogin), {
       reply_markup: InlineKeyboard(['duelConfirm', 'duelRefuse'], inviterLogin),
     });
 
-    const opponentData = await GetPersonalDataById(inviterId);
+    const opponentData = await getPersonalDataById(inviterId);
     if (opponentData) {
       try {
-        SendMessageWithSave(
-          bot,
+        sendMessageWithSave(
+          Bot,
           opponentData.chat_id,
           messages.duelAcceptNotify(linkAuthDataPrev.username || linkAuthDataPrev.first_name || '', linkAuthDataPrev.username ? true : false),
           { reply_markup: InlineKeyboard(['duelConfirm']) },
@@ -138,9 +139,9 @@ export const DuelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
     return;
   } catch (e) {
     console.log('Error: ', e.message);
-    SendMessageWithSave(bot, chatId, messages.serverError(e.message));
+    sendMessageWithSave(Bot, chatId, messages.serverError(e.message));
   }
-  setTimeout(() => {
-    TruncateChat(bot, chatId);
-  }, tg_chat_history_lifetime);
+  /* setTimeout(() => {
+    truncateChat(Bot, chatId);
+  }, tg_chat_history_lifetime); */
 };

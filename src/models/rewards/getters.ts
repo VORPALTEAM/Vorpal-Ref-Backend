@@ -15,7 +15,7 @@ const zeroAssets = {
   trends: 0
 }
 
-export async function GetBoxOpenResult(boxId: number) {
+export async function getBoxOpenResult(boxId: number) {
   const logQuery = `SELECT * FROM box_log WHERE id = ${boxId};`;
   const result = await Q(logQuery);
   if (!result|| result.length === 0) {
@@ -30,9 +30,9 @@ export async function GetBoxOpenResult(boxId: number) {
   };
 }
 
-export async function GetLoginByAddress(address: string) {}
+export async function getLoginByAddress(address: string) {}
 
-export async function IsHolderExists (address: string): Promise<Boolean> {
+export async function isHolderExists (address: string): Promise<Boolean> {
   const selectionQuery = `SELECT * FROM resources WHERE ownerAddress = '${address.toLowerCase()}' LIMIT 1;`;
   const result = await Q(selectionQuery);
   if (!result || result.length === 0) {
@@ -42,7 +42,7 @@ export async function IsHolderExists (address: string): Promise<Boolean> {
   }
 }
 
-export async function GetHolderData(address: string) {
+export async function getHolderData(address: string) {
   const selectionQuery = `SELECT * FROM resources WHERE ownerAddress = '${address.toLowerCase()}' LIMIT 1;`;
   const result = await Q(selectionQuery);
   if (!result || result.length === 0) {
@@ -51,7 +51,7 @@ export async function GetHolderData(address: string) {
   return result[0];
 }
 
-export async function GetBoxOwner(boxId: number): Promise<string> {
+export async function getBoxOwner(boxId: number): Promise<string> {
   const selectionQuery = `
         SELECT ownerAddress, ownerLogin FROM boxes WHERE id= '${boxId}' LIMIT 1;
       `;
@@ -63,7 +63,7 @@ export async function GetBoxOwner(boxId: number): Promise<string> {
   }
 }
 
-export async function GetUserBalanceRow(ownerAddress = '', ownerLogin = '') {
+export async function getUserBalanceRow(ownerAddress = '', ownerLogin = '') {
   if (!ownerAddress && !ownerLogin) {
     return null;
   }
@@ -80,7 +80,7 @@ export async function GetUserBalanceRow(ownerAddress = '', ownerLogin = '') {
   return assets[0];
 }
 
-export async function GetAvailableBoxesByOwner(
+export async function getAvailableBoxesByOwner(
   ownerAddress = '',
   ownerLogin = '',
 ) {

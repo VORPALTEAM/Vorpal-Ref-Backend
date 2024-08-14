@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { IsAdminBySignature } from "./common";
+import { isAdminBySignature } from "./common";
 import { DuelPlayerStats } from "../types";
 import { addDuelPlayerStats, getDuelStatsByDuelId, getDuelStatsByPlayerId, getPlayerAggregateStats } from "../models/stats";
 
 export const addStats = async (req: Request, res: Response) => {
     try {
       const body = req.body;
-      if (!body.signature || !(await IsAdminBySignature(body.signature))) {
+      if (!body.signature || !(await isAdminBySignature(body.signature))) {
         res.status(403).send({ error: "No rights to add" });
         return;
       }

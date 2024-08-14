@@ -1,22 +1,22 @@
 import { Markup } from 'telegraf';
 import { TelegramAuthData, tgChannelData } from '../../types';
-import { GetDaylyAuthDate, CreateTelegramAuthHash } from '../../utils/auth';
+import { getDaylyAuthDate, createTelegramAuthHash } from '../../utils/auth';
 import {
-  AddDuelOpponent,
-  CreateDuel,
-  FinishDuel,
-  GetDuelDataByInviter,
-  GetDuelDataByUser,
-  GetWatchingChannels,
-  SetPersonalData,
+  addDuelOpponent,
+  createDuel,
+  finishDuel,
+  getDuelDataByInviter,
+  getDuelDataByUser,
+  getWatchingChannels,
+  setPersonalData,
 } from '../../models/telegram';
 import { duel_lifetime } from '../../config';
-import { bot } from '../bot';
+import { Bot } from '../bot';
 import { duelText, inviteLink, messages, startText } from '../constants';
-import { SendMessageWithSave } from './utils';
+import { sendMessageWithSave } from './utils';
 
-export async function SendSubscribeMessage(userId: number, chatId: number) {
-  const subscribes = await GetChannelSubscribeList(userId);
+export async function sendSubscribeMessage(userId: number, chatId: number) {
+  const subscribes = await getChannelSubscribeList(userId);
 
   const inlineButtons = subscribes.map((item) => ({
     text: item.name,
@@ -28,23 +28,23 @@ export async function SendSubscribeMessage(userId: number, chatId: number) {
   };
 
   if (subscribes.length > 0) {
-    await SendMessageWithSave(bot, chatId, messages.subscribeRequest, {
+    await sendMessageWithSave(Bot, chatId, messages.subscribeRequest, {
       reply_markup: keyboardS,
     });
   }
 }
 
-export async function GetChannelSubscribeList(
+export async function getChannelSubscribeList(
   userId: number,
 ): Promise<tgChannelData[]> {
-  const channels = await GetWatchingChannels();
+  const channels = await getWatchingChannels();
   console.log('Subscriptions to watch: ', channels);
   const subscribes: tgChannelData[] = [];
 
   for (let j = 0; j < channels.length; j++) {
     // console.log("Channel: ", channels[j])
     try {
-      const chatMember = await bot.getChatMember(channels[j].id, userId);
+      const chatMember = await Bot.getChatMember(channels[j].id, userId);
       if (!chatMember) {
         continue;
       }

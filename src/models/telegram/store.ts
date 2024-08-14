@@ -1,8 +1,8 @@
 import { runQuery as Q } from '../connection';
-import { GetUserBalanceRow } from '../rewards';
+import { getUserBalanceRow } from '../rewards';
 import { TelegramAuthData, StoreItem, storeItemBalance } from '../../types';
 
-export async function AddStoreItem(item: StoreItem) {
+export async function addStoreItem(item: StoreItem) {
   const query = `INSERT INTO "store_items" 
     ("item", "type", "rareness", "description", "img_preview", "img_full", "per_user", "total_count", "cost", "currency")
     VALUES ('${item.item}', '${item.type}', '${item.rareness}', 
@@ -17,13 +17,13 @@ export async function AddStoreItem(item: StoreItem) {
   return result ? true : false;
 }
 
-export async function GetStoreItems(): Promise<StoreItem[]> {
+export async function getStoreItems(): Promise<StoreItem[]> {
   const query = `SELECT * FROM "store_items";`;
   const result = await Q(query);
   return result || [];
 }
 
-export async function GetStoreItem(
+export async function getStoreItem(
   param: string,
   value: string | number,
 ): Promise<StoreItem | null> {
@@ -32,14 +32,14 @@ export async function GetStoreItem(
   return result && result.length > 0 ? result[0] : null;
 }
 
-export async function CreateItemBalanceRow(login: string, itemId: number) {
+export async function createItemBalanceRow(login: string, itemId: number) {
   const query = `INSERT INTO "store_item_balances" ("user_name", "item_id", "balance")
     VALUES ('${login}', ${itemId}, 0);`;
   const result = await Q(query, false);
   return result ? true : false;
 }
 
-export async function GetUserItemBalance(
+export async function getUserItemBalance(
   login: string,
   itemId: number,
 ): Promise<number | null> {
@@ -49,7 +49,7 @@ export async function GetUserItemBalance(
   return result && result.length > 0 ? result[0].balance : null;
 }
 
-export async function GetUserAllItemBalances(
+export async function getUserAllItemBalances(
   login: string,
 ): Promise<{ itemId: number; balance: number }[] | null> {
   const query = `SELECT * FROM "store_item_balances" 
@@ -65,14 +65,14 @@ export async function GetUserAllItemBalances(
     : [];
 }
 
-export async function IsItemAvailableToBuy(
+export async function isItemAvailableToBuy(
   login: string,
   itemId: number,
   amount: number,
 ) {
-  const storeItem = await GetStoreItem('id', itemId);
-  const itemBalance = await GetUserItemBalance(login, itemId);
-  const currencyBalance = await GetUserBalanceRow(login, login);
+  const storeItem = await getStoreItem('id', itemId);
+  const itemBalance = await getUserItemBalance(login, itemId);
+  const currencyBalance = await getUserBalanceRow(login, login);
 
   if (!storeItem) {
     return {
@@ -111,14 +111,14 @@ export async function IsItemAvailableToBuy(
   };
 }
 
-export async function BuyItem(buyer: string, itemId: number, amount: number) {
-  const isAvailable = await IsItemAvailableToBuy(buyer, itemId, amount);
+export async function buyItem(buyer: string, itemId: number, amount: number) {
+  const isAvailable = await isItemAvailableToBuy(buyer, itemId, amount);
   if (!isAvailable.ok) {
     return isAvailable;
   }
-  const itemBalance = await GetUserItemBalance(buyer, itemId);
+  const itemBalance = await getUserItemBalance(buyer, itemId);
   if (itemBalance === null) {
-    await CreateItemBalanceRow(buyer, itemId);
+    await createItemBalanceRow(buyer, itemId);
   }
   const currencyQuery = `SELECT "currency", "cost" FROM "store_items" WHERE "id" = ${itemId};`;
   let currency = '';

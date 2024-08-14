@@ -1,23 +1,24 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { TelegramAuthData, tgChannelData } from '../../types';
-import { GetDaylyAuthDate, CreateTelegramAuthHash } from '../../utils/auth';
-import { SendSubscribeMessage } from './subscribe';
+import { getDaylyAuthDate, createTelegramAuthHash } from '../../utils/auth';
+import { sendSubscribeMessage } from './subscribe';
 import { duel_lifetime, tg_chat_history_lifetime } from '../../config';
 import { InlineKeyboard, MarkupKeyboard } from './keyboard';
-import { IsUserInDuel, SetPersonalData } from '../../models/telegram';
-import { SendMessageWithSave, SendPhotoWithSave, TruncateChat } from './utils';
+import { isUserInDuel, setPersonalData } from '../../models/telegram';
+import { sendMessageWithSave, sendPhotoWithSave, truncateChat } from './utils';
 import { messages } from '../constants';
-import { DeleteMessagesByChatId, SaveMessage } from '../../models/telegram/history';
+import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/history';
+import { Bot } from '../bot';
 
 export const introPhotoPath = '/app/public/entry.png';
 
-export const StartHandler = async (bot: TelegramBot, msg: TelegramBot.Message, match: any) => {
+export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, match: any) => {
   const chatId = msg.chat.id;
-  SaveMessage(chatId, msg.message_id);
+  saveMessage(chatId, msg.message_id);
   if (!msg.from) return;
   try {
     const linkAuthDataPrev: TelegramAuthData = {
-      auth_date: GetDaylyAuthDate(),
+      auth_date: getDaylyAuthDate(),
       last_name: msg.from.last_name?.replace(' ', '') || '',
       first_name: msg.from.first_name?.replace(' ', ''),
       id: msg.from.id,
@@ -26,35 +27,35 @@ export const StartHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     };
 
     try {
-      SetPersonalData(linkAuthDataPrev, chatId);
+      setPersonalData(linkAuthDataPrev, chatId);
     } catch (e) {
       console.log(e.message);
     }
 
     /* if (!linkAuthDataPrev.username) {
-      SendMessageWithSave(bot, chatId, messages.noUsername);
+      SendMessageWithSave(Bot, chatId, messages.noUsername);
       return;
     } */
 
-    const isInDuel = await IsUserInDuel(String(linkAuthDataPrev.id)) 
+    const isInDuel = await isUserInDuel(String(linkAuthDataPrev.id)) 
       if (isInDuel) {
-        SendMessageWithSave(bot, chatId, messages.duelAlready);
+        sendMessageWithSave(Bot, chatId, messages.duelAlready);
         return;
       }
 
     // console.log('Last duel: ', createdDuel);
     const dateSec = Math.round(new Date().getTime() / 1000);
 
-    await SendPhotoWithSave (bot, chatId, introPhotoPath, messages.duelStart, true, {
+    await sendPhotoWithSave (Bot, chatId, introPhotoPath, messages.duelStart, true, {
       reply_markup: InlineKeyboard(['enterGame', 'duel', 'joinCommunity', 'referrals']),
     });
     // await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
 
   } catch (e) {
     console.log('Start cmd exception: ', e);
-    SendMessageWithSave(bot, chatId, 'Bot-side error');
+    sendMessageWithSave(Bot, chatId, 'Bot-side error');
   }
   /* setTimeout(() => {
-    TruncateChat(bot, chatId)
+    TruncateChat(Bot, chatId)
   }, tg_chat_history_lifetime) */
 };

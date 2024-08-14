@@ -1,10 +1,10 @@
 import { runQuery as Q } from './connection';
-import { GetBalances, GetValueByKey } from './balances'
+import { getBalances, getValueByKey } from './balances'
 import Web3 from 'web3';
 
 const { config, Erc20ABI } = require('../config');
 
-async function WithdrawRevenue ( addressTo, signedTX ) {
+async function withdrawRevenue ( addressTo, signedTX ) {
       
     const account = addressTo.toLowerCase()
     let time = Math.round(new Date().getTime() / 1000)
@@ -22,7 +22,7 @@ async function WithdrawRevenue ( addressTo, signedTX ) {
         })
     }
 
-    const balances = await GetBalances(account)
+    const balances = await getBalances(account)
 
     const toWithdraw = balances.balanceAvailable 
     
@@ -33,8 +33,8 @@ async function WithdrawRevenue ( addressTo, signedTX ) {
         })
     }
 
-    const refAccount = await GetValueByKey ('referral_public_key')
-    const refPrivateKey = await GetValueByKey ('referral_private_key')
+    const refAccount = await getValueByKey ('referral_public_key')
+    const refPrivateKey = await getValueByKey ('referral_private_key')
     const nonce = await web3.eth.getTransactionCount(refAccount)
     const amount = web3.utils.toWei(String(toWithdraw), 'ether')
 
@@ -108,5 +108,5 @@ async function WithdrawRevenue ( addressTo, signedTX ) {
 }
 
 export {
-    WithdrawRevenue
+    withdrawRevenue
   }
