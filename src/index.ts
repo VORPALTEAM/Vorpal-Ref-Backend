@@ -3,7 +3,7 @@ import { telegramBotLaunch } from './telegram';
 import { startWatchingTimer } from './blockchain/Stars/watcher';
 import { apiVersion } from './config';
 import { app } from './server';
-import { initRoutes } from 'routes';
+import { initRoutes } from './routes';
 
 
 dotEnv.config();
