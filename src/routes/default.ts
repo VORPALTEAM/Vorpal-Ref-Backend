@@ -10,8 +10,8 @@ export function initDefaultRoutes() {
         res.status(200).send({ version: apiVersion })
     })
 
-    app.use((req, res) => {
+    /* app.use((req, res) => {
         res.status(404).send({ error: "Invalid route" })
-    })
+    }) */
     
 }
