@@ -1,4 +1,4 @@
-import { createSQLConstraints } from "./constraints";
+import { createSQLConstraints } from "./functions";
 import { defaultDataSetup } from "./defaultData";
 import { createSQLDomains } from "./domains";
 import { createSQLTables } from "./tables";

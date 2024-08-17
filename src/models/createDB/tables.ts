@@ -15,7 +15,7 @@ const tableCreationQueries = [
        inviter_id INT,
        username varchar(32),
        role user_role_domain
-   );`,
+   );`, // CREATE OR REPLACE, for roles make dictionary
    `CREATE TABLE IF NOT EXISTS "telegram_personal" (
       id serial PRIMARY KEY,
       user_id INT, 
@@ -33,10 +33,10 @@ const tableCreationQueries = [
       id serial PRIMARY KEY,
       user_id INT,
       wallet_address varchar(128) NOT NULL UNIQUE
-   )`,
+   )`, // combine, network_family enum('erc', 'ton'), table for dictionary
    `ALTER TABLE "telegram_personal" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
-   `ALTER TABLE "erc_wallets" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
-   `ALTER TABLE "ton_wallets" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`
+   `ALTER TABLE "erc_wallets" ADD CONSTRAINT user_id_erc FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
+   `ALTER TABLE "ton_wallets" ADD CONSTRAINT user_id_ton FOREIGN KEY ("user_id") REFERENCES "users" ("id");`
 ]
 
 

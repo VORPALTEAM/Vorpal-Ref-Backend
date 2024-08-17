@@ -3,6 +3,8 @@ import { TelegramAuthData, TelegramAuthNote } from '../../types';
 import { decodeTgInitData } from '../../utils/auth';
 import { generateWalletShortedName } from '../../utils/wallet';
 
+
+
 export async function createUser(
   role = 'user',
   username?: string,
@@ -56,7 +58,7 @@ export async function createUser(
 }
 
 export async function checkIsUserExists(
-  telegramData?: TelegramAuthData,
+  telegramData?: TelegramAuthData, // Use only one method, with priority
   ercWallets?: string[],
   tonWallets?: string[],
 ): Promise<boolean> {
