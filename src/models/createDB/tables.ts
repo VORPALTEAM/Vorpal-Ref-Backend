@@ -22,17 +22,17 @@ const tableCreationQueries = [
 	  first_name varchar(64),
   	  last_name varchar(64),
   	  username varchar(64),
-      chat_id varchar(64)
-   )`,
+      chat_id varchar(64) NOT NULL UNIQUE
+   );`,
    `CREATE TABLE IF NOT EXISTS "erc_wallets" (
       id serial PRIMARY KEY,
       user_id INT,
-      wallet_address varchar(128)
-   )`,
+      wallet_address varchar(128) NOT NULL UNIQUE
+   );`,
    `CREATE TABLE IF NOT EXISTS "ton_wallets" (
       id serial PRIMARY KEY,
       user_id INT,
-      wallet_address varchar(128)
+      wallet_address varchar(128) NOT NULL UNIQUE
    )`,
    `ALTER TABLE "telegram_personal" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
    `ALTER TABLE "erc_wallets" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
