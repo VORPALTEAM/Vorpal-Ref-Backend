@@ -1,7 +1,7 @@
 import { massRunQueries } from "../connection"
 
 const functionCreationQueries = [ // ToDo: function is invalid
-  `SELECT add_user ( null, 'admin', 'Vapr', null, 'Yuriy', null, 'berum', 101);
+/*  `SELECT add_user ( null, 'admin', 'Vapr', null, 'Yuriy', null, 'berum', 101);
 
 CREATE FUNCTION add_user (
 	referral integer, 
@@ -54,7 +54,7 @@ BEGIN
 	 RETURN new_id;
 END;
 	$$ LANGUAGE plpgsql;
-  `
+  ` */
 ]
 
 export async function createSQLConstraints () {
