@@ -33,3 +33,9 @@ export async function runQuery (query: string, withReturn: boolean = true): Prom
     client.release();
   }
 }
+
+export async function massRunQueries(queries: string[], withReturn: boolean = true) {
+    return Promise.all(queries.map((query) => {
+      return runQuery(query, withReturn);
+    }));
+}

@@ -26,8 +26,10 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
       hash: '',
     };
 
+    const inviterLogin = match[1]?.toLowerCase();
+
     try {
-      setPersonalData(linkAuthDataPrev, chatId);
+      setPersonalData(linkAuthDataPrev, chatId, String(inviterLogin || ""));
     } catch (e) {
       console.log(e.message);
     }
