@@ -19,11 +19,10 @@ export function telegramBotLaunch() {
   SetupBotMenuCommands ();
 
   Bot.onText(/\/start/, async (msg, match) => {
-    /* const startDuelRegex = /\/start (.+)/;
+    const startDuelRegex = /\/start (.+)/;
     if (msg.text && startDuelRegex.test(msg.text)) {
         return;
-    } */
-   console.log("Match entry: ", match, match? match[1] : "not found")
+    }
 
     await startHandler(Bot, msg, match);
   });
@@ -38,14 +37,14 @@ export function telegramBotLaunch() {
     await referralStatsHandler (Bot, msg);
   });
 
-  /* Bot.onText(/\/start (.+)/, async (msg, match) => {
+  Bot.onText(/\/start(.+)/, async (msg, match) => {
 
-    console.log("Match entry, cmd 2: ", match)
+    console.log("Match entry: ", match, match? match[1] : "not found")
 
     await startHandler(Bot, msg, match);
 
     // await  duelAcceptHandler(Bot, msg, match);
-  }); */
+  });
 
   Bot.onText(/\/start(?:\?startapp=([^]+))?/, async (msg, match) => {
     const inviterLogin = match ? match[1] : "" // Если inviterId присутствует в ссылке, он будет доступен здесь
