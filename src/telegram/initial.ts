@@ -12,6 +12,7 @@ import { referralLastTxnAction, referralStatsAction, referralStatsHandler, refer
 import { SetupBotMenuCommands } from './cmdSetup';
 import { getPersonalDataById, getPersonalDataByUsername } from '../models/telegram';
 import { initOldBot } from './old';
+import { dailyRewardHandler } from './handlers/dailyReward';
 
 
 export function telegramBotLaunch() {
@@ -35,6 +36,11 @@ export function telegramBotLaunch() {
   Bot.onText(/\/referral/, async (msg, match) => {
 
     await referralStatsHandler (Bot, msg);
+  });
+
+  Bot.onText(/\/reward/, async (msg, match) => {
+
+    await dailyRewardHandler (Bot, msg);
   });
 
   Bot.onText(/\/start(.+)/, async (msg, match) => {

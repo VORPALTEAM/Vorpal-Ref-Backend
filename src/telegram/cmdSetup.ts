@@ -5,7 +5,8 @@ export function SetupBotMenuCommands () {
         Bot.setMyCommands([
             { command: '/start', description: 'Get started' },
             { command: '/duel', description: 'Create duel' },
-            { command: '/referral', description: 'Referral info' }
+            { command: '/referral', description: 'Referral info' },
+            { command: '/reward', description: 'Daily reward' }
           ]);
         // console.log("Result: ", cmd)
     } catch (e: any) {

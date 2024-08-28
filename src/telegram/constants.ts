@@ -20,6 +20,7 @@ export const usingRegExps: RegExp[] = [
   /\/start (.+)/,
   /\/duel/,
   /\/referral/,
+  /\/reward/,
   /\/start(?:\?startapp=([^]+))?/
 ];
 
@@ -34,6 +35,8 @@ export const messages = {
     noInviter: `
       Hello! You have been invited to a duel but user not found. You can create a your own:
     `,
+    dailyRewardOk: `Reward received, go to starmap to openbox in your inventory`,
+    dailyRewardRefuse: `You already received reward in last 24 hours, you gan get it again tomorrow`,
     duelRefiseInvitation: (login2: string) => {
       return `@${login2} cancelled an invitation. You can challenge a new player`
     },
