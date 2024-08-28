@@ -7,6 +7,7 @@ export const inviteLink = `https://t.me/${process.env.TELEGRAM_BOT_NAME}?start=`
 export const startText = "Start";
 export const duelText = "⚔️Create duel";
 export const enterGameText = "🌟Play demo";
+export const enterGameTextReward = "🌟Open Starmap";
 export const joinText = "🎩Join community";
 export const duelConfirmText = "Enter a duel";
 export const duelRefuseText = "Refuse a duel";

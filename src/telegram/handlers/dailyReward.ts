@@ -3,6 +3,7 @@ import { Bot } from '../bot';
 import { createNewBox } from '../../models/rewards';
 import { sendMessageWithSave } from './utils';
 import { messages } from '../constants';
+import { InlineKeyboard } from './keyboard';
 
 const lastRewardDate = new Map<number, number>()
 
@@ -19,7 +20,8 @@ export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Mess
     if (!lastReward || now - lastReward >= 86400000) {
         await createNewBox(1, String(fromId), String(fromId));
         lastRewardDate.set(fromId, now);
-        await sendMessageWithSave(bot, chatId, messages.dailyRewardOk);
+        await sendMessageWithSave(bot, chatId, messages.dailyRewardOk,
+            { reply_markup: InlineKeyboard(['enterGameReward']) },);
     } else {
         await sendMessageWithSave(bot, chatId, messages.dailyRewardRefuse);
     }

@@ -5,6 +5,7 @@ import {
   duelRefuseText,
   duelText,
   enterGameText,
+  enterGameTextReward,
   inviteLink,
   joinText,
   messages,
@@ -39,6 +40,12 @@ export const InlineKeyboard = (actions: string[], inviter?: string) => {
       case a.indexOf('enterGame') > -1:
         row.push({
             text: enterGameText,
+            web_app: {"url": `${process.env.TELEGRAM_CLIENT_URL}`}
+          });
+        break;
+      case a.indexOf('enterGameReward') > -1:
+        row.push({
+            text: enterGameTextReward,
             web_app: {"url": `${process.env.TELEGRAM_CLIENT_URL}`}
           });
         break;
