@@ -4,6 +4,7 @@ import { createNewBox } from '../../models/rewards';
 import { sendMessageWithSave } from './utils';
 import { messages } from '../constants';
 import { InlineKeyboard } from './keyboard';
+import { getChannelSubscribeList, sendSubscribeMessage } from './subscribe';
 
 const lastRewardDate = new Map<number, number>()
 
@@ -14,8 +15,16 @@ export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Mess
     const chatId = msg.chat.id;
     const now = new Date().getTime();
     const fromId = msg.from?.id;
+    const fromLang = msg.from?.language_code || 'en'
 
     const lastReward = lastRewardDate.get(fromId);
+
+    const subscribes = await getChannelSubscribeList(fromId, fromLang);
+
+    if (subscribes.length > 0) {
+        await sendSubscribeMessage(fromId, chatId, fromLang);
+        return;
+    }
 
     if (!lastReward || now - lastReward >= 86400000) {
         await createNewBox(1, String(fromId), String(fromId));

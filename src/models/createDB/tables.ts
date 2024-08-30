@@ -33,11 +33,23 @@ const tableCreationQueries = [
    `CREATE TABLE IF NOT EXISTS "network_families" (
       id serial PRIMARY KEY,
       name varchar(32) NOT NULL UNIQUE
-   )`, // combine, network_family enum('erc', 'ton'), table for dictionary
+   );`, // combine, network_family enum('erc', 'ton'), table for dictionary
    `CREATE TABLE IF NOT EXISTS "roles" (
       id serial PRIMARY KEY,
       name varchar(32) NOT NULL UNIQUE
-   )`,
+   );`,
+   `CREATE TABLE IF NOT EXISTS "languages" (
+      id serial PRIMARY KEY,
+      short_name varchar(8) NOT NULL UNIQUE,
+      name varchar(16) NOT NULL UNIQUE
+   );`,
+   `CREATE TABLE IF NOT EXISTS "watching_tg_subscriptions" (
+     id serial PRIMARY KEY,
+	  channel_name varchar(128),
+	  channel_username varchar(128),
+	  channel_id varchar(128),
+     language_id integer
+    );`,
    `ALTER TABLE "telegram_personal" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
    `ALTER TABLE "wallets" ADD CONSTRAINT user_id_wallet FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
    `ALTER TABLE "wallets" ADD CONSTRAINT nf_id FOREIGN KEY ("network_family_id") REFERENCES "network_families" ("id");`,

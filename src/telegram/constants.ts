@@ -49,7 +49,7 @@ export const messages = {
     inviteSelf: `
       Hello! You have a created duel. Enter game and wait your friend to accept invitation.
     `,
-    subscribeRequest: `Subscribe on channels to get more prizes`,
+    subscribeRequest: `Subscribe on channels to get daily rewards`,
     duelCreatedShareInfo: `
        Duel created! 
        Now to challenge a friend share him the next message with your link below:

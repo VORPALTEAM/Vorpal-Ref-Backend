@@ -15,8 +15,9 @@ export async function deleteChannelFromWatching(userName: string) {
   return result ? true : false;
 }
 
-export async function getWatchingChannels(): Promise<tgChannelData[]> {
-  const query = `SELECT "channel_name", "channel_username", "channel_id" FROM "watching_tg_subscriptions";`;
+export async function getWatchingChannels(lang = 'en'): Promise<tgChannelData[]> {
+  const query = `SELECT 
+  * FROM "watching_tg_subscriptions" as "w", "languages" as "l" WHERE w.language_id = l.id AND l.short_name = '${lang}';`;
   const result = await Q(query);
   return result ? result.map((row) => {
     const ch: tgChannelData = {

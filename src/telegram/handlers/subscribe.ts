@@ -15,8 +15,8 @@ import { Bot } from '../bot';
 import { duelText, inviteLink, messages, startText } from '../constants';
 import { sendMessageWithSave } from './utils';
 
-export async function sendSubscribeMessage(userId: number, chatId: number) {
-  const subscribes = await getChannelSubscribeList(userId);
+export async function sendSubscribeMessage(userId: number, chatId: number, lang = 'en') {
+  const subscribes = await getChannelSubscribeList(userId, lang);
 
   const inlineButtons = subscribes.map((item) => ({
     text: item.name,
@@ -36,9 +36,9 @@ export async function sendSubscribeMessage(userId: number, chatId: number) {
 
 export async function getChannelSubscribeList(
   userId: number,
+  lang = 'en'
 ): Promise<tgChannelData[]> {
-  const channels = await getWatchingChannels();
-  console.log('Subscriptions to watch: ', channels);
+  const channels = await getWatchingChannels(lang);
   const subscribes: tgChannelData[] = [];
 
   for (let j = 0; j < channels.length; j++) {
