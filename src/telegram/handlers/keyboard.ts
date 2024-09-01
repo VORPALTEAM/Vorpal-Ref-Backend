@@ -41,13 +41,13 @@ export const InlineKeyboard = (actions: string[], inviter?: string) => {
       case a.indexOf('enterGame') > -1:
         row.push({
             text: enterGameText,
-            web_app: {"url": basicStartappLink}
+            url: basicStartappLink
           });
         break;
       case a.indexOf('enterGameReward') > -1:
         row.push({
             text: enterGameTextReward,
-            web_app: {"url": basicStartappLink}
+            url: basicStartappLink
           });
         break;
       case a.indexOf('joinCommunity') > -1:
