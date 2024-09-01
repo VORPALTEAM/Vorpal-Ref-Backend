@@ -25,6 +25,8 @@ export const usingRegExps: RegExp[] = [
   /\/start(?:\?startapp=([^]+))?/
 ];
 
+export const basicStartappLink = `https://t.me/${process.env.TELEGRAM_BOT_NAME}/${webAppName}?startapp=1`;
+
 export const messages = {
     old: `Now we are moved to new Bot, go: https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
     welcome: `
