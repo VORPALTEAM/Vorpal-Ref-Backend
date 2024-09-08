@@ -170,3 +170,9 @@ export async function createDuel(login1: string, login2: string = '') {
   const result = await Q(query, false);
   return result ? duel_id : null;
 }
+
+export async function getUserDuelCount (userId: string): Promise<number> {
+   const query = `SELECT count(*) FROM duels WHERE login1 = '${userId}' OR login2 = '${userId}';`;
+   const result = await Q(query, true);
+   return result? result[0]?.count || 0 : 0;
+}

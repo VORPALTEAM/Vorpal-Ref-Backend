@@ -1,20 +1,20 @@
 import {
-  getStoreItemsResponce,
-  balanceResponce,
-  balanceAllResponce,
-  checkAvailableResponce,
-  buyResponce,
+  getStoreItemsResponse,
+  balanceResponse,
+  balanceAllResponse,
+  checkAvailableResponse,
+  buyResponse,
 } from '../controllers';
 import { app } from '../server';
 
 export function initStoreRoutes() {
-  app.get('/api/storeitems', getStoreItemsResponce);
+  app.get('/api/storeitems', getStoreItemsResponse);
 
-  app.post('/api/store/userbalance', balanceResponce);
+  app.post('/api/store/userbalance', balanceResponse);
 
-  app.post('/api/store/userbalanceall', balanceAllResponce);
+  app.post('/api/store/userbalanceall', balanceAllResponse);
 
-  app.post('/api/store/isavailable', checkAvailableResponce);
+  app.post('/api/store/isavailable', checkAvailableResponse);
 
-  app.post('/api/store/buy', buyResponce);
+  app.post('/api/store/buy', buyResponse);
 }

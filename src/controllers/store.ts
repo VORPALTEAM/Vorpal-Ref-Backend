@@ -2,14 +2,14 @@ import { Request, Response } from "express";
 import { checkTelegramAuth, decodeTgInitData, validateByInitData } from "../utils/auth";
 import { buyItem, getStoreItems, getUserAllItemBalances, getUserItemBalance, isItemAvailableToBuy } from "../models/telegram";
 
-export const getStoreItemsResponce = async (req: Request, res: Response) => {
+export const getStoreItemsResponse = async (req: Request, res: Response) => {
     const items = await getStoreItems();
     res.status(200).send(JSON.stringify({
         items
     }))
 }
 
-export const balanceResponce = async (req: Request, res: Response) => {
+export const balanceResponse = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.itemId || !body.login) {
@@ -22,7 +22,7 @@ export const balanceResponce = async (req: Request, res: Response) => {
     }))
 }
 
-export const balanceAllResponce = async (req: Request, res: Response) => {
+export const balanceAllResponse = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.login) {
@@ -35,7 +35,7 @@ export const balanceAllResponce = async (req: Request, res: Response) => {
     }))
 }
 
-export const checkAvailableResponce = async (req: Request, res: Response) => {
+export const checkAvailableResponse = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.itemId || !body.login || !body.amount) {
@@ -46,7 +46,7 @@ export const checkAvailableResponce = async (req: Request, res: Response) => {
     res.status(200).send(JSON.stringify(isAvailable))
 }
 
-export const buyResponce = async (req: Request, res: Response) => {
+export const buyResponse = async (req: Request, res: Response) => {
     const body = req.body;
     console.log("Buy request body: ", req.body);
     if (!body.telegramInitData && !body.telegramData.id) {

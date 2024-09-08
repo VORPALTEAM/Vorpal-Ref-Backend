@@ -1,42 +1,45 @@
 import {
-    isUserInDuelResponce,
-    opponentResponce,
-    duelDataResponce,
-    duelDataByLoginResponce,
-    onlineCountResponce,
+    isUserInDuelResponse,
+    opponentResponse,
+    duelDataResponse,
+    duelDataByLoginResponse,
+    onlineCountResponse,
     isNeedSubscribes,
-    finishDuelResponce,
-    duelDeletionResponce,
+    finishDuelResponse,
+    duelDeletionResponse,
     updateOnlineCount,
-    rewardConditionResponce,
-    acceptDuelResponce,
+    rewardConditionResponse,
+    acceptDuelResponse,
+    duelCountResponse,
   } from '../controllers';
   import { app } from '../server';
   
   export function initDuelRoutes() {
-    app.get('/api/isinduel/:login', isUserInDuelResponce);
+    app.get('/api/isinduel/:login', isUserInDuelResponse);
   
-    app.get('/api/getopponent/:login', opponentResponce);
+    app.get('/api/getopponent/:login', opponentResponse);
   
-    app.get('/api/dueldata/:id', duelDataResponce);
+    app.get('/api/dueldata/:id', duelDataResponse);
   
-    app.get('/api/dueldatabylogin/:login', duelDataByLoginResponce);
+    app.get('/api/dueldatabylogin/:login', duelDataByLoginResponse);
   
-    app.get('/api/getduelid/:login', duelDataResponce);
+    app.get('/api/getduelid/:login', duelDataResponse);
   
-    app.get('/api/onlinecount', onlineCountResponce);
+    app.get('/api/onlinecount', onlineCountResponse);
   
     app.get('/api/usersubscribecondition', isNeedSubscribes);
   
-    app.post('/api/finishduel', finishDuelResponce);
+    app.post('/api/finishduel', finishDuelResponse);
   
-    app.post('/api/deleteduel', duelDeletionResponce);
+    app.post('/api/deleteduel', duelDeletionResponse);
   
     app.post('/api/updateonlinecount', updateOnlineCount);
   
-    app.post('/api/rewardcondition', rewardConditionResponce);
+    app.post('/api/rewardcondition', rewardConditionResponse);
   
-    app.post('/api/duelrewardcondition', rewardConditionResponce);
+    app.post('/api/duelrewardcondition', rewardConditionResponse);
   
-    app.post('/api/duelaccept', acceptDuelResponce);
+    app.post('/api/duelaccept', acceptDuelResponse);
+
+    app.get('/api/duelusercount/:id', duelCountResponse)
   }

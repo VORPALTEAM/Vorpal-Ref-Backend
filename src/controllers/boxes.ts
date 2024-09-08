@@ -128,7 +128,7 @@ export const openBoxRequest = async (req: Request, res: Response) => {
   }
 };
 
-export const giveResourcesResponce = async (req: Request, res: Response) => {
+export const giveResourcesResponse = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.signature) {
     res.status(400).send({
@@ -213,7 +213,7 @@ export const getUserAvailableBoxes = async (req: Request, res: Response) => {
 
 }
 
-export const getBoxOpenResultResponce = async (req: Request, res: Response) => {
+export const getBoxOpenResultResponse = async (req: Request, res: Response) => {
   const body = req.body;
 
   if (!body.boxId) {

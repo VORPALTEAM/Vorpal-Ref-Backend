@@ -11,6 +11,7 @@ import {
   getDuelPairCount,
   getOnlineCount,
   getOpponent,
+  getUserDuelCount,
   isUserInDuel,
   setOnlineCount,
 } from '../models/telegram/duel';
@@ -30,7 +31,7 @@ import { TelegramAuthData, TelegramAuthNote } from 'types';
 
 export const web3 = new Web3(Web3.givenProvider);
 
-export const isUserInDuelResponce = async (req: Request, res: Response) => {
+export const isUserInDuelResponse = async (req: Request, res: Response) => {
   if (!req.params.login) {
     res.status(400).send(
       JSON.stringify({
@@ -45,7 +46,7 @@ export const isUserInDuelResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const opponentResponce = async (req: Request, res: Response) => {
+export const opponentResponse = async (req: Request, res: Response) => {
   if (!req.params.login) {
     res.status(400).send(
       JSON.stringify({
@@ -60,7 +61,7 @@ export const opponentResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const duelDataResponce = async (req: Request, res: Response) => {
+export const duelDataResponse = async (req: Request, res: Response) => {
   if (!req.params.id) {
     res.status(400).send(
       JSON.stringify({
@@ -75,7 +76,7 @@ export const duelDataResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const duelDataByLoginResponce = async (req: Request, res: Response) => {
+export const duelDataByLoginResponse = async (req: Request, res: Response) => {
   if (!req.params.login) {
     res.status(400).send(
       JSON.stringify({
@@ -90,7 +91,7 @@ export const duelDataByLoginResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const finishDuelResponce = async (req: Request, res: Response) => {
+export const finishDuelResponse = async (req: Request, res: Response) => {
   console.log('Duel finish requested');
   const body = req.body;
   if (!body.duelId || !body.signature) {
@@ -127,8 +128,7 @@ export const finishDuelResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const duelDeletionResponce = async (req: Request, res: Response) => {
-
+export const duelDeletionResponse = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.duelId || !body.signature) {
     res.status(400).send({
@@ -157,7 +157,7 @@ export const duelDeletionResponce = async (req: Request, res: Response) => {
   });
 };
 
-export const rewardConditionResponce = async (req: Request, res: Response) => {
+export const rewardConditionResponse = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.login1 || !body.login2) {
     res.status(400).send({
@@ -182,7 +182,7 @@ export const rewardConditionResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const onlineCountResponce = async (req: Request, res: Response) => {
+export const onlineCountResponse = async (req: Request, res: Response) => {
   try {
     const count = await getOnlineCount();
     res.status(200).send({
@@ -231,7 +231,7 @@ export const updateOnlineCount = async (req: Request, res: Response) => {
   return;
 };
 
-export const acceptDuelResponce = async (req: Request, res: Response) => {
+export const acceptDuelResponse = async (req: Request, res: Response) => {
   console.log('Duel accept called');
   const user: TelegramAuthData = await universalAuth(req, res);
   console.log(user);
@@ -304,9 +304,10 @@ export const createDuelByAdmin = async (req: Request, res: Response) => {
   }
   try {
     const msg = getSignableMessage();
-    const address = web3.eth.accounts.recover(msg, body.signature)
-    .toLowerCase();
-    const adminAddress = await getValueByKey("ADMIN_WALLET");
+    const address = web3.eth.accounts
+      .recover(msg, body.signature)
+      .toLowerCase();
+    const adminAddress = await getValueByKey('ADMIN_WALLET');
 
     if (address !== adminAddress.toLowerCase()) {
       res.status(403).send({
@@ -315,7 +316,7 @@ export const createDuelByAdmin = async (req: Request, res: Response) => {
       return;
     }
   } catch (e: any) {
-    console.log("Failed to check signature")
+    console.log('Failed to check signature');
     res.status(501).send({
       error: 'Failed to check signature',
     });
@@ -345,9 +346,10 @@ export const acceptDuelByAdmin = async (req: Request, res: Response) => {
   }
   try {
     const msg = getSignableMessage();
-    const address = web3.eth.accounts.recover(msg, body.signature)
-    .toLowerCase();
-    const adminAddress = await getValueByKey("ADMIN_WALLET");
+    const address = web3.eth.accounts
+      .recover(msg, body.signature)
+      .toLowerCase();
+    const adminAddress = await getValueByKey('ADMIN_WALLET');
 
     if (address !== adminAddress.toLowerCase()) {
       res.status(403).send({
@@ -356,13 +358,13 @@ export const acceptDuelByAdmin = async (req: Request, res: Response) => {
       return;
     }
   } catch (e: any) {
-    console.log("Failed to check signature")
+    console.log('Failed to check signature');
     res.status(501).send({
       error: 'Failed to check signature',
     });
     return;
   }
-  
+
   try {
     const existDuel = await getDuelData(body.duel);
     if (
@@ -387,4 +389,16 @@ export const acceptDuelByAdmin = async (req: Request, res: Response) => {
     res.status(500).send({ error: 'Duel creation error' });
     return;
   }
+};
+
+export const duelCountResponse = async (req: Request, res: Response) => {
+  const userId = req.params.id;
+  if (!userId) {
+    res.status(404).send({ error: 'no user id' });
+    return;
+  }
+  const count = await getUserDuelCount(userId);
+  res.status(200).send({
+    count,
+  });
 };

@@ -1,9 +1,9 @@
 import {
     createBox,
     openBoxRequest,
-    getBoxOpenResultResponce,
+    getBoxOpenResultResponse,
     getUserAvailableBoxes,
-    giveResourcesResponce,
+    giveResourcesResponse,
     getUserResources,
   } from '../controllers';
   import { app } from '../server';
@@ -13,11 +13,11 @@ import {
   
     app.post('/api/boxes/open', openBoxRequest);
   
-    app.post('/api/boxes/openresult', getBoxOpenResultResponce);
+    app.post('/api/boxes/openresult', getBoxOpenResultResponse);
   
     app.post('/api/boxes/available', getUserAvailableBoxes);
   
-    app.post('/api/boxes/assets/give', giveResourcesResponce);
+    app.post('/api/boxes/assets/give', giveResourcesResponse);
   
     app.post('/api/boxes/assets', getUserResources);
   }
