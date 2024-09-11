@@ -184,6 +184,11 @@ const tableCreationQueries = [
      damage_total integer,
      experience integer,
      gold integer
+    );`,
+    `CREATE TABLE IF NOT EXISTS common_data (
+      id SERIAL PRIMARY KEY,
+      key varchar(512) NOT NULL UNIQUE,
+      value TEXT 
     );`
    /* `ALTER TABLE "telegram_personal" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
    `ALTER TABLE "wallets" ADD CONSTRAINT user_id_wallet FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,

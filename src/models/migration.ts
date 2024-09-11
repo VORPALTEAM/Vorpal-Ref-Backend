@@ -6,6 +6,9 @@ import * as config from '../blockchain/config';
 import { nessesary_keys } from '../config';
 import { getValueByKey, setValueByKey } from './balances';
 
+
+/* DEPRECATED!!! */
+
 async function dbCreateTables() {
   const TableOneQuery =`
     CREATE TABLE IF NOT EXISTS address_to_referral (

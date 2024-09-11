@@ -1,6 +1,6 @@
 import { massRunQueries, runQuery } from '../connection';
 import { TelegramAuthData, TelegramAuthNote } from '../../types';
-import { decodeTgInitData } from '../../utils/auth';
+import { decodeTgInitData, getSignableMessage, validateByInitData } from '../../utils/auth';
 import { generateWalletShortedName } from '../../utils/wallet';
 
 
@@ -13,11 +13,11 @@ export async function createUser(
   ercWallets?: string[],
   tonWallets?: string[],
 ): Promise<number> {
+  const wallets = tonWallets?.concat(ercWallets || []);
   return new Promise(async (resolve, reject) => {
     const isUserExists = await checkIsUserExists(
       telegramData,
-      ercWallets,
-      tonWallets,
+      wallets
     );
 
     if (isUserExists) {
@@ -37,8 +37,8 @@ export async function createUser(
           : '',
       );
     const creationQuery = `
-           INSERT INTO "users" ("inviter_id", "username", "role")
-           VALUES (${inviterId || null}, '${userName}', '${role}')
+           INSERT INTO "users" ("inviter_id", "username", "role_id")
+           VALUES (${inviterId || null}, '${userName}', 1)
            RETURNING "id";
         `;
 
@@ -53,20 +53,19 @@ export async function createUser(
 
     assignDataToUser(userId, telegramData, ercWallets, tonWallets);
 
-    resolve(1);
+    resolve(userId);
   });
 }
 
 export async function checkIsUserExists(
   telegramData?: TelegramAuthData, // Use only one method, with priority
-  ercWallets?: string[],
-  tonWallets?: string[],
+  wallets?: string[]
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
     let userCount = 0;
     const queries: string[] = [];
 
-    if (!telegramData && !ercWallets && !tonWallets) {
+    if (!telegramData && !wallets) {
       reject('No data to check');
       return false;
     }
@@ -79,26 +78,12 @@ export async function checkIsUserExists(
                 `);
     }
 
-    if (ercWallets && ercWallets.length > 0) {
+    if (wallets && wallets.length > 0) {
       queries.push(`
                 SELECT COUNT(*) from "users" 
-                 WHERE "id" IN (SELECT "user_id" FROM "erc_wallets" 
-                 WHERE "wallet_address" IN (${ercWallets
-                   .map((wallet) => `'${wallet.toLowerCase()}'`)
-                   .join(', ')});
-              `);
+                 WHERE "id" IN (SELECT "user_id" FROM "wallets";`
+      );
     }
-
-    if (tonWallets && tonWallets.length > 0) {
-      queries.push(`
-                SELECT COUNT(*) from "users" 
-                 WHERE "id" IN (SELECT "user_id" FROM "erc_wallets" 
-                 WHERE "wallet_address" IN (${tonWallets
-                   .map((wallet) => `'${wallet.toLowerCase()}'`)
-                   .join(', ')});
-              `);
-    }
-
     massRunQueries(queries).then((res) => {
       res.forEach((row) => {
         if (row && row[0]?.count > 0) {
@@ -108,7 +93,8 @@ export async function checkIsUserExists(
       resolve(!(userCount === 0));
       return !(userCount === 0);
     });
-  });
+
+  })
 }
 
 export async function assignDataToUser(
@@ -137,25 +123,23 @@ export async function assignDataToUser(
     }
 
     if (ercWallets && ercWallets.length > 0) {
-      queries.push(`
-                INSER INTO "erc_wallets" 
-                     ("user_id", "wallet_address")
-                   VALUES
-                   ${ercWallets
-                     .map((wallet) => `(${userId}, '${wallet.toLowerCase()}')`)
-                     .join(', ')}       
-              ;`);
+      ercWallets.forEach((wallet) => {
+        queries.push(`
+          INSER INTO "wallets" 
+               ("user_id", "wallet_address", "network_family_id")
+             VALUES
+        (${userId}, '${wallet}', 2) ON CONFLICT (wallet_address) DO NOTHING;`);
+      });
     }
 
     if (tonWallets && tonWallets.length > 0) {
-      queries.push(`
-                INSER INTO "erc_wallets" 
-                     ("user_id", "wallet_address")
-                   VALUES
-                   ${tonWallets
-                     .map((wallet) => `(${userId}, '${wallet.toLowerCase()}')`)
-                     .join(', ')}       
-              ;`);
+      tonWallets.forEach((wallet) => {
+        queries.push(`
+          INSER INTO "wallets" 
+               ("user_id", "wallet_address", "network_family_id")
+             VALUES
+        (${userId}, '${wallet}', 1) ON CONFLICT (wallet_address) DO NOTHING;`);
+      });
     }
 
     await massRunQueries(queries);
@@ -166,12 +150,36 @@ export async function assignDataToUser(
   }
 }
 
-export async function updateUser() {}
+export async function getUserData(
+  telegramData?: TelegramAuthData,
+  wallet?: string
+) {
+  if (!telegramData && !wallet) return null;
+  
+  const query = telegramData ? `
+    SELECT id, role_id, username, inviter_id from "users" WHERE id IN (SELECT user_id FROM "telegram_personal" WHERE chat_id = '${telegramData.id}');
+  ` : `
+    SELECT id from "users" WHERE id IN (SELECT user_id FROM "wallets" WHERE wallet = '${wallet}');
+  `;
+  const result = await runQuery(query, true);
+  return !result ? null : result.length > 0 ? result[0].id : null;
+}
 
-export async function deleteUser() {}
+export async function setAdmin(userId) {
+  const query = `UPDATE users SET user_role = 2 WHEREuser_id = ${userId};`;
+  return await runQuery(query)
+}
 
-export async function validateUser() {}
+export async function dropAdmin(userId) {
+  const query = `UPDATE users SET user_role = 1 WHEREuser_id = ${userId};`;
+  return await runQuery(query)
+}
 
-export async function getUserData() {}
-
-export async function checkUserRole() {}
+export async function deleteUser(userId: number) {
+  const queries = [
+    `DELETE FROM users WHERE id = ${userId};`,
+    `DELETE FROM telegram_personal WHERE user_id = ${userId};`,
+    `DELETE FROM wallets WHERE user_id = ${userId}`
+  ];
+  return await massRunQueries(queries);
+}
