@@ -28,6 +28,7 @@ import { messages } from '../telegram/constants';
 import { InlineKeyboard } from '../telegram/handlers/keyboard';
 import { duel_lifetime } from '../config';
 import { TelegramAuthData, TelegramAuthNote } from 'types';
+import { getUserData } from '../models/user';
 
 export const web3 = new Web3(Web3.givenProvider);
 
@@ -40,8 +41,16 @@ export const isUserInDuelResponse = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await isUserInDuel(String(req.params.login).toLowerCase());
+  const userId = (await getUserData (req.params.login))?.id;
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await isUserInDuel(userId);
   res.status(200).send(JSON.stringify({ inDuel: data }));
   return;
 };
@@ -55,8 +64,16 @@ export const opponentResponse = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await getOpponent(req.params.login);
+  const userId = (await getUserData (req.params.login))?.id;
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await getOpponent(userId);
   res.status(200).send(JSON.stringify({ opponent: data }));
   return;
 };
@@ -70,8 +87,16 @@ export const duelDataResponse = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await getDuelData(req.params.id);
+  const userId = (await getUserData (req.params.id))?.id;
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await getDuelData(userId);
   res.status(200).send(JSON.stringify({ data: data }));
   return;
 };
@@ -85,8 +110,16 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await getDuelDataByUser(req.params.login.toLowerCase());
+  const userId = (await getUserData (req.params.login))?.id;
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await getDuelDataByUser(userId);
   res.status(200).send(JSON.stringify({ data: data }));
   return;
 };
@@ -110,7 +143,7 @@ export const finishDuelResponse = async (req: Request, res: Response) => {
     return;
   }
 
-  const isFinished = (await getDuelData(body.duelId))?.isfinished;
+  const isFinished = (await getDuelData(body.duelId))?.is_finished;
 
   if (isFinished) {
     res.status(400).send({
@@ -250,8 +283,8 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
   console.log('200');
   try {
     const dateSec = Math.round(new Date().getTime() / 1000);
-    const duel = await getDuelDataByUser(String(inviter));
-    if (!duel || duel.isfinished || dateSec - duel.creation > duel_lifetime) {
+    const duel = await getDuelDataByUser(inviter);
+    if (!duel || duel.is_finished || dateSec - duel.creation > duel_lifetime) {
       res.status(400).send({
         success: false,
         error: 'Duel not found or expired',
@@ -266,7 +299,7 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
       return null;
     }
     console.log('Invited user: ', user);
-    await addDuelOpponent(duel.duel_id, String(user.id || ''));
+    await addDuelOpponent(Number(duel.id), user.id);
     let userData = await getPersonalDataById(Number(user.id));
     if (!userData) {
       await setPersonalData(user, String(inviter));
@@ -324,7 +357,14 @@ export const createDuelByAdmin = async (req: Request, res: Response) => {
   }
   // ToDo: signature check, add after test
   try {
-    const duel = await createDuel(String(body.firstUser));
+    const userId = (await getUserData(body.firstUser))?.id;
+    if (!userId) {
+      res.status(400).send({
+        error: 'User not found',
+      });
+      return;
+    }
+    const duel = await createDuel(userId);
     if (duel) {
       res.status(200).send({ duel });
       return;
@@ -369,7 +409,7 @@ export const acceptDuelByAdmin = async (req: Request, res: Response) => {
     const existDuel = await getDuelData(body.duel);
     if (
       !existDuel ||
-      existDuel.isfinished ||
+      existDuel.is_finished ||
       existDuel.id2 ||
       existDuel.id1 === body.secondUser
     ) {
@@ -392,9 +432,14 @@ export const acceptDuelByAdmin = async (req: Request, res: Response) => {
 };
 
 export const duelCountResponse = async (req: Request, res: Response) => {
-  const userId = req.params.id;
-  if (!userId) {
+  const user = req.params.id;
+  if (!user) {
     res.status(404).send({ error: 'no user id' });
+    return;
+  }
+  const userId = (await getUserData(user))?.id;
+  if (!userId) {
+    res.status(404).send({ error: 'User not found' });
     return;
   }
   const count = await getUserDuelCount(userId);

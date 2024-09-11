@@ -14,15 +14,12 @@ const rewardrefmessage = "Reward for referral";
 
 export async function createNewBox(
   level: number,
-  ownerStr: string = '',
+  userId: number
 ): Promise<number | null> {
-  const holder = ownerStr.toLowerCase();
-  const ownerId = (await getUserData(holder, holder))?.id
-  if (!holder) return null;
 
   const query = `
     INSERT INTO boxes (owner_id, level, is_open) 
-    VALUES (${ownerId}, ${level}, false) RETURNING id;`;
+    VALUES (${userId}, ${level}, false) RETURNING id;`;
   console.log('Box creation query: ', query);
   // WriteLog('Box creation query: ', query);
   const box = await runQuery(query, true);
@@ -117,7 +114,7 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
       error: 'Box owner not found',
     };
   }
-  const userId = await getUserData(String(telegramData.id));
+  const userId = (await getUserData(String(telegramData.id)))?.id;
   if (userId !== owner) {
     return {
       success: false,

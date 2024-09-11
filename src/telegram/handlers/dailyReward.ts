@@ -5,6 +5,7 @@ import { sendMessageWithSave } from './utils';
 import { messages } from '../constants';
 import { InlineKeyboard } from './keyboard';
 import { getChannelSubscribeList, sendSubscribeMessage } from './subscribe';
+import { createUserIfNotExists } from 'models/user';
 
 const lastRewardDate = new Map<number, number>()
 
@@ -25,9 +26,10 @@ export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Mess
         await sendSubscribeMessage(fromId, chatId, fromLang);
         return;
     }
+    const userId = await createUserIfNotExists ("user", undefined, undefined, msg.from)
 
     if (!lastReward || now - lastReward >= 86400000) {
-        await createNewBox(1, String(fromId), String(fromId));
+        await createNewBox(1, userId);
         lastRewardDate.set(fromId, now);
         await sendMessageWithSave(bot, chatId, messages.dailyRewardOk,
             { reply_markup: InlineKeyboard(['enterGameReward']) },);

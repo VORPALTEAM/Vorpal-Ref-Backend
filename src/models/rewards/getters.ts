@@ -79,3 +79,9 @@ export async function getAvailableBoxesByOwner(
   const response = await Q(listQuery);
   return response || [];
 }
+
+export async function getResourceId (name: string) {
+  const query = `SELECT id FROM items WHERE name = '${name}';`;
+  const result = await Q(query, true);
+  return result ? result[0].id : null
+}

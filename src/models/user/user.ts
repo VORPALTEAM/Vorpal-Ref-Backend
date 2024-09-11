@@ -162,7 +162,11 @@ export async function assignDataToUser(
   }
 }
 
-export async function getUserData(telegramId?: string, wallet?: string) {
+export async function getUserData(telegramId?: string, wallet?: string): Promise<{
+  id: number;
+  username: string;
+  inviter_id: number;
+} | null> {
   if (!telegramId && !wallet) return null;
 
   const query = telegramId
@@ -213,4 +217,16 @@ export async function deleteUser(userId: number) {
     `DELETE FROM wallets WHERE user_id = ${userId}`,
   ];
   return await massRunQueries(queries);
+}
+
+export async function getUserWallets (userId: number): Promise<string[]> {
+  const query = `SELECT wallet_address FROM wallets WHERE user_id = ${userId};`;
+  const result = await runQuery(query, true);
+  if (result) {
+    return result.map((item) => {
+      return String(item.wallet_address?.toLowerCase || "")
+    })
+  } else {
+    return []
+  }
 }

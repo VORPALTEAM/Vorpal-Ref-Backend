@@ -1,5 +1,5 @@
 import { runQuery as Q, runQuery } from '../connection';
-import { getUserBalanceRow } from '../rewards';
+import { getUserAssets, getUserBalanceRow } from '../rewards';
 import { TelegramAuthData, StoreItem, storeItemBalance } from '../../types';
 
 export async function addStoreItem(item: StoreItem) {
@@ -77,26 +77,51 @@ export async function getUserAllItemBalances(
     : [];
 }
 
+export interface itemSaleData 
+  {
+    id: number;
+    name: string;
+    price?: number;
+    currency_id: number;
+    user_balance_limit?: number;
+    available_count?: number;
+  }
+
+
+export async function getItemSaleData (itemId: number): Promise<itemSaleData | null> {
+  const query = `SELECT store.price, store.currency_id, store.user_balance_limit, store.available_count, items.id, items.name
+  FROM store, items WHERE store.item_id = items.id AND store.item_id = ${itemId};`;
+  const result = await Q(query, true);
+  return result && result.length > 0 ? result[0] : null
+}
+
+export async function getItemName (itemId: number) {
+  const query = `SELECT name FROM items WHERE id = ${itemId};`;
+  const result = await Q(query, true);
+  return result && result.length > 0 ? result[0].name : null
+}
+
 export async function isItemAvailableToBuy(
-  login: string,
+  userId: number,
   itemId: number,
   amount: number,
 ) {
-  const storeItem = await getStoreItem('id', itemId);
-  const itemBalance = await getUserItemBalance(login, itemId);
-  const currencyBalance = await getUserBalanceRow(login, login);
+  const userAssets = await getUserAssets(userId);
+  const saleData = await getItemSaleData(itemId);
 
-  if (!storeItem || !storeItem.cost || !storeItem.currency_id) {
+  if (!saleData) {
     return {
       ok: false,
-      error: 'Store item not exist',
+      error: 'Store item is not for sale',
     };
   }
 
+  const currencyName = await getItemName (saleData.currency_id)
+
   if (
-    storeItem.per_user !== null &&
-    itemBalance !== null &&
-    itemBalance >= storeItem.per_user
+    saleData.user_balance_limit &&
+    userAssets[saleData.name] &&
+    userAssets[saleData.name] + amount > saleData.user_balance_limit
   ) {
     return {
       ok: false,
@@ -104,14 +129,14 @@ export async function isItemAvailableToBuy(
     };
   }
 
-  if (storeItem.total_count !== null && amount > storeItem.total_count) {
+  if ((saleData.available_count || saleData.available_count === 0) && amount > saleData.available_count) {
     return {
       ok: false,
       error: 'Amount larger than available for sale',
     };
   }
 
-  if (storeItem.cost * amount > currencyBalance[storeItem.currency_id]) {
+  if ((saleData.price || saleData.price === 0) &&  saleData.price * amount > userAssets[currencyName]) {
     return {
       ok: false,
       error: 'Insufficient funds to buy',
@@ -123,38 +148,25 @@ export async function isItemAvailableToBuy(
   };
 }
 
-export async function buyItem(buyer: string, itemId: number, amount: number) {
-  const isAvailable = await isItemAvailableToBuy(buyer, itemId, amount);
+export async function buyItem(buyerId: number, itemId: number, amount: number) {
+  const isAvailable = await isItemAvailableToBuy(buyerId, itemId, amount);
   if (!isAvailable.ok) {
     return isAvailable;
   }
-  const itemBalance = await getUserItemBalance(buyer, itemId);
-  if (itemBalance === null) {
-    await createItemBalanceRow(buyer, itemId);
+
+  const saleData = await getItemSaleData(itemId);
+  if (!saleData) {
+    return false;
   }
-  const currencyQuery = `SELECT "currency", "cost" FROM "store_items" WHERE "id" = ${itemId};`;
-  let currency = '';
-  let cost = 0;
-  const currencyResult = await Q(currencyQuery);
-  if (!currencyResult || currencyResult.length === 0)
-    return 'Currency not found';
-  currency = currencyResult[0].currency;
-  cost = currencyResult[0].cost;
 
-  const balanceQuery = `UPDATE "store_item_balances" SET balance = balance + ${amount}
-  WHERE "user_name" = '${buyer}' AND "item_id" = ${itemId};`;
-  const storeQuery = `UPDATE "store_items" SET total_count = total_count - ${amount}
-  WHERE "id" = ${itemId};`;
-  const subBalanceQuery = `UPDATE "resources" SET ${currency} = ${currency} - ${cost} 
-  where ownerlogin = '${buyer}' OR owneraddress = '${buyer}';`;
+  const buyQuery = `
+     UPDATE user_balances SET amount = amount + ${amount} WHERE user_id = ${buyerId} AND item_id = ${itemId};
+     UPDATE user_balances SET amount = amount - ${amount * (saleData.price || 0)} WHERE user_id = ${buyerId} AND item_id = ${saleData.currency_id};
+  `
 
-  const result = await Promise.all([
-    Q(balanceQuery, false),
-    Q(storeQuery, false),
-    Q(subBalanceQuery, false),
-  ]);
+  const result = await Q(buyQuery)
   return {
-    ok: result.indexOf(null) > -1 ? false : true,
-    error: result.indexOf(null) > -1 ? 'Unknown' : '',
+    ok: result ? true : false,
+    error: !result ? 'Unknown' : '',
   };
 }

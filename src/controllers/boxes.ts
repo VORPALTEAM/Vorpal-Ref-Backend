@@ -4,6 +4,8 @@ import {
   getAvailableBoxesByOwner,
   getBoxOpenResult,
   getBoxOwner,
+  getResourceId,
+  getUserAssets,
   getUserBalanceRow,
   giveResources,
   openBox,
@@ -12,6 +14,7 @@ import { getValueByKey } from '../models/common';
 import { error } from 'console';
 import { checkTelegramAuth, getSignableMessage, validateByInitData } from '../utils/auth';
 import Web3 from 'web3';
+import { getUserData, getUserWallets } from '../models/user';
 
 const web3 = new Web3(Web3.givenProvider);
 
@@ -105,9 +108,17 @@ export const openBoxRequest = async (req: Request, res: Response) => {
     const telegramDataValidation = 
     body.telegramInitData ? validateByInitData (body.telegramInitData) :
     body.telegramData? checkTelegramAuth(body.telegramData).success : null;
+    const userId = (await getUserData(body.telegramInitData.id || body.telegramData.id, address))?.id;
+    if (!userId) {
+      res.status(400).send({
+        error: "User not found",
+      });
+      return;
+    }
+    const ownerWallets = await getUserWallets(userId);
   
     if (address !== adminAddress.toLowerCase() 
-      && address !== boxOwner.toLowerCase() &&
+      && ownerWallets.indexOf(address) === -1 &&
     !telegramDataValidation) {
       res.status(403).send({
         error: "Caller have no rights to open",
@@ -138,7 +149,7 @@ export const giveResourcesResponse = async (req: Request, res: Response) => {
       error: 'Message must be sgned by admin',
     });
   }
-  if (!body.ownerAddress && !body.ownerLogin) {
+  if (!body.ownerAddress) {
     res.status(400).send({
       error: 'Nessesary user parameters is missing',
     });
@@ -164,11 +175,19 @@ export const giveResourcesResponse = async (req: Request, res: Response) => {
     res.status(400).send({ error: "Wrong signature"});
     return;
   }
-
+  const resourceId = await getResourceId(body.resource);
+  if (!resourceId) {
+    res.status(400).send({ error: "Resource not found"});
+    return;
+  }
+  const userId = (await getUserData(body.ownerAddress, body.ownerAddress?.toLowerCase()))?.id;
+  if (!userId) {
+    res.status(400).send({ error: "User not found"});
+    return;
+  }
   const result = await giveResources(
-    body.ownerAddress?.toLowerCase() || '',
-    body.ownerLogin || '',
-    body.resource,
+    userId,
+    resourceId,
     body.amount,
   );
 
@@ -181,17 +200,21 @@ export const getUserBoxes = async (req: Request, res: Response) => {
 
 export const getUserResources = async (req: Request, res: Response) => {
   const body = req.body;
-  if (!body.ownerAddress && !body.ownerLogin) {
+  if (!body.ownerAddress) {
     res.status(400).send({
       error: 'Nessesary parameters is missing',
     });
     return;
   }
   try {
-    const assets = await getUserBalanceRow(
-      body.ownerAddress?.toLowerCase() || '0x00',
-      body.ownerLogin || '',
-    );
+    const userId = (await getUserData(body.ownerAddress, body.ownerAddress.toLowerCase()))?.id;
+    if (!userId) {
+      res.status(400).send({
+        error: 'User not found',
+      });
+      return;
+    }
+    const assets = await getUserAssets(userId)
     res.status(200).send({
       assets: assets,
     });
@@ -205,13 +228,19 @@ export const getUserResources = async (req: Request, res: Response) => {
 
 export const getUserAvailableBoxes = async (req: Request, res: Response) => {
   const body = req.body;
-  if (!body.ownerAddress && !body.ownerLogin) {
+  if (!body.ownerAddress) {
     res.status(400).send({
       error: 'Nessesary parameters is missing',
     });
   }
-  const result = await getAvailableBoxesByOwner (body.ownerAddress?.toLowerCase() || '',
-  body.ownerLogin || '')
+  const userId = (await getUserData(body.ownerAddress, body.ownerAddress.toLowerCase()))?.id;
+  if (!userId) {
+    res.status(400).send({
+      error: 'User not found',
+    });
+    return;
+  }
+  const result = await getAvailableBoxesByOwner (userId);
   res.status(200).send(result)
 
 }
