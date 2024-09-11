@@ -19,7 +19,7 @@ export async function sendPhotoWithSave(
       caption: message,
       ...options
     });
-    await saveMessage(chatId, msg.message_id);
+    // await saveMessage(chatId, msg.message_id);
     return true;
   } catch (e) {
     console.log(e.message);
@@ -35,7 +35,7 @@ export async function sendMessageWithSave(
 ) {
   try {
     const msg = await bot.sendMessage(chatId, message, options);
-    await saveMessage(chatId, msg.message_id);
+    // await saveMessage(chatId, msg.message_id);
     return true;
   } catch (e) {
     console.log(e.message);

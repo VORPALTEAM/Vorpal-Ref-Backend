@@ -269,7 +269,7 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
     await addDuelOpponent(duel.duel_id, String(user.id || ''));
     let userData = await getPersonalDataById(Number(user.id));
     if (!userData) {
-      await setPersonalData(user, user.id, String(inviter));
+      await setPersonalData(user, String(inviter));
       userData = await getPersonalDataById(Number(user.id));
     }
     const opponentData = await getPersonalDataById(Number(inviter));

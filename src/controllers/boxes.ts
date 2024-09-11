@@ -35,7 +35,6 @@ export const createBox = async (req: Request, res: Response) => {
   if (
     !body.level ||
     !body.ownerAddress ||
-    !body.ownerLogin ||
     !body.signature
   ) {
     res.status(400).send({
@@ -64,11 +63,15 @@ export const createBox = async (req: Request, res: Response) => {
     // const isHolderCreated = await CreateNewHolder(body.ownerAddress)
     const boxId = await createNewBox(
       body.level,
-      body.ownerAddress.toLowerCase(),
-      body.ownerLogin,
+      body.ownerAddress.toLowerCase()
     );
+    if (!boxId) {
+      res.status(400).send({
+        error: "Box creation failed"
+      })
+    }
     res.status(200).send({
-      box: boxId.max,
+      box: boxId,
     });
   } catch (e) {
     res.status(400).send({

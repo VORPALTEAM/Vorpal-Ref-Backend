@@ -1,5 +1,7 @@
 import { runQuery as Q } from '../connection';
 
+// UNAVAILABLE NOW
+
 export async function saveMessage(chat_id: number, message_id: number) {
   const query = `INSERT INTO "telegram_messages" ("chat_id", "message_id") VALUES ('${chat_id}', '${message_id}');`;
   const result = await Q(query, false);

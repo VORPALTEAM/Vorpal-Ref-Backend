@@ -1,9 +1,9 @@
 import { runQuery as Q } from '../connection';
 import { TelegramAuthData, TelegramAuthNote, tgUserTxnData } from '../../types';
+import { createUser, getUserData } from '../../models/user';
 
 export async function setPersonalData(
   data: TelegramAuthData,
-  chat?: number,
   inviter?: string
 ): Promise<Boolean> {
   return new Promise(async (resolve, reject) => {
@@ -16,33 +16,27 @@ export async function setPersonalData(
       hash: data.hash || '',
     };
 
-    const query = `
-    INSERT INTO "telegram_personal"
-     ("user_id", "first_name", "last_name", "username", "last_auth_hash", "last_auth_date", "chat_id", "inviter")
-    VALUES
-     ('${fd.id}', '${fd.first_name}', '${fd.last_name}', '${fd.username}', '${fd.hash}', ${fd.auth_date}, '${chat ? String(chat) : ""}', '${inviter || ""}')
-    ON CONFLICT ("user_id") DO UPDATE SET
-  "first_name" = excluded."first_name",
-  "last_name" = excluded."last_name",
-  "username" = excluded."username",
-  "last_auth_hash" = excluded."last_auth_hash",
-  "last_auth_date" = excluded."last_auth_date",
-  "chat_id" = excluded."chat_id",
-  "inviter" = "telegram_personal"."inviter";
-        `;
-   const result = await Q(query, false);
-   resolve(result ? true : false);
-   return;
+    const user = await getUserData (String(fd.id));
+    const isInvitedByExternal = !isNaN(Number(inviter)) && Number(inviter) < 0;
+    const inviterId : number | null = isInvitedByExternal ? inviter : (await getUserData (inviter))?.id;
+    const username = fd.username || fd.first_name || "Anonimous";
+    
+    if (!user) {
+      const userId = await createUser("1", username, inviterId || undefined, fd);
+      return userId;
+    }
+
+   return user?.id
   });
 }
 
 export async function getPersonalDataById(
-  id: number,
+  chatId: number,
 ): Promise<TelegramAuthNote | null> {
   return new Promise(async (resolve, reject) => {
     const query = `
-        SELECT "user_id", "first_name", "last_name", "username", "last_auth_hash", "last_auth_date", "chat_id"
-        FROM "telegram_personal" WHERE "user_id" = '${id}';
+        SELECT "user_id", "first_name", "last_name", "username", "chat_id"
+        FROM "telegram_personal" WHERE "chat_id" = '${chatId}';
         `;
     const result = await Q(query);
     resolve(result && result.length > 0 ? {
@@ -50,8 +44,6 @@ export async function getPersonalDataById(
       first_name: result[0].first_name,
       last_name: result[0].last_name,
       username: result[0].username,
-      hash: result[0].last_auth_hash,
-      auth_date: Number(result[0].last_auth_date),
       chat_id: Number(result[0].chat_id || 0)
     } : null);
     return;
@@ -63,7 +55,7 @@ export async function getPersonalDataByUsername(
 ): Promise<TelegramAuthNote | null> {
   return new Promise(async (resolve, reject) => {
     const query = `
-          SELECT "user_id", "first_name", "last_name", "username", "last_auth_hash", "last_auth_date", "chat_id"
+          SELECT "user_id", "first_name", "last_name", "username", "chat_id"
           FROM "telegram_personal" WHERE "username" = '${username}';
           `;
           const result = await Q(query);
@@ -72,8 +64,6 @@ export async function getPersonalDataByUsername(
             first_name: result[0].first_name,
             last_name: result[0].last_name,
             username: result[0].username,
-            hash: result[0].last_auth_hash,
-            auth_date: Number(result[0].last_auth_date),
             chat_id: result[0].chat_id || 0
           } : null);
           return;

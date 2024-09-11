@@ -1,11 +1,12 @@
 require('dotenv').config();
 import { TelegramAuthData, boxOpenResults } from 'types';
-import { pool } from '../connection';
+import { pool, runQuery } from '../connection';
 import { writeLog } from '../log';
 import { getBoxOwner, getHolderData, getUserBalanceRow, isHolderExists } from './getters';
 import { getChannelSubscribeList } from '../../telegram/handlers/subscribe';
 import { getUserInviter, getUserInviterById, writeReferralStats } from '../telegram/referral';
 import { referralPart1, referralPart2 } from '../../config';
+import { getUserData } from 'models/user';
 
 const rewardmessage = "Reward from box";
 const rewardrefmessage = "Reward for referral";
@@ -15,23 +16,18 @@ export async function createNewBox(
   level: number,
   ownerAddress: string = '',
   ownerLogin: string = '',
-) {
-  const Holer = ownerAddress.toLowerCase();
-  console.log('Box creation called for: ', ownerLogin);
-  if (!Holer && !ownerLogin) return false;
-  const holderData = await isHolderExists(Holer);
-  if (!holderData) {
-    await createNewHolder(Holer, ownerLogin.toLowerCase());
-  }
+): Promise<number | null> {
+  const holder = ownerAddress.toLowerCase();
+  const ownerId = (await getUserData(holder, holder))?.id
+  if (!holder && !ownerLogin) return null;
+
   const query = `
-    INSERT INTO boxes (ownerAddress, ownerLogin, level, isopen) 
-    VALUES ('${Holer}', '${ownerLogin.toLowerCase()}', ${level}, false);`;
+    INSERT INTO boxes (owner_id, level, is_open) 
+    VALUES (${ownerId}, ${level}, false) RETURNING id;`;
   console.log('Box creation query: ', query);
   // WriteLog('Box creation query: ', query);
-  await pool.query(query);
-  const idQuery = `SELECT max(id) FROM boxes;`;
-  const info = await pool.query(idQuery);
-  return info.rows[0];
+  const box = await runQuery(query, true);
+  return box && box.length > 0 ? box[0].id : null;
 }
 
 export async function giveResources(
@@ -40,16 +36,16 @@ export async function giveResources(
   resource: string,
   amount: number,
 ) {
-  const Holer = ownerAddress.toLowerCase();
-  const holderData = await isHolderExists(Holer);
+  const holder = ownerAddress.toLowerCase();
+  const holderData = await isHolderExists(holder);
 
   if (!holderData) {
-    const creation = await createNewHolder(Holer, ownerLogin.toLowerCase());
+    const creation = await createNewHolder(holder, ownerLogin.toLowerCase());
   }
   const balanceQuery = `UPDATE resources SET ${resource} = ${resource} + ${amount} 
-  WHERE ownerAddress = '${Holer}';`;
+  WHERE ownerAddress = '${holder}';`;
   await pool.query(balanceQuery);
-  return await getUserBalanceRow(Holer, ownerLogin.toLowerCase());
+  return await getUserBalanceRow(holder, ownerLogin.toLowerCase());
 }
 
 export async function createNewHolder(address: string, login?: string) {

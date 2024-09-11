@@ -14,7 +14,7 @@ export const introPhotoPath = '/app/public/entry.png';
 
 export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, match: any) => {
   const chatId = msg.chat.id;
-  saveMessage(chatId, msg.message_id);
+  // saveMessage(chatId, msg.message_id);
   if (!msg.from) return;
   try {
     const linkAuthDataPrev: TelegramAuthData = {
@@ -29,7 +29,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     const inviterLogin = match[1]?.toLowerCase();
 
     try {
-      setPersonalData(linkAuthDataPrev, chatId, String(inviterLogin || ""));
+      setPersonalData(linkAuthDataPrev, String(inviterLogin || ""));
     } catch (e) {
       console.log(e.message);
     }

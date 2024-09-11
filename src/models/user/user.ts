@@ -1,9 +1,11 @@
 import { massRunQueries, runQuery } from '../connection';
 import { TelegramAuthData, TelegramAuthNote } from '../../types';
-import { decodeTgInitData, getSignableMessage, validateByInitData } from '../../utils/auth';
+import {
+  decodeTgInitData,
+  getSignableMessage,
+  validateByInitData,
+} from '../../utils/auth';
 import { generateWalletShortedName } from '../../utils/wallet';
-
-
 
 export async function createUser(
   role = 'user',
@@ -15,10 +17,7 @@ export async function createUser(
 ): Promise<number> {
   const wallets = tonWallets?.concat(ercWallets || []);
   return new Promise(async (resolve, reject) => {
-    const isUserExists = await checkIsUserExists(
-      telegramData,
-      wallets
-    );
+    const isUserExists = await checkIsUserExists(telegramData, wallets);
 
     if (isUserExists) {
       reject('User already exists');
@@ -45,8 +44,8 @@ export async function createUser(
     const userCreation = await runQuery(creationQuery, true);
 
     if (!userCreation || userCreation.length === 0 || !userCreation[0].id) {
-        reject("User creation result is invalid");
-        return;
+      reject('User creation result is invalid');
+      return;
     }
 
     const userId = Number(userCreation[0]?.id);
@@ -59,7 +58,7 @@ export async function createUser(
 
 export async function checkIsUserExists(
   telegramData?: TelegramAuthData, // Use only one method, with priority
-  wallets?: string[]
+  wallets?: string[],
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
     let userCount = 0;
@@ -81,8 +80,7 @@ export async function checkIsUserExists(
     if (wallets && wallets.length > 0) {
       queries.push(`
                 SELECT COUNT(*) from "users" 
-                 WHERE "id" IN (SELECT "user_id" FROM "wallets";`
-      );
+                 WHERE "id" IN (SELECT "user_id" FROM "wallets";`);
     }
     massRunQueries(queries).then((res) => {
       res.forEach((row) => {
@@ -93,8 +91,7 @@ export async function checkIsUserExists(
       resolve(!(userCount === 0));
       return !(userCount === 0);
     });
-
-  })
+  });
 }
 
 export async function assignDataToUser(
@@ -150,36 +147,55 @@ export async function assignDataToUser(
   }
 }
 
-export async function getUserData(
-  telegramData?: TelegramAuthData,
-  wallet?: string
-) {
-  if (!telegramData && !wallet) return null;
-  
-  const query = telegramData ? `
-    SELECT id, role_id, username, inviter_id from "users" WHERE id IN (SELECT user_id FROM "telegram_personal" WHERE chat_id = '${telegramData.id}');
-  ` : `
+export async function getUserData(telegramId?: string, wallet?: string) {
+  if (!telegramId && !wallet) return null;
+
+  const query = telegramId
+    ? `
+    SELECT id, role_id, username, inviter_id from "users" WHERE id IN (SELECT user_id FROM "telegram_personal" WHERE chat_id = '${telegramId}');
+  `
+    : `
     SELECT id from "users" WHERE id IN (SELECT user_id FROM "wallets" WHERE wallet = '${wallet}');
   `;
   const result = await runQuery(query, true);
-  return !result ? null : result.length > 0 ? result[0].id : null;
+  return !result ? null : result.length > 0 ? result[0] : null;
+}
+
+export async function getUserById(userId: number) {
+  const query = `SELECT * FROM users WHERE "id" = ${userId};`;
+  return (await runQuery(query, true)[0]) || null;
+}
+
+export async function getAuthData(userId: number) {
+  const telegramQuery = `SELECT * FROM telegram_personal WHERE "user_id" = ${userId};`;
+  const walletQuery = `SELECT * FRON wallets WHERE user_id = ${userId}`;
+  return {
+    telegram: (await runQuery(telegramQuery, true)[0]) || null,
+    wallets: (await runQuery(walletQuery, true))
+      ?.map((row) => {
+        return row.wallet_address || null;
+      })
+      .filter((row) => {
+        return row !== null;
+      }),
+  };
 }
 
 export async function setAdmin(userId) {
   const query = `UPDATE users SET user_role = 2 WHEREuser_id = ${userId};`;
-  return await runQuery(query)
+  return await runQuery(query);
 }
 
 export async function dropAdmin(userId) {
   const query = `UPDATE users SET user_role = 1 WHEREuser_id = ${userId};`;
-  return await runQuery(query)
+  return await runQuery(query);
 }
 
 export async function deleteUser(userId: number) {
   const queries = [
     `DELETE FROM users WHERE id = ${userId};`,
     `DELETE FROM telegram_personal WHERE user_id = ${userId};`,
-    `DELETE FROM wallets WHERE user_id = ${userId}`
+    `DELETE FROM wallets WHERE user_id = ${userId}`,
   ];
   return await massRunQueries(queries);
 }

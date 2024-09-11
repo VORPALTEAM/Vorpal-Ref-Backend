@@ -24,6 +24,7 @@ import { saveMessage } from '../../models/telegram/history';
 import { sendMessageWithSave, truncateChat } from './utils';
 import { getUserInviter } from '../../models/telegram/referral';
 import { Bot } from '../bot';
+import { getUserData } from '../../models/user';
 
 export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) => {
   const chatId = msg.chat.id;
@@ -32,7 +33,7 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       SendMessageWithSave(Bot, chatId, messages.noUsername);
       return;
     } */
-    saveMessage(chatId, msg.message_id);
+    // saveMessage(chatId, msg.message_id);
 
     const linkAuthDataPrev: TelegramAuthData = {
       auth_date: getDaylyAuthDate(),
@@ -45,10 +46,10 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
 
     const inviterLogin = match[1]?.toLowerCase();
 
-    const inviterId = (await getPersonalDataById (inviterLogin))?.id;
+    const inviterId = (await getUserData (inviterLogin))?.id;
 
     try {
-      setPersonalData(linkAuthDataPrev, chatId, String(inviterId || ""));
+      setPersonalData(linkAuthDataPrev, String(inviterId || ""));
     } catch (e) {
       console.log(e.message);
     }

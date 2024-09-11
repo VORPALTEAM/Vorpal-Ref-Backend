@@ -4,16 +4,20 @@ import {
   TelegramAuthData,
   TelegramAuthNote,
 } from '../../types';
+import { getUserData } from '../../models/user';
 
 
-export async function getUserInviter(username: string): Promise<string> {
-  const query = `SELECT "inviter" FROM "telegram_personal" WHERE "username" = '${username}';`;
+export async function getUserInviter(user_id: number): Promise<number | null> {
+  const query = `SELECT "inviter_id" FROM "users" WHERE "id" = ${user_id};`;
   const result = await Q(query);
-  return result && result.length > 0 ? result[0].inviter : "";
+  return result && result.length > 0 ? result[0].inviter_id : null;
 }
 
-export async function getUserInviterById(userId: string): Promise<string> {
-  const query = `SELECT "inviter" FROM "telegram_personal" WHERE "user_id" = '${userId}';`;
+export async function getUserInviterByTelegramId(userTelegramId: string): Promise<number | null> {
+  const user = await getUserData(userTelegramId);
+  if (!user) return null;
+  const query = `SELECT "inviter_id" FROM "users" WHERE "id" IN 
+  (SELECT user_id FROM "telegram_personal" WHERE chat_id = '${userTelegramId}');`;
   const result = await Q(query);
   return result && result.length > 0 ? result[0].inviter : "";
 }
@@ -69,12 +73,14 @@ WHERE "inviter" IN (
   })
 }
 
-export async function getReferralStatsByUser(
+export async function getReferralStatsByUserTelegramId(
   login: string,
   limit = 5
 ): Promise<ReferralStatsData[]> {
+  const user = await getUserData(login);
+  if (!user) return [];
   const query = `SELECT id, recipient, referrer, resource, amount, reward_date, level
-	FROM "telegram_referral_stats" WHERE recipient = '${login.toLowerCase()}' ORDER BY reward_date DESC LIMIT ${limit};`;
+	FROM "telegram_referral_stats" WHERE recipient = ${user.id} ORDER BY reward_date DESC LIMIT ${limit};`;
   const data = await Q(query);
   return data ? data.map((row: any) => {
     return {
@@ -90,10 +96,12 @@ export async function getReferralStatsByUser(
 }
 
 export async function getReferralTotalRewardsByUser(login: string): Promise<{item: string; amount: number}[]> {
+  const user = await getUserData(login);
+  if (!user) return [];
   const query = `
      SELECT resource, SUM(amount) as total_amount
        FROM "telegram_referral_stats"
-       WHERE recipient = '${login.toLowerCase()}'
+       WHERE recipient = ${user.id}
        GROUP BY resource
        ORDER BY total_amount DESC; 
   `

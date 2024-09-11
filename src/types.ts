@@ -78,8 +78,8 @@ export interface TelegramAuthData {
   first_name: string;
   last_name?: string;
   username?: string;
-  auth_date: number;
-  hash: string;
+  auth_date?: number;
+  hash?: string;
 }
 
 export interface ReferralStatsData {
@@ -97,14 +97,14 @@ export interface TelegramAuthNote extends TelegramAuthData {
 }
 
 export interface DuelInfo {
-  duel_id: string;
+  id: string;
   id1: string;
   id2?: string;
   nickName1?: string;
   nickName2?: string;
   creation: number;
-  isfinished?: string;
-  isexpired?: string;
+  is_finished?: string;
+  is_started?: string;
   winner?: string;
 }
 
