@@ -24,7 +24,7 @@ import { saveMessage } from '../../models/telegram/history';
 import { sendMessageWithSave, truncateChat } from './utils';
 import { getUserInviter } from '../../models/telegram/referral';
 import { Bot } from '../bot';
-import { getUserData } from '../../models/user';
+import { createUserIfNotExists, getUserData } from '../../models/user';
 
 export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) => {
   const chatId = msg.chat.id;
@@ -48,11 +48,7 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
 
     const inviterId = (await getUserData (inviterLogin))?.id;
 
-    try {
-      setPersonalData(linkAuthDataPrev, String(inviterId || ""));
-    } catch (e) {
-      console.log(e.message);
-    }
+    const userId = await createUserIfNotExists("user", undefined, inviterId, linkAuthDataPrev);
 
     // await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
 
@@ -72,9 +68,9 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       sendMessageWithSave(Bot, chatId, messages.inviteSelf);
       return;
     }
-
+    
     const createdDuel = inviterId
-      ? await getDuelDataByInviter(String(inviterId))
+      ? await getDuelDataByInviter(inviterId)
       : null;
 
     if (!createdDuel) {
@@ -87,7 +83,7 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
     const timeNow = Math.round(new Date().getTime() / 1000);
     // ToDo: check duel condition
     if (
-      createdDuel.isfinished &&
+      createdDuel.is_finished &&
       timeNow - createdDuel.creation <= duel_lifetime
     ) {
       sendMessageWithSave(Bot, chatId, messages.duelCancelled, {
@@ -97,7 +93,6 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
     }
 
     if (
-      createdDuel.isexpired ||
       timeNow - createdDuel.creation > duel_lifetime
     ) {
       sendMessageWithSave(Bot, chatId, messages.duelExpired, {
@@ -109,8 +104,7 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
     if (
       (createdDuel.id2 &&
         createdDuel.id2 !== String(linkAuthDataPrev.id)) ||
-      createdDuel.isexpired ||
-      createdDuel.isfinished ||
+      createdDuel.is_finished ||
       timeNow - createdDuel.creation > duel_lifetime
     ) {
       sendMessageWithSave(Bot, chatId, messages.duelBusy, {
@@ -119,7 +113,7 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
       return;
     }
 
-    await addDuelOpponent(createdDuel.duel_id, String(linkAuthDataPrev.id));
+    await addDuelOpponent(Number(createdDuel.id), userId);
     sendMessageWithSave(Bot, chatId, messages.duelAccept(inviterLogin), {
       reply_markup: InlineKeyboard(['duelConfirm', 'duelRefuse'], inviterLogin),
     });

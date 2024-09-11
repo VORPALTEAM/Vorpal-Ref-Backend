@@ -11,7 +11,7 @@ import { duel_lifetime } from '../../config';
 import { duelText, inviteLink, messages, startText } from '../constants';
 import { InlineKeyboard } from './keyboard';
 import { sendMessageWithSave } from './utils';
-import { getReferralCount, getReferralStatsByUser, getReferralTotalRewardsByUser } from '../../models/telegram/referral';
+import { getReferralCount, getReferralStatsByUserTelegramId, getReferralTotalRewardsByUser } from '../../models/telegram/referral';
 import { Bot } from '../bot';
 
 export const referralStatsAction = async (bot: TelegramBot, query: TelegramBot.CallbackQuery) => {
@@ -58,7 +58,7 @@ export const referralTotalCountAction = async (bot: TelegramBot, query: Telegram
 
 export const referralLastTxnAction = async (bot: TelegramBot, query: TelegramBot.CallbackQuery) => {
   if (!query.message) return;
-  const transactions = await getReferralStatsByUser (String(query.from.id));
+  const transactions = await getReferralStatsByUserTelegramId (String(query.from.id));
     if (transactions.length === 0) {
         sendMessageWithSave (Bot, query.message.chat.id, "No referral rewards yet");
         return;

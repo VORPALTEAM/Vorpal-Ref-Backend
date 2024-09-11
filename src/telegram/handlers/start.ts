@@ -9,6 +9,7 @@ import { sendMessageWithSave, sendPhotoWithSave, truncateChat } from './utils';
 import { messages } from '../constants';
 import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
+import { createUserIfNotExists, getUserId } from '../../models/user';
 
 export const introPhotoPath = '/app/public/entry.png';
 
@@ -28,18 +29,15 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     const inviterLogin = match[1]?.toLowerCase();
 
-    try {
-      setPersonalData(linkAuthDataPrev, String(inviterLogin || ""));
-    } catch (e) {
-      console.log(e.message);
-    }
+    const inviterId = await getUserId(inviterLogin);
+    const userId = await createUserIfNotExists("user", undefined, inviterId || undefined, linkAuthDataPrev);
 
     /* if (!linkAuthDataPrev.username) {
       SendMessageWithSave(Bot, chatId, messages.noUsername);
       return;
     } */
 
-    const isInDuel = await isUserInDuel(String(linkAuthDataPrev.id)) 
+    const isInDuel = await isUserInDuel(userId) 
       if (isInDuel) {
         sendMessageWithSave(Bot, chatId, messages.duelAlready);
         return;

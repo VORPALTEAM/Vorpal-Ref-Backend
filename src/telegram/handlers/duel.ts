@@ -15,6 +15,7 @@ import { InlineKeyboard } from './keyboard';
 import { sendMessageWithSave } from './utils';
 import { notifyDuelFinishFor } from '../../models/external';
 import { Bot } from '../bot';
+import { createUserIfNotExists, getUserId } from 'models/user';
 
 export const duelCancelAction = async (
   bot: TelegramBot,
@@ -27,10 +28,15 @@ export const duelCancelAction = async (
   }
   const chatId = query.message.chat.id;
   const sender: string = String(query?.from?.id || '');
+  const userId = await getUserId(String(chatId));
+  if (!userId) {
+    sendMessageWithSave(Bot, chatId, "Unknown error");
+    return;
+  }
   if (sender) {
-    const duel = await getDuelDataByUser(sender.toLowerCase());
+    const duel = await getDuelDataByUser(userId);
     console.log('Cancelled duel: ', duel);
-    if (duel && duel.isfinished) {
+    if (duel && duel.is_finished) {
       sendMessageWithSave(Bot, chatId, "Duel is already finished");
       return;
     }
@@ -42,7 +48,7 @@ export const duelCancelAction = async (
           console.log(e.message);
         }
       } */
-      await deleteDuel(duel.duel_id);
+      await deleteDuel(Number(duel.id));
       // await FinishDuel(duel.duel_id, '');
       sendMessageWithSave(Bot, chatId, messages.duelCancelled, {
         reply_markup: InlineKeyboard(['enterGame', 'duel']),
@@ -62,27 +68,31 @@ export const duelCancelAction = async (
 export const duelAcceptAction = async (
   bot: TelegramBot,
   query: TelegramBot.CallbackQuery,
-  inviter?: string,
+  inviter: string,
 ) => {
   if (!query.message?.chat.id) {
     console.log('Chat not found');
     return;
   }
-
-  const duel = await getDuelDataByUser(inviter?.toLowerCase() || '');
+  const inviterId = await getUserId(inviter);
+  if (!inviterId) {
+    bot.sendMessage(query.message.chat.id, messages.duelNotFound);
+    return;
+  }
+  const duel = await getDuelDataByUser(inviterId);
 
   if (!duel) {
     bot.sendMessage(query.message.chat.id, messages.duelNotFound);
     return;
   }
-  const player = String(query?.message?.from?.id || '');
+  const player = await createUserIfNotExists(String(query?.message?.from?.id || ''));
 
   /* if (!player) {
     bot.sendMessage(query.message.chat.id, messages.noUsername);
     return;
   } */
 
-  await addDuelOpponent(duel.duel_id, player);
+  await addDuelOpponent(Number(duel.id), player);
   bot.sendMessage(query.message.chat.id, messages.duelComfirmed);
   if (inviter && player) {
     const opponentData = await getPersonalDataById(Number(inviter));
@@ -110,15 +120,15 @@ export const duelRefuseAction = async (
   if (!caller || !query.from || !query.from.username) {
     return;
   }
-
-  const duelOpponent = ((await getOpponent(String(caller))) || inviter);
+  const userId = await createUserIfNotExists("user", undefined, undefined, query.from)
+  const duelOpponent = ((await getOpponent(userId)) || inviter);
   const opponentData = await getPersonalDataById(Number(duelOpponent));
-  const duelData = await getDuelDataByUser (String(caller));
+  const duelData = await getDuelDataByUser (userId);
 
   if (opponentData) {
 
       try {
-        notifyDuelFinishFor(String(opponentData.id), duelData?.duel_id || "");
+        notifyDuelFinishFor(String(opponentData.id), duelData?.id || "");
       } catch (e) {
         console.log("Notify err");
       } 
@@ -133,8 +143,8 @@ export const duelRefuseAction = async (
       query.message.chat.id,
       messages.duelCancelYouNotify(opponentData.username || opponentData.first_name),
     );
-
-    const removeResult = await removeDuelOpponent(String(caller));
+    const callerId = await getUserId(String(caller));
+    const removeResult = callerId && await removeDuelOpponent(callerId);
 
     sendMessageWithSave(Bot, query.message.chat.id, messages.duelRefused, {
       reply_markup: InlineKeyboard(['enterGame', 'duel']),

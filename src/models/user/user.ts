@@ -162,6 +162,21 @@ export async function assignDataToUser(
   }
 }
 
+export async function getUserId(telegramId?: string, wallet?: string): Promise<number | null> {
+  if (!telegramId && !wallet) return null;
+
+  const query = telegramId
+    ? `
+    SELECT id from "users" WHERE id IN (SELECT user_id FROM "telegram_personal" WHERE chat_id = '${telegramId}');
+  `
+    : `
+    SELECT id from "users" WHERE id IN (SELECT user_id FROM "wallets" WHERE wallet = '${wallet}');
+  `;
+  const result = await runQuery(query, true);
+  return !result ? null : result.length > 0 ? result[0].id : null;
+}
+
+
 export async function getUserData(telegramId?: string, wallet?: string): Promise<{
   id: number;
   username: string;

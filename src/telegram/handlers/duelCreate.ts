@@ -21,6 +21,7 @@ import {
 import { sendMessageWithSave, sendPhotoWithSave } from './utils';
 import { saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
+import { createUserIfNotExists } from 'models/user';
 
 export const invitePhotoPath = '/app/public/duel.png';
 
@@ -59,16 +60,18 @@ export const duelCreationHandler = async (
     hash: '',
   };
 
+  const existUserId = await createUserIfNotExists("user", undefined, undefined, linkAuthDataPrev);
+
   /* if (!linkAuthDataPrev.username) {
     SendMessageWithSave(Bot, chatId, messages.noUsername);
     return;
   } */
   const dateSec = Math.round(new Date().getTime() / 1000);
-  const userLastDuel = await getDuelDataByUser(String(linkAuthDataPrev.id));
+  const userLastDuel = await getDuelDataByUser(existUserId);
   if (!userLastDuel) {
-    await createDuel(String(linkAuthDataPrev.id), '');
+    await createDuel(existUserId);
   } else {
-    const isFinished = userLastDuel.isfinished;
+    const isFinished = userLastDuel.is_finished;
     const creation = Number(userLastDuel.creation);
     if (
       !isFinished &&
@@ -81,9 +84,9 @@ export const duelCreationHandler = async (
     }
     if (!isFinished || dateSec - creation >= duel_lifetime) {
 
-      await finishDuel(userLastDuel.duel_id, '');
+      await finishDuel(Number(userLastDuel.id), null);
     }
-    const duelId = await createDuel(String(linkAuthDataPrev.id), '');
+    const duelId = await createDuel(existUserId);
   }
 
   await sendMessageWithSave(Bot, chatId, messages.duelToForward).then(() => {
