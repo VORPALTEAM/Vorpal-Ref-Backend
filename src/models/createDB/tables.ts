@@ -113,7 +113,7 @@ const tableCreationQueries = [
      id serial PRIMARY KEY,
      user_id integer,
      item_id integer,
-     count integer,
+     amount integer,
      UNIQUE (user_id, item_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "stars" (
@@ -144,7 +144,7 @@ const tableCreationQueries = [
     );`,
     `CREATE TABLE IF NOT EXISTS "items" (
      id serial PRIMARY KEY,
-     name varchar(32),
+     name varchar(32) NOT NULL UNIQUE,
      total_count integer,
      img_preview varchar(256),
      img_full varchar(256),

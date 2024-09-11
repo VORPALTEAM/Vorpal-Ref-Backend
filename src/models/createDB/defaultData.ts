@@ -9,15 +9,18 @@ INSERT INTO "roles" (name) VALUES ('user'), ('admin');`,
 INSERT INTO "network_families" (name) VALUES ('TON'), ('EVM');`,
 `-- Default resources
 INSERT INTO "items" (
-	name, total_count, img_preview, img_full)
+	name, total_count, img_preview, img_full, type, rareness, description)
 	VALUES 
-    ('tVRP', null, '/gui/images/icons/coins.png', '/gui/images/icons/coins.png'),
-    ('spores', null, '/gui/images/icons/spores.png', '/gui/images/icons/spores.png'),
-    ('spice', null, '/gui/images/icons/spice.png', '/gui/images/icons/spice.png'),
-    ('metal', null, '/gui/images/icons/metal.png', '/gui/images/icons/metal.png'),
-    ('biomass', null, '/gui/images/icons/biomass.png', '/gui/images/icons/biomass.png'),
-    ('carbon', null, '/gui/images/icons/carbon.png', '/gui/images/icons/carbon.png'),
-    ('trends', null, '/gui/images/icons/trends.png', '/gui/images/icons/trends.png'); 
+    ('tVRP', null, '/gui/images/icons/coins.png', '/gui/images/icons/coins.png', 'currency', null, ''),
+    ('spores', null, '/gui/images/icons/spores.png', '/gui/images/icons/spores.png', 'currency', null, ''),
+    ('spice', null, '/gui/images/icons/spice.png', '/gui/images/icons/spice.png', 'currency', null, ''),
+    ('metal', null, '/gui/images/icons/metal.png', '/gui/images/icons/metal.png', 'currency', null, ''),
+    ('biomass', null, '/gui/images/icons/biomass.png', '/gui/images/icons/biomass.png', 'currency', null, ''),
+    ('carbon', null, '/gui/images/icons/carbon.png', '/gui/images/icons/carbon.png', 'currency', null, ''),
+    ('trends', null, '/gui/images/icons/trends.png', '/gui/images/icons/trends.png', 'currency', null, ''),
+    ('laser1', null, '/gui/images/icons/laser-red.png', '/gui/images/icons/laser-red.png', 'laser', 'usual', ''),
+    ('laser2', null, '/gui/images/icons/laser-white.png', '/gui/images/icons/laser-white.png', 'laser', 'rare', ''),
+    ('laser3', null, '/gui/images/icons/laser-violet.png', '/gui/images/icons/laser-violet.png', 'laser', 'relict', ''); 
 `
 
 ];

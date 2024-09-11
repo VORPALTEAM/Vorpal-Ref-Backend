@@ -30,66 +30,52 @@ export async function getBoxOpenResult(boxId: number) {
   };
 }
 
-export async function getLoginByAddress(address: string) {}
+export async function getLoginByAddress(address: string) {
 
-export async function isHolderExists (address: string): Promise<Boolean> {
-  const selectionQuery = `SELECT * FROM resources WHERE ownerAddress = '${address.toLowerCase()}' LIMIT 1;`;
-  const result = await Q(selectionQuery);
-  if (!result || result.length === 0) {
-    return false;
-  } else {
-    return true;
-  }
 }
 
-export async function getHolderData(address: string) {
-  const selectionQuery = `SELECT * FROM resources WHERE ownerAddress = '${address.toLowerCase()}' LIMIT 1;`;
-  const result = await Q(selectionQuery);
-  if (!result || result.length === 0) {
-    return (zeroAssets);
+export async function getUserAssets (userId: number) {
+
+  const balanceMap = new Map<string, number>()
+  const query = `SELECT items.name, ub.amount FROM user_balances AS ub, items 
+  WHERE ub.item_id = items.id AND ub.user_id = ${userId};`
+  const result = await Q(query, true);
+  if (result && result.length > 0) {
+    result.forEach((item) => {
+      balanceMap.set(item.name, item.amount)
+    })
   }
-  return result[0];
+  return Object.fromEntries(balanceMap);
 }
 
-export async function getBoxOwner(boxId: number): Promise<string> {
+export async function getBoxOwner(boxId: number): Promise<number | null> {
   const selectionQuery = `
-        SELECT ownerAddress, ownerLogin FROM boxes WHERE id= '${boxId}' LIMIT 1;
+        SELECT owner_id FROM boxes WHERE id = ${boxId};
       `;
   const result = await Q(selectionQuery);
   if (result && result.length > 0) {
-    return result[0].ownerlogin || result[0].owneraddress;
+    return result[0].owner_id;
   } else {
-    return "";
+    return null;
   }
 }
 
-export async function getUserBalanceRow(ownerAddress = '', ownerLogin = '') {
-  if (!ownerAddress && !ownerLogin) {
-    return null;
+export async function getUserBalanceRow(userId: number) {
+  const balancesList = {};
+  for (let key in zeroAssets) {
+    const balanceQuery = `SELECT amount FROM user_balaces WHERE user_id = ${userId} AND item_id IN 
+   (SELECT id FROM items WHERE name = '${key}');`;
+   const result = await Q(balanceQuery, true);
+   const value = result && result.length > 0 ? Number(result[0].amount) || 0 : 0;
+   Object.assign(balancesList, { key: value })
   }
-  const balanceQuery = `
-    SELECT laser1, laser2, laser3, token, spore, spice, metal, biomass, carbon, trends 
-    FROM resources 
-    WHERE ${ownerLogin ? 'ownerLogin' : 'ownerAddress'} = '${
-    (ownerLogin ? ownerLogin : ownerAddress).toLowerCase()
-  }' LIMIT 1;`;
-  const assets = await Q(balanceQuery);
-  if (!assets || assets.length === 0) {
-    return (zeroAssets);
-  }
-  return assets[0];
+  return balancesList;
 }
 
 export async function getAvailableBoxesByOwner(
-  ownerAddress = '',
-  ownerLogin = '',
+  userId: number
 ) {
-  if (!ownerAddress && !ownerLogin) {
-    return null;
-  }
-  const listQuery = `SELECT * FROM boxes WHERE ${
-    ownerLogin ? 'ownerLogin' : 'ownerAddress'
-  } = '${(ownerLogin ? ownerLogin : ownerAddress).toLowerCase()}' AND isOpen = false;`;
+  const listQuery = `SELECT * FROM boxes WHERE owner_id = ${userId} AND isOpen = false;`;
   const response = await Q(listQuery);
   return response || [];
 }

@@ -2,7 +2,7 @@ require('dotenv').config();
 import { TelegramAuthData, boxOpenResults } from 'types';
 import { pool, runQuery } from '../connection';
 import { writeLog } from '../log';
-import { getBoxOwner, getHolderData, getUserBalanceRow, isHolderExists } from './getters';
+import { getBoxOwner, getUserBalanceRow } from './getters';
 import { getChannelSubscribeList } from '../../telegram/handlers/subscribe';
 import { getUserInviter, getUserInviterByTelegramId, writeReferralStats } from '../telegram/referral';
 import { referralPart1, referralPart2 } from '../../config';
@@ -14,12 +14,11 @@ const rewardrefmessage = "Reward for referral";
 
 export async function createNewBox(
   level: number,
-  ownerAddress: string = '',
-  ownerLogin: string = '',
+  ownerStr: string = '',
 ): Promise<number | null> {
-  const holder = ownerAddress.toLowerCase();
+  const holder = ownerStr.toLowerCase();
   const ownerId = (await getUserData(holder, holder))?.id
-  if (!holder && !ownerLogin) return null;
+  if (!holder) return null;
 
   const query = `
     INSERT INTO boxes (owner_id, level, is_open) 
@@ -31,37 +30,19 @@ export async function createNewBox(
 }
 
 export async function giveResources(
-  ownerAddress: string = '',
-  ownerLogin: string = '',
-  resource: string,
+  userId: number,
+  resourceId: number,
   amount: number,
-) {
-  const holder = ownerAddress.toLowerCase();
-  const holderData = await isHolderExists(holder);
-
-  if (!holderData) {
-    const creation = await createNewHolder(holder, ownerLogin.toLowerCase());
-  }
-  const balanceQuery = `UPDATE resources SET ${resource} = ${resource} + ${amount} 
-  WHERE ownerAddress = '${holder}';`;
-  await pool.query(balanceQuery);
-  return await getUserBalanceRow(holder, ownerLogin.toLowerCase());
-}
-
-export async function createNewHolder(address: string, login?: string) {
-  const ownerLogin = (login || address).toLowerCase();
-  const isUserExists = await isHolderExists(address.toLowerCase());
-  if (isUserExists) {
-    return false;
-  }
-  const creationQuery = `INSERT INTO resources 
-  (ownerAddress, ownerLogin, laser1, laser2, laser3, spore, spice, metal, token, biomass, carbon, trends) 
-  VALUES ('${address.toLowerCase()}', '${ownerLogin}', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);`;
-  // WriteLog('User creation query: ', creationQuery);
-  const result = await pool.query(creationQuery);
-  // WriteLog('Insertion result: ', JSON.stringify(result));
-  // console.log('Insertion result: ', result)
-  return true;
+) : Promise<number> {
+  const upsertQuery = `
+  INSERT INTO user_balances (user_id, item_id, amount)
+  VALUES (${userId}, ${resourceId}, ${amount})
+  ON CONFLICT (user_id, item_id) 
+  DO UPDATE SET amount = user_balances.amount + ${amount}
+  RETURNING amount;
+  `;
+  const result = await runQuery(upsertQuery);
+  return result ? result[0]?.amount || 0 : 0;
 }
 
 export async function updateResourceTransaction(
@@ -115,7 +96,7 @@ export async function resourceTransactionWithReferrals (userId: number, resource
 
 export async function openBox(boxId: number, telegramData: TelegramAuthData) {
   let openAmount = 0;
-  const boxCheckQuery = `SELECT isopen FROM boxes WHERE id = ${boxId};`;
+  const boxCheckQuery = `SELECT is_open FROM boxes WHERE id = ${boxId};`;
   const check = await pool.query(boxCheckQuery);
   if (check.rows.length === 0) {
     return {
@@ -123,34 +104,34 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
       error: 'Box id not exist',
     };
   }
-  if (check.rows[0].isopen === true || check.rows[0].isopen === 'true') {
+  if (check.rows[0].is_open === true || check.rows[0].is_open === 'true') {
     return {
       success: false,
       error: 'Box is already open',
     };
   }
   const owner = await getBoxOwner(boxId);
+  if (!owner) {
+    return {
+      success: false,
+      error: 'Box owner not found',
+    };
+  }
+  const userId = await getUserData(String(telegramData.id));
+  if (userId !== owner) {
+    return {
+      success: false,
+      error: 'Caller is not a box owner',
+    };
+  }
   const value = Math.round(Math.random() * 10000);
   const valueVRP = Math.round(Math.random() * 5) + 5;
-  await createNewHolder(
-    String(telegramData?.id || ''),
-    String(telegramData.username || telegramData.first_name),
-  );
-  /* if (telegramData) {
-    const subscribes = await GetChannelSubscribeList(telegramData.id);
-    if (subscribes.length === 0) {
-      const trendsValue = 5 + Math.round(Math.random() * 5);
-      // const trendsUpQuery = `UPDATE resources SET trends = trends + ${trendsValue} 
-      // WHERE ownerAddress IN (SELECT ownerAddress FROM boxes WHERE id = ${boxId})`;
-      // await connection.query(trendsUpQuery);
-      await  resourceTransactionWithReferrals (owner, 'trends', trendsValue, rewardmessage);
-    } 
-  } */
-  await  resourceTransactionWithReferrals (owner, 'token', valueVRP, rewardmessage);
+
+  await  resourceTransactionWithReferrals (owner, 1, valueVRP, rewardmessage);
   // const vrpQuery = `UPDATE resources SET token = token + ${valueVRP} 
   //     WHERE ownerAddress IN (SELECT ownerAddress FROM boxes WHERE id = ${boxId})`;
   // await connection.query(vrpQuery);
-  const rewardType: boxOpenResults = (() => {
+  const rewardId: number = (() => {
     switch (true) {
       /* case value < 100:
         openAmount = 1;
@@ -166,29 +147,29 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
         return 'token'; */
       case value < 2000:
         openAmount = value % 1000;
-        return 'spice';
+        return 2;
       case value < 4000:
         openAmount = value % 1000;
-        return 'spore';
+        return 3;
       case value < 6000:
         openAmount = value % 1000;
-        return 'metal';
+        return 4;
       case value < 8000:
         openAmount = value % 1000;
-        return 'biomass';
+        return 5;
       case value <= 10000:
         openAmount = value % 1000;
-        return 'carbon';
+        return 6;
       default:
         openAmount = value % 1000;
-        return 'token';
+        return 1;
     }
   })();
   const logQuery = `INSERT INTO box_log (boxId, opening, openResult, openAmount)
-    VALUES (${boxId}, CURRENT_TIMESTAMP, '${rewardType}', ${openAmount});`;
-  const boxCloseQuery = `UPDATE boxes SET isopen = true WHERE id = ${boxId};`;
+    VALUES (${boxId}, CURRENT_TIMESTAMP, '${rewardId}', ${openAmount});`;
+  const boxCloseQuery = `UPDATE boxes SET is_open = true WHERE id = ${boxId};`;
   const logs = await pool.query(logQuery);
-  await  resourceTransactionWithReferrals (owner, rewardType, openAmount, rewardmessage);
+  await  resourceTransactionWithReferrals (owner, rewardId, openAmount, rewardmessage);
   await pool.query(boxCloseQuery);
   return {
     success: true,

@@ -7,6 +7,21 @@ import {
 } from '../../utils/auth';
 import { generateWalletShortedName } from '../../utils/wallet';
 
+export async function createUserIfNotExists(
+  role = 'user',
+  username?: string,
+  inviterId?: number,
+  telegramData?: TelegramAuthData
+) {
+  const userData = await getUserData(String(telegramData?.id || ""))
+  if (userData) {
+    return Number(userData.id)
+  }
+
+  const userId = await createUser(role, username, inviterId, telegramData);
+  return userId;
+}
+
 export async function createUser(
   role = 'user',
   username?: string,
