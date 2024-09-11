@@ -15,7 +15,7 @@ import { InlineKeyboard } from './keyboard';
 import { sendMessageWithSave } from './utils';
 import { notifyDuelFinishFor } from '../../models/external';
 import { Bot } from '../bot';
-import { createUserIfNotExists, getUserId } from 'models/user';
+import { createUserIfNotExists, getUserId } from '../../models/user';
 
 export const duelCancelAction = async (
   bot: TelegramBot,
