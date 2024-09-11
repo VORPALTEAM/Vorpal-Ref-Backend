@@ -52,7 +52,7 @@ export async function isUserInDuel(userId: number) {
 }
 
 export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
-  const query = `SELECT "user_1_id", "login2", "creation", "isfinished", "winner" FROM "duels" WHERE "id" = ${duelId};`;
+  const query = `SELECT "user_1_id", "login2", "creation", "isfinished", "winner_id" FROM "duels" WHERE "id" = ${duelId};`;
   const result = await Q(query, true);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
@@ -90,7 +90,7 @@ export async function removeDuelOpponent(userId: number) {
 export async function getDuelDataByUser(
   userId: number,
 ): Promise<DuelInfo | null> {
-  const query = `SELECT "id", "user_1_id", "user_2_id", "creation", "is_finished", "winner" FROM "duels" 
+  const query = `SELECT "id", "user_1_id", "user_2_id", "creation", "is_finished", "winner_id" FROM "duels" 
   WHERE "user_1_id" = ${userId} OR "user_2_id" = ${userId} ORDER BY "creation" DESC LIMIT 1;`;
   const result = await Q(query);
   if (!result || result.length === 0) return null;
@@ -112,7 +112,7 @@ export async function getDuelDataByUser(
 export async function getDuelDataByInviter(
   userId: number,
 ): Promise<DuelInfo | null> {
-  const query = `SELECT "id", "user_1_id", "user_2_id", "creation", "is_finished", "winner" FROM "duels" 
+  const query = `SELECT "id", "user_1_id", "user_2_id", "creation", "is_finished", "winner_id" FROM "duels" 
   WHERE "user_1_id" = ${userId} ORDER BY "creation" DESC LIMIT 1;`;
   const result = await Q(query);
   if (!result || result.length === 0) return null;
@@ -150,7 +150,7 @@ export async function createDuel(user1: number, user2?: number) {
 
   const dt = Math.round(new Date().getTime() / 1000);
   const query = `INSERT INTO "duels" 
-    ("user_1_id", "user_2_id", "creation", "is_started", "is_finished", "winner") 
+    ("user_1_id", "user_2_id", "creation", "is_started", "is_finished", "winner_id") 
     VALUES (${user1}, ${user2 || null}, ${dt}, false, false, null) RETURNING id;`;
   const result = await Q(query, true);
   return result && result.length > 0 ? result[0].id : null;

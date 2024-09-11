@@ -172,8 +172,8 @@ const tableCreationQueries = [
      user_2_id integer,
      creation integer,
      winner_id integer,
-     is_started integer,
-     is_finished integer
+     is_started boolean,
+     is_finished boolean
     );`,
     `CREATE TABLE IF NOT EXISTS "box_open_results" (
      id serial PRIMARY KEY,
