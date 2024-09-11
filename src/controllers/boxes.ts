@@ -37,7 +37,7 @@ export const createBox = async (req: Request, res: Response) => {
   const body = req.body;
   if (
     !body.level ||
-    !body.ownerAddress ||
+    !body.ownerLogin ||
     !body.signature
   ) {
     res.status(400).send({
@@ -63,10 +63,10 @@ export const createBox = async (req: Request, res: Response) => {
   }
 
   try {
-    // const isHolderCreated = await CreateNewHolder(body.ownerAddress)
+    // const isHolderCreated = await CreateNewHolder(body.ownerLogin)
     const boxId = await createNewBox(
       body.level,
-      body.ownerAddress.toLowerCase()
+      body.ownerLogin?.toLowerCase()
     );
     if (!boxId) {
       res.status(400).send({
@@ -149,7 +149,7 @@ export const giveResourcesResponse = async (req: Request, res: Response) => {
       error: 'Message must be sgned by admin',
     });
   }
-  if (!body.ownerAddress) {
+  if (!body.ownerLogin) {
     res.status(400).send({
       error: 'Nessesary user parameters is missing',
     });
@@ -180,7 +180,7 @@ export const giveResourcesResponse = async (req: Request, res: Response) => {
     res.status(400).send({ error: "Resource not found"});
     return;
   }
-  const userId = (await getUserData(body.ownerAddress, body.ownerAddress?.toLowerCase()))?.id;
+  const userId = (await getUserData(body.ownerLogin, body.ownerLogin?.toLowerCase()))?.id;
   if (!userId) {
     res.status(400).send({ error: "User not found"});
     return;
@@ -200,14 +200,14 @@ export const getUserBoxes = async (req: Request, res: Response) => {
 
 export const getUserResources = async (req: Request, res: Response) => {
   const body = req.body;
-  if (!body.ownerAddress) {
+  if (!body.ownerLogin) {
     res.status(400).send({
       error: 'Nessesary parameters is missing',
     });
     return;
   }
   try {
-    const userId = (await getUserData(body.ownerAddress, body.ownerAddress.toLowerCase()))?.id;
+    const userId = (await getUserData(body.ownerLogin, body.ownerLogin?.toLowerCase()))?.id;
     if (!userId) {
       res.status(400).send({
         error: 'User not found',
@@ -228,12 +228,12 @@ export const getUserResources = async (req: Request, res: Response) => {
 
 export const getUserAvailableBoxes = async (req: Request, res: Response) => {
   const body = req.body;
-  if (!body.ownerAddress) {
+  if (!body.ownerLogin) {
     res.status(400).send({
       error: 'Nessesary parameters is missing',
     });
   }
-  const userId = (await getUserData(body.ownerAddress, body.ownerAddress.toLowerCase()))?.id;
+  const userId = (await getUserData(body.ownerLogin, body.ownerLogin?.toLowerCase()))?.id;
   if (!userId) {
     res.status(400).send({
       error: 'User not found',
