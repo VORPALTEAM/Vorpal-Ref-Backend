@@ -202,7 +202,7 @@ export async function getUserById(userId: number) {
 
 export async function getAuthData(userId: number) {
   const telegramQuery = `SELECT * FROM telegram_personal WHERE "user_id" = ${userId};`;
-  const walletQuery = `SELECT * FRON wallets WHERE user_id = ${userId}`;
+  const walletQuery = `SELECT * FROM wallets WHERE user_id = ${userId}`;
   return {
     telegram: (await runQuery(telegramQuery, true)[0]) || null,
     wallets: (await runQuery(walletQuery, true))
