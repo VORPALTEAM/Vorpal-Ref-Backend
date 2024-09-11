@@ -1,11 +1,10 @@
 import { massRunQueries } from "../connection"
 
 const functionCreationQueries = [ // ToDo: function is invalid
-/*  `SELECT add_user ( null, 'admin', 'Vapr', null, 'Yuriy', null, 'berum', 101);
+/*  `SELECT add_user ( null, 'Vapr', null, 'Yuriy', null, 'berum', 101);
 
 CREATE OR REPLACE FUNCTION add_user (
 	referral integer, 
-    status user_role_domain, 
     login varchar(32), 
     wallet varchar(128), 
     first_name varchar(64),
@@ -35,8 +34,8 @@ BEGIN
         END IF;
      END IF;
 
-     INSERT INTO users (inviter_id, username)
-		 VALUES (referral, login) 
+     INSERT INTO users (inviter_id, username, role_id)
+		 VALUES (referral, login, 1) 
 		 RETURNING id INTO new_id;
 
      IF wallet IS NOT NULL THEN
