@@ -4,9 +4,9 @@ import { pool, runQuery } from '../connection';
 import { writeLog } from '../log';
 import { getBoxOwner, getHolderData, getUserBalanceRow, isHolderExists } from './getters';
 import { getChannelSubscribeList } from '../../telegram/handlers/subscribe';
-import { getUserInviter, getUserInviterById, writeReferralStats } from '../telegram/referral';
+import { getUserInviter, getUserInviterByTelegramId, writeReferralStats } from '../telegram/referral';
 import { referralPart1, referralPart2 } from '../../config';
-import { getUserData } from 'models/user';
+import { getUserById, getUserData } from 'models/user';
 
 const rewardmessage = "Reward from box";
 const rewardrefmessage = "Reward for referral";
@@ -65,21 +65,25 @@ export async function createNewHolder(address: string, login?: string) {
 }
 
 export async function updateResourceTransaction(
-  user: string,
-  resource: string,
+  userId: number,
+  resourceId: number,
   amount: number,
   message: string = '',
 ) {
-  const User = user.toLowerCase();
   const time = Math.round(new Date().getTime() / 1000);
-  const updateQuery = `UPDATE resources SET ${resource} = ${resource} + ${amount} 
-  WHERE ownerAddress = '${User}';`;
+  const updateQuery = `INSERT INTO user_balances (user_id, item_id, count)
+    VALUES (${userId}, ${resourceId}, ${amount})
+    ON CONFLICT (user_id, item_id)
+    DO UPDATE SET count = user_balances.count + $3
+    RETURNING *;`;
   const logQuery = `INSERT INTO "resource_txn_log" 
   ("userlogin", "time", "resource", "amount", "reason")
-  VALUES ('${User}', TO_TIMESTAMP(${time}), '${resource}', ${amount}, '${message}');`;
+  VALUES ('${userId}', TO_TIMESTAMP(${time}), '${resourceId}', ${amount}, '${message}');`;
   try {
-    await pool.query(updateQuery);
-    await pool.query(logQuery);
+    await Promise.all([
+       runQuery(updateQuery),
+       runQuery(logQuery)
+    ])
     return true;
   } catch (e) {
     console.log(e.message);
@@ -87,24 +91,25 @@ export async function updateResourceTransaction(
   }
 }
 
-export async function sendRewardsToReferrals (user: string, resource: string, amount: number) {
-  const referral1 = await getUserInviterById (user);
-  if (!referral1) return([]);
-  const referral2 = await getUserInviterById (referral1);
-  await writeReferralStats ({ to: referral1, for: user, resource, amount: amount * referralPart1, level: 1 })
+export async function sendRewardsToReferrals (userId: number, resourceId: number, amount: number) {
+  const ref1 = (await getUserById(userId))
+  if (!ref1) return([]);
+  const ref2 = (await getUserById(userId))
+  const referral2 = await getUserInviterByTelegramId (ref2.id);
+  await writeReferralStats ({ to: ref1.id, for: ref2, resource: resourceId, amount: amount * referralPart1, level: 1 })
   if (referral2) {
-    await writeReferralStats ({ to: referral2, for: user, resource, amount: amount * referralPart1, level: 2 })
+    await writeReferralStats ({ to: referral2, for: ref1.id, resource: resourceId, amount: amount * referralPart1, level: 2 })
   }
   return Promise.all([
-    updateResourceTransaction(referral1, resource, amount * referralPart1, rewardrefmessage),
-    referral2 ? updateResourceTransaction(referral2, resource, amount * referralPart2, rewardrefmessage) : true,
+    updateResourceTransaction(userId, resourceId, amount * referralPart1, rewardrefmessage),
+    referral2 ? updateResourceTransaction(referral2, resourceId, amount * referralPart2, rewardrefmessage) : true,
   ])
 }
 
-export async function resourceTransactionWithReferrals (user: string, resource: string, amount: number, message: string = "") {
+export async function resourceTransactionWithReferrals (userId: number, resourceId: number, amount: number, message: string = "") {
   return Promise.all([
-    updateResourceTransaction(user, resource, amount, message),
-    sendRewardsToReferrals(user, resource, amount)
+    updateResourceTransaction(userId, resourceId, amount, message),
+    sendRewardsToReferrals(userId, resourceId, amount)
   ])
 }
 

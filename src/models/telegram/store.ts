@@ -1,24 +1,36 @@
-import { runQuery as Q } from '../connection';
+import { runQuery as Q, runQuery } from '../connection';
 import { getUserBalanceRow } from '../rewards';
 import { TelegramAuthData, StoreItem, storeItemBalance } from '../../types';
 
 export async function addStoreItem(item: StoreItem) {
-  const query = `INSERT INTO "store_items" 
-    ("item", "type", "rareness", "description", "img_preview", "img_full", "per_user", "total_count", "cost", "currency")
-    VALUES ('${item.item}', '${item.type}', '${item.rareness}', 
-    '${item.description || ''}', 
-    '${item.img_preview || ''}', 
-    '${item.img_full || ''}', 
-    ${item.per_user}, 
-    ${item.total_count}, 
-    ${item.cost}, 
-    '${item.currency}');`;
-  const result = await Q(query, false);
-  return result ? true : false;
+  const query = `INSERT INTO public.items(
+	name, total_count, img_preview, img_full, type, rareness, description)
+	VALUES ('${item.name}', ${item.total_count}, 
+  '${item.img_preview || ""}', '${item.img_full||""}', 
+  '${item.type || ""}', '${item.rareness || "usual"}', 
+  '${item.description || ""}') RETURNING "id";`;
+  const result = await Q(query, true);
+  return result && result.length > 0? result[0].id : null;
+}
+
+export async function putItemOnSale (data: {
+  itemId: number, 
+  price?: number, 
+  currencyId?: number,
+  userBalanceLimit?: number,
+  availableCount?: number
+  }) {
+  const query = `
+     INSERT INTO public.store(
+	    item_id, currency_id, price, user_balance_limit, available_count)
+	   VALUES (${data.itemId}, ${data.currencyId || 1}, ${data.price || 0}, 
+     ${data.userBalanceLimit || null}, ${data.availableCount || null}) RETURNING id;
+  `
+  return await runQuery(query, false);
 }
 
 export async function getStoreItems(): Promise<StoreItem[]> {
-  const query = `SELECT * FROM "store_items";`;
+  const query = `SELECT * FROM "items";`;
   const result = await Q(query);
   return result || [];
 }
@@ -74,7 +86,7 @@ export async function isItemAvailableToBuy(
   const itemBalance = await getUserItemBalance(login, itemId);
   const currencyBalance = await getUserBalanceRow(login, login);
 
-  if (!storeItem) {
+  if (!storeItem || !storeItem.cost || !storeItem.currency_id) {
     return {
       ok: false,
       error: 'Store item not exist',
@@ -99,7 +111,7 @@ export async function isItemAvailableToBuy(
     };
   }
 
-  if (storeItem.cost * amount > currencyBalance[storeItem.currency]) {
+  if (storeItem.cost * amount > currencyBalance[storeItem.currency_id]) {
     return {
       ok: false,
       error: 'Insufficient funds to buy',

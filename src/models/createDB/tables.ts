@@ -105,7 +105,7 @@ const tableCreationQueries = [
      id serial PRIMARY KEY,
      item_id integer,
      currency_id integer,
-     description varchar(256),
+     price integer,
      user_balance_limit integer,
      available_count integer
     );`,
@@ -113,7 +113,8 @@ const tableCreationQueries = [
      id serial PRIMARY KEY,
      user_id integer,
      item_id integer,
-     count integer
+     count integer,
+     UNIQUE (user_id, item_id)
     );`,
     `CREATE TABLE IF NOT EXISTS "stars" (
      id serial PRIMARY KEY,
@@ -146,7 +147,10 @@ const tableCreationQueries = [
      name varchar(32),
      total_count integer,
      img_preview varchar(256),
-     img_full varchar(256)
+     img_full varchar(256),
+     type varchar(32), 
+     rareness varchar(32), 
+     description varchar(128)
     );`,
     `CREATE TABLE IF NOT EXISTS "boxes" (
      id serial PRIMARY KEY,

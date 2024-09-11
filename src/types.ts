@@ -115,17 +115,17 @@ export interface tgChannelData {
 }
 
 export interface StoreItem {
-  id: number;
-  item: string;
-  type: string;
-  rareness: string;
+  id?: number;
+  name: string;
+  type?: string;
+  rareness?: string;
   description?: string;
   img_preview?: string;
   img_full?: string;
   per_user: number | null;
   total_count: number | null;
-  cost: number;
-  currency: string;
+  cost?: number;
+  currency_id?: string;
 }
 
 export interface storeItemBalance {
