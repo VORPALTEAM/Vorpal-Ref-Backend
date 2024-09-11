@@ -18,7 +18,7 @@ export async function setPersonalData(
 
     const user = await getUserData (String(fd.id));
     const isInvitedByExternal = !isNaN(Number(inviter)) && Number(inviter) < 0;
-    const inviterId : number | null = isInvitedByExternal ? inviter : (await getUserData (inviter))?.id;
+    const inviterId = isInvitedByExternal ? Number(inviter) : Number((await getUserData (inviter))?.id);
     const username = fd.username || fd.first_name || "Anonimous";
     
     if (!user) {

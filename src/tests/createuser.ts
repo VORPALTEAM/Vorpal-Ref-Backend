@@ -1,5 +1,5 @@
 import { TelegramAuthData } from 'types'
-import { User } from '../models/user'
+import { createUser } from '../models/user'
 
 const testUSer = {
     role: 'user',
@@ -13,5 +13,7 @@ const telegramTestData: TelegramAuthData = {
     hash: ''
 }
 
-User.createUser(testUSer.role, '', undefined, telegramTestData)
+const userId = createUser(testUSer.role, '', undefined, telegramTestData);
+
+console.log("Created: ", userId)
 

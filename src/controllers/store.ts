@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { checkTelegramAuth, decodeTgInitData, validateByInitData } from "../utils/auth";
 import { buyItem, getStoreItems, getUserAllItemBalances, getUserItemBalance, isItemAvailableToBuy } from "../models/telegram";
+import { getUserId } from "../models/user";
 
 export const getStoreItemsResponse = async (req: Request, res: Response) => {
     const items = await getStoreItems();
@@ -72,7 +73,12 @@ export const buyResponse = async (req: Request, res: Response) => {
         if (!telegramDataValidation || !telegramUserId) {
             res.status(403).send(JSON.stringify({error: "Auth failed"}))
         }
-        const buy = await buyItem (telegramUserId, body.itemId, body.amount);
+        const userId = await getUserId(telegramUserId);
+        if (!userId) {
+            res.status(403).send(JSON.stringify({error: "Auth failed"}))
+            return;
+        }
+        const buy = await buyItem (userId, body.itemId, body.amount);
         res.status(200).send(JSON.stringify(buy));
     } catch (e) {
         console.log(e);
