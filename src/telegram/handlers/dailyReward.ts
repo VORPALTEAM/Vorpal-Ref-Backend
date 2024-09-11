@@ -5,7 +5,7 @@ import { sendMessageWithSave } from './utils';
 import { messages } from '../constants';
 import { InlineKeyboard } from './keyboard';
 import { getChannelSubscribeList, sendSubscribeMessage } from './subscribe';
-import { createUserIfNotExists } from 'models/user';
+import { createUserIfNotExists } from '../../models/user';
 
 const lastRewardDate = new Map<number, number>()
 

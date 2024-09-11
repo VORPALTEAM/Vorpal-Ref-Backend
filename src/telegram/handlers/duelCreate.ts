@@ -21,7 +21,7 @@ import {
 import { sendMessageWithSave, sendPhotoWithSave } from './utils';
 import { saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
-import { createUserIfNotExists } from 'models/user';
+import { createUserIfNotExists } from '../../models/user';
 
 export const invitePhotoPath = '/app/public/duel.png';
 

@@ -4,7 +4,7 @@ import { DuelInfo } from '../../types';
 import { getValueByKey, setValueByKey } from '../common';
 import { runQuery as Q } from '../connection';
 import { getPersonalDataById } from './personal';
-import { getAuthData, getUserById, getUserData } from 'models/user';
+import { getAuthData, getUserById, getUserData } from '../../models/user';
 
 const onlineCountKey = 'DUEL_ONLINE_COUNT';
 

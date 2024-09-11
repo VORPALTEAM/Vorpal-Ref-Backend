@@ -6,7 +6,7 @@ import { getBoxOwner, getUserBalanceRow } from './getters';
 import { getChannelSubscribeList } from '../../telegram/handlers/subscribe';
 import { getUserInviter, getUserInviterByTelegramId, writeReferralStats } from '../telegram/referral';
 import { referralPart1, referralPart2 } from '../../config';
-import { getUserById, getUserData } from 'models/user';
+import { getUserById, getUserData } from '../../models/user';
 
 const rewardmessage = "Reward from box";
 const rewardrefmessage = "Reward for referral";
