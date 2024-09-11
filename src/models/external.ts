@@ -1,7 +1,7 @@
 import superagent from 'superagent';
 import { getSignableMessage } from '../utils/auth';
 import { web3 } from '../controllers';
-import { getValueByKey } from './balances';
+import { getValueByKey } from './common';
 
 export async function notifyDuelFinishFor(login: string, duelId: string) {
   const key = (await getValueByKey('ADMIN_KEY')) || '';

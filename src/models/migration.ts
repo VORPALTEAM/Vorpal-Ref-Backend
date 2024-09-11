@@ -4,7 +4,7 @@ import { runQuery as Q, pool } from './connection';
 import Web3 from 'web3';
 import * as config from '../blockchain/config';
 import { nessesary_keys } from '../config';
-import { getValueByKey, setValueByKey } from './balances';
+import { getValueByKey, setValueByKey } from './common';
 
 
 /* DEPRECATED!!! */

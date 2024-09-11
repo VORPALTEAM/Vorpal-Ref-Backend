@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import { duel_lifetime } from '../../config';
 import { DuelInfo } from '../../types';
-import { getValueByKey, setValueByKey } from '../balances';
+import { getValueByKey, setValueByKey } from '../common';
 import { runQuery as Q } from '../connection';
 import { getPersonalDataById } from './personal';
 

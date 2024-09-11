@@ -1,5 +1,5 @@
 import { runQuery as Q } from './connection';
-import { getBalances, getValueByKey } from './balances'
+import { getBalances, getValueByKey } from './common'
 import Web3 from 'web3';
 
 const { config, Erc20ABI } = require('../config');

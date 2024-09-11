@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { withdrawRevenue } from "../models/withdraw";
-import { getBalances } from "../models/balances";
+import { getBalances } from "../models/common";
 import { addNewLink, registerReferral, getLinksByOwner, getRefCount } from "../models/links";
 
 export const referralApiDefault = async (req: Request, res: Response) => {

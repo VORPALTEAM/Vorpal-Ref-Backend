@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import sha256 from 'sha256';
 import { runQuery as Q  } from '../connection';
 import { config } from '../../config';
-import { setValueByKey, deleteKey } from '../balances';
+import { setValueByKey, deleteKey } from '../common';
 import { generateAuthMessage, checkRights } from './admin';
 import { requestUserData } from './user';
 

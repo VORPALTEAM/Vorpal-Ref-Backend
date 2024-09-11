@@ -8,7 +8,7 @@ import {
   giveResources,
   openBox,
 } from '../models/rewards';
-import { getValueByKey } from '../models/balances';
+import { getValueByKey } from '../models/common';
 import { error } from 'console';
 import { checkTelegramAuth, getSignableMessage, validateByInitData } from '../utils/auth';
 import Web3 from 'web3';

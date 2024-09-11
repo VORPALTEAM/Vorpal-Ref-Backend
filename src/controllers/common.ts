@@ -3,7 +3,7 @@ import { getChannelSubscribeList } from "../telegram/handlers/subscribe";
 import { TelegramAuthData } from "../types"
 import { checkTelegramAuth, getSignableMessage, validateByInitData, getQueryParam } from "../utils/auth";
 import { web3 } from "./duel";
-import { getValueByKey } from "../models/balances";
+import { getValueByKey } from "../models/common";
 
 export const authByTelegram = (req: Request, res: Response) => {
 

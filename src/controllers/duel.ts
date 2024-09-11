@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getValueByKey } from '../models/balances';
+import { getValueByKey } from '../models/common';
 import { getSignableMessage } from '../utils/auth';
 import {
   addDuelOpponent,
