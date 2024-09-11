@@ -18,7 +18,7 @@ export async function getOnlineCount() {
 }
 
 export async function addDuelOpponent(duelId: number, userId: number) {
-  const query = `UPDATE "duels" SET "user_id_2" = ${userId} WHERE "id" = ${duelId};`;
+  const query = `UPDATE "duels" SET "user_2_id" = ${userId} WHERE "id" = ${duelId};`;
   const result = await Q(query, false);
   return result ? true : false;
 }
@@ -27,13 +27,13 @@ export async function getDuelPairCount(
   userId1: number,
   userId2: number,
 ): Promise<number> {
-  const query = `SELECT COUNT(*) FROM "duels" WHERE (user_id_1 = ${userId1} AND user_id_2 = ${userId2}) OR (user_id_1 = ${userId1} AND user_id_2 = ${userId2});`;
+  const query = `SELECT COUNT(*) FROM "duels" WHERE (user_1_id = ${userId1} AND user_2_id = ${userId2}) OR (user_1_id = ${userId1} AND user_2_id = ${userId2});`;
   const result = await Q(query);
   return result && result.length > 0 ? result[0].count : 0;
 }
 
 export async function isUserInDuel(userId: number) {
-  const query = `SELECT "id", "creation", "user_id_1", "user_id_2" FROM "duels" WHERE ("user_id_1" = ${userId} OR "user_id_2" = ${userId}) AND is_finished = false;`;
+  const query = `SELECT "id", "creation", "user_1_id", "user_2_id" FROM "duels" WHERE ("user_1_id" = ${userId} OR "user_2_id" = ${userId}) AND is_finished = false;`;
   const result = await Q(query);
   if (!result || result.length === 0) {
     return null;
@@ -52,16 +52,16 @@ export async function isUserInDuel(userId: number) {
 }
 
 export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
-  const query = `SELECT "user_id_1", "login2", "creation", "isfinished", "winner" FROM "duels" WHERE "id" = ${duelId};`;
+  const query = `SELECT "user_1_id", "login2", "creation", "isfinished", "winner" FROM "duels" WHERE "id" = ${duelId};`;
   const result = await Q(query, true);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
   const duelInfo: DuelInfo = {
     id: String(duelId),
-    id1: (await getAuthData(row.user_id_1))?.telegram.chat_id,
-    id2: (await getAuthData(row.user_id_2))?.telegram.chat_id,
-    nickName1: (await getUserById(row.user_id_1))?.username || "Unnamed",
-    nickName2: (await getUserById(row.user_id_2))?.username || "Unnamed",
+    id1: (await getAuthData(row.user_1_id))?.telegram.chat_id,
+    id2: (await getAuthData(row.user_2_id))?.telegram.chat_id,
+    nickName1: (await getUserById(row.user_1_id))?.username || "Unnamed",
+    nickName2: (await getUserById(row.user_2_id))?.username || "Unnamed",
     creation: row.creation,
     is_started: row.is_started,
     is_finished: row.is_finished,
@@ -71,18 +71,18 @@ export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
 }
 
 export async function getOpponent(userId: number) {
-  const query = `SELECT "user_id_2" FROM "duels" WHERE "is_finished" = false AND "user_id_11" = ${userId};`;
+  const query = `SELECT "user_2_id" FROM "duels" WHERE "is_finished" = false AND "user_1_id1" = ${userId};`;
   const result = await Q(query);
   return !result || result.length === 0 ? null : result[0].login2;
 }
 
 export async function removeDuelOpponent(userId: number) {
   
-  const findDuelQuery = `SELECT "id", "user_id_1" FROM "duels" WHERE "is_finished" = false AND "user_id_2" = ${userId};`;
+  const findDuelQuery = `SELECT "id", "user_1_id" FROM "duels" WHERE "is_finished" = false AND "user_2_id" = ${userId};`;
   const result = await Q(findDuelQuery);
   const duelId = result && result.length > 0 ? result[0].id : null;
   if (!duelId) return false;
-  const removeSelfQuery = `UPDATE "duels" SET "user_id_2" = null WHERE "id" = ${duelId};`;
+  const removeSelfQuery = `UPDATE "duels" SET "user_2_id" = null WHERE "id" = ${duelId};`;
   const removeResult = await Q(removeSelfQuery, false);
   return removeResult ? true : false;
 }
@@ -90,17 +90,17 @@ export async function removeDuelOpponent(userId: number) {
 export async function getDuelDataByUser(
   userId: number,
 ): Promise<DuelInfo | null> {
-  const query = `SELECT "id", "user_id_1", "user_id_2", "creation", "is_finished", "winner" FROM "duels" 
-  WHERE "user_id_1" = ${userId} OR "user_id_2" = ${userId} ORDER BY "creation" DESC LIMIT 1;`;
+  const query = `SELECT "id", "user_1_id", "user_2_id", "creation", "is_finished", "winner" FROM "duels" 
+  WHERE "user_1_id" = ${userId} OR "user_2_id" = ${userId} ORDER BY "creation" DESC LIMIT 1;`;
   const result = await Q(query);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
   const duelInfo: DuelInfo = {
     id: row.id,
-    id1: (await getAuthData(row.user_id_1))?.telegram.chat_id,
-    id2: (await getAuthData(row.user_id_2))?.telegram.chat_id,
-    nickName1: (await getUserById(row.user_id_1))?.username || "Unnamed",
-    nickName2: (await getUserById(row.user_id_2))?.username || "Unnamed",
+    id1: (await getAuthData(row.user_1_id))?.telegram.chat_id,
+    id2: (await getAuthData(row.user_2_id))?.telegram.chat_id,
+    nickName1: (await getUserById(row.user_1_id))?.username || "Unnamed",
+    nickName2: (await getUserById(row.user_2_id))?.username || "Unnamed",
     creation: row.creation,
     is_started: row.is_started,
     is_finished: row.is_finished,
@@ -112,8 +112,8 @@ export async function getDuelDataByUser(
 export async function getDuelDataByInviter(
   userId: number,
 ): Promise<DuelInfo | null> {
-  const query = `SELECT "id", "user_id_1", "user_id_2", "creation", "is_finished", "winner" FROM "duels" 
-  WHERE "user_id_1" = ${userId} ORDER BY "creation" DESC LIMIT 1;`;
+  const query = `SELECT "id", "user_1_id", "user_2_id", "creation", "is_finished", "winner" FROM "duels" 
+  WHERE "user_1_id" = ${userId} ORDER BY "creation" DESC LIMIT 1;`;
   const result = await Q(query);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
@@ -150,14 +150,14 @@ export async function createDuel(user1: number, user2?: number) {
 
   const dt = Math.round(new Date().getTime() / 1000);
   const query = `INSERT INTO "duels" 
-    ("user_id_1", "user_id_2", "creation", "is_started", "is_finished", "winner") 
+    ("user_1_id", "user_2_id", "creation", "is_started", "is_finished", "winner") 
     VALUES (${user1}, ${user2 || null}, ${dt}, false, false, null) RETURNING id;`;
   const result = await Q(query, true);
   return result && result.length > 0 ? result[0].id : null;
 }
 
 export async function getUserDuelCount (userId: number): Promise<number> {
-   const query = `SELECT count(*) FROM duels WHERE user_id_1 = ${userId} OR user_id_2 = ${userId};`;
+   const query = `SELECT count(*) FROM duels WHERE user_1_id = ${userId} OR user_2_id = ${userId};`;
    const result = await Q(query, true);
    return result? result[0]?.count || 0 : 0;
 }
