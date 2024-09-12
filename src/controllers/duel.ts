@@ -120,6 +120,7 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
     return;
   }
   const data = await getDuelDataByUser(userId);
+  console.log("Found data: ", data);
   if (!data) {
     res.status(200).send(JSON.stringify({ data: null }));
     return;
