@@ -1,7 +1,7 @@
 import { createDuelInTournament, getParticipantsIds } from "../../models/tournament";
 import { isUserInDuel } from "../../models/telegram";
 import { getUserId } from "../../models/user";
-import { sendMessageWithSave } from "telegram/handlers/utils";
+import { sendMessageWithSave } from "../handlers/utils";
 import TelegramBot from "node-telegram-bot-api";
 import { InlineKeyboard } from "../handlers/keyboard";
 
