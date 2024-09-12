@@ -28,7 +28,7 @@ import { messages } from '../telegram/constants';
 import { InlineKeyboard } from '../telegram/handlers/keyboard';
 import { duel_lifetime } from '../config';
 import { TelegramAuthData, TelegramAuthNote } from 'types';
-import { createUserIfNotExists, getUserById, getUserData, getUserId } from '../models/user';
+import { createUserIfNotExists, getUserById, getUserData, getUserId, getUserTelegramChat } from '../models/user';
 
 export const web3 = new Web3(Web3.givenProvider);
 
@@ -125,12 +125,15 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
     res.status(200).send(JSON.stringify({ data: null }));
     return;
   }
+  const displayId1 = await getUserTelegramChat(data.id1);
+  const displayId2 = data.id2 ? await getUserTelegramChat(data.id2) : null;
   const part1 = await getUserData(String(data.id1));
   const part2 = await getUserData(String(data.id2));
+  console.log("Ids: ", part1, part2);
   const dataToSend = {
     id: data?.id,
-    id1: part1?.id,
-    id2: part2?.id || null,
+    id1: displayId1,
+    id2: displayId2,
     nickName1: part1?.username || "Anonimous",
     nickName2: part2?.username || "Anonimous",
     creation: data.creation,
