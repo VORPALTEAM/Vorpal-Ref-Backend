@@ -82,7 +82,7 @@ export const duelCreationHandler = async (
       sendMessageWithSave(Bot, chatId, messages.duelAlready);
       return;
     }
-    if (!isFinished || dateSec - creation >= duel_lifetime) {
+    if (!isFinished && dateSec - creation >= duel_lifetime) {
 
       await finishDuel(Number(userLastDuel.id), null);
     }
