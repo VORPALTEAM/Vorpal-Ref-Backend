@@ -1,4 +1,4 @@
-import { dateSec } from 'utils/text';
+import { dateSec } from '../../utils/text';
 import { runQuery } from '../../models/connection';
 
 export interface tournament {
