@@ -308,16 +308,20 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
     res.status(400).send({ error: 'Duel creator not in the query' });
     return null;
   }
-
   const inviter = req.body.inviter;
+  const isFromAds = (!isNaN(Number(inviter)) && Number(inviter) < 0)
   try {
     const dateSec = Math.round(new Date().getTime() / 1000);
-    const inviterId = await getUserId(inviter);
+    const inviterId = isFromAds ? Number(inviter) : await getUserId(inviter);
     if (!inviterId) {
       res.status(400).send({ error: 'Inviter not found' });
       return null;
     }
     const userId = await createUserIfNotExists("user", undefined, inviterId, user)
+    if (isFromAds) {
+      res.status(200).send({ error: 'Welcome from partner!' });
+      return null;     
+    }
     const duel = await getDuelDataByUser(inviterId);
     if (!duel || duel.is_finished || dateSec - duel.creation > duel_lifetime) {
       res.status(400).send({
