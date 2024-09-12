@@ -31,12 +31,12 @@ export async function setPersonalData(
 }
 
 export async function getPersonalDataById(
-  chatId: number,
+  userId: number,
 ): Promise<TelegramAuthNote | null> {
   return new Promise(async (resolve, reject) => {
     const query = `
         SELECT "user_id", "first_name", "last_name", "username", "chat_id"
-        FROM "telegram_personal" WHERE "chat_id" = '${chatId}';
+        FROM "telegram_personal" WHERE "user_id" = '${userId}';
         `;
     const result = await Q(query);
     resolve(result && result.length > 0 ? {

@@ -245,3 +245,13 @@ export async function getUserWallets (userId: number): Promise<string[]> {
     return []
   }
 }
+
+export async function getUserTelegramChat(userId: number): Promise<string | null> {
+  const query = `SELECT chat_id FROM "telegram_personal" WHERE user_id = ${userId};`;
+  const result = await runQuery(query, true);
+  if (result && result.length > 0) {
+    return result[0].chat_id
+  } else {
+    return null
+  }
+}

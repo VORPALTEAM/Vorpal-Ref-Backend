@@ -97,9 +97,9 @@ export interface TelegramAuthNote extends TelegramAuthData {
 }
 
 export interface DuelInfo {
-  id: string;
-  id1: string;
-  id2?: string;
+  id: number;
+  id1: number;
+  id2?: number;
   nickName1?: string;
   nickName2?: string;
   creation: number;

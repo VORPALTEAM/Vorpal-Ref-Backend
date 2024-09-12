@@ -52,14 +52,14 @@ export async function isUserInDuel(userId: number) {
 }
 
 export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
-  const query = `SELECT "user_1_id", "login2", "creation", "isfinished", "winner_id" FROM "duels" WHERE "id" = ${duelId};`;
+  const query = `SELECT "user_1_id", "user_2_id", "creation", "isfinished", "winner_id" FROM "duels" WHERE "id" = ${duelId};`;
   const result = await Q(query, true);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
   const duelInfo: DuelInfo = {
-    id: String(duelId),
-    id1: (await getAuthData(row.user_1_id))?.telegram.chat_id,
-    id2: (await getAuthData(row.user_2_id))?.telegram.chat_id,
+    id: duelId,
+    id1: row.user_1_id,
+    id2: row.user_2_id,
     nickName1: (await getUserById(row.user_1_id))?.username || "Unnamed",
     nickName2: (await getUserById(row.user_2_id))?.username || "Unnamed",
     creation: row.creation,
@@ -98,8 +98,8 @@ export async function getDuelDataByUser(
   console.log("Found row: ", row.id)
   const duelInfo: DuelInfo = {
     id: row.id,
-    id1: (await getAuthData(row.user_1_id))?.telegram.chat_id,
-    id2: (await getAuthData(row.user_2_id))?.telegram.chat_id,
+    id1: row.user_1_id,
+    id2: row.user_1_id,
     nickName1: (await getUserById(row.user_1_id))?.username || "Unnamed",
     nickName2: (await getUserById(row.user_2_id))?.username || "Unnamed",
     creation: row.creation,
@@ -118,14 +118,14 @@ export async function getDuelDataByInviter(
   const result = await Q(query);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
-  const userPersonal1 = await getPersonalDataById(Number(row.login1));
-  const userPersonal2 = await getPersonalDataById(Number(row.login2));
+  const userPersonal1 = await getPersonalDataById(Number(row.user_1_id));
+  const userPersonal2 = await getPersonalDataById(Number(row.user_2_id));
   const duelInfo: DuelInfo = {
-    id: row.duel_id,
-    id1: String(row.login1),
-    id2: String(row.login2),
-    nickName1: isNaN(Number(row.login1)) ? row.login1 : userPersonal1 ? userPersonal1.username || userPersonal1.first_name || "Anonimous" : "Anonimous",
-    nickName2: isNaN(Number(row.login2)) ? row.login2 : userPersonal2 ? userPersonal2.username || userPersonal2.first_name || "Anonimous" : "Anonimous",
+    id: row.id,
+    id1: row.user_1_id,
+    id2:  row.user_2_id,
+    nickName1: userPersonal1?.username || userPersonal1?.first_name || "Anonimous",
+    nickName2: userPersonal2?.username || userPersonal1?.first_name || "Anonimous",
     creation: row.creation,
     is_started: row.isexpired,
     is_finished: row.isfinished,

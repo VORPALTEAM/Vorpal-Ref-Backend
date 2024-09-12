@@ -15,7 +15,7 @@ import { InlineKeyboard } from './keyboard';
 import { sendMessageWithSave } from './utils';
 import { notifyDuelFinishFor } from '../../models/external';
 import { Bot } from '../bot';
-import { createUserIfNotExists, getUserId } from '../../models/user';
+import { createUserIfNotExists, getUserId, getUserTelegramChat } from '../../models/user';
 
 export const duelCancelAction = async (
   bot: TelegramBot,
@@ -41,13 +41,6 @@ export const duelCancelAction = async (
       return;
     }
     if (duel) {
-      /* if (duel.login2) {
-        try {
-          NotifyDuelFinishFor(duel.login2);
-        } catch (e) {
-          console.log(e.message);
-        }
-      } */
       await deleteDuel(Number(duel.id));
       // await FinishDuel(duel.duel_id, '');
       sendMessageWithSave(Bot, chatId, messages.duelCancelled, {
@@ -120,15 +113,28 @@ export const duelRefuseAction = async (
   if (!caller || !query.from || !query.from.username) {
     return;
   }
-  const userId = await createUserIfNotExists("user", undefined, undefined, query.from)
-  const duelOpponent = ((await getOpponent(userId)) || inviter);
-  const opponentData = await getPersonalDataById(Number(duelOpponent));
+  const userId = await createUserIfNotExists("user", undefined, undefined, query.from);
   const duelData = await getDuelDataByUser (userId);
+  if (!duelData || duelData.is_finished) {
+    sendMessageWithSave(bot, caller, "User have no active duels");
+    return;
+  }
+  const opponentId = await getUserId(inviter);
+  if (!opponentId) {
+    sendMessageWithSave(bot, caller, "Inviter not found");
+    return;
+  }
+  if (duelData.id2 && duelData.id2 !== opponentId) {
+    sendMessageWithSave(bot, caller, "You already in another duel");
+    return;
+  }
+
+  const opponentData = await getPersonalDataById(opponentId);
 
   if (opponentData) {
 
       try {
-        notifyDuelFinishFor(String(opponentData.id), duelData?.id || "");
+        notifyDuelFinishFor(String(opponentData.chat_id), duelData?.id);
       } catch (e) {
         console.log("Notify err");
       } 

@@ -3,7 +3,8 @@ import { getSignableMessage } from '../utils/auth';
 import { web3 } from '../controllers';
 import { getValueByKey } from './common';
 
-export async function notifyDuelFinishFor(login: string, duelId: string) {
+export async function notifyDuelFinishFor(login: string, duelId?: number) {
+  if (!duelId) return;
   const key = (await getValueByKey('ADMIN_KEY')) || '';
   const signature = web3.eth.accounts.sign(getSignableMessage(), key).signature;
   const url = `${process.env.BATTLE_SERVER_HOST}/api/duelcancel`;
