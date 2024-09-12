@@ -139,7 +139,7 @@ export async function finishDuel(duelId: number, winner: number | null) {
     console.log("Duel id not presented");
     return false;
   }
-  const query = `UPDATE "duels" SET is_finished = true, winner = ${winner} WHERE "id" = ${duelId};`;
+  const query = `UPDATE "duels" SET is_finished = true, winner_id = ${winner} WHERE "id" = ${duelId};`;
   const result = await Q(query, false);
   return result ? true : false;
 }
