@@ -130,6 +130,7 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
   const part1 = await getUserData(String(data.id1));
   const part2 = await getUserData(String(data.id2));
   console.log("Ids: ", part1, part2);
+  const dateSec = Math.round(new Date().getTime() / 1000);
   const dataToSend = {
     id: data?.id,
     id1: displayId1,
@@ -137,7 +138,8 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
     nickName1: part1?.username || "Anonimous",
     nickName2: part2?.username || "Anonimous",
     creation: data.creation,
-    is_finished: data.is_finished
+    isexpired: dateSec - data.creation > 900 ? true : false,
+    isfinished: data.is_finished
   }
   res.status(200).send(JSON.stringify({ data: dataToSend }));
   return;
