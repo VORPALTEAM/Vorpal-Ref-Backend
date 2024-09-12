@@ -193,6 +193,11 @@ const tableCreationQueries = [
       id SERIAL PRIMARY KEY,
       key varchar(512) NOT NULL UNIQUE,
       value TEXT 
+    );`,
+    `CREATE TABLE IF NOT EXISTS daily_rewards (
+        id SERIAL PRIMARY KEY,
+        user_id integer NOT NULL UNIQUE,
+        last_received integer
     );`
    /* `ALTER TABLE "telegram_personal" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
    `ALTER TABLE "wallets" ADD CONSTRAINT user_id_wallet FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
