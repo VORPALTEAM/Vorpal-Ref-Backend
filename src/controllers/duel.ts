@@ -28,7 +28,7 @@ import { messages } from '../telegram/constants';
 import { InlineKeyboard } from '../telegram/handlers/keyboard';
 import { duel_lifetime } from '../config';
 import { TelegramAuthData, TelegramAuthNote } from 'types';
-import { getUserData } from '../models/user';
+import { createUserIfNotExists, getUserData, getUserId } from '../models/user';
 
 export const web3 = new Web3(Web3.givenProvider);
 
@@ -280,10 +280,15 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
   }
 
   const inviter = req.body.inviter;
-  console.log('200');
   try {
     const dateSec = Math.round(new Date().getTime() / 1000);
-    const duel = await getDuelDataByUser(inviter);
+    const inviterId = await getUserId(inviter);
+    if (!inviterId) {
+      res.status(400).send({ error: 'Inviter not found' });
+      return null;
+    }
+    const userId = await createUserIfNotExists("user", undefined, inviterId, user)
+    const duel = await getDuelDataByUser(inviterId);
     if (!duel || duel.is_finished || dateSec - duel.creation > duel_lifetime) {
       res.status(400).send({
         success: false,
@@ -299,13 +304,9 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
       return null;
     }
     console.log('Invited user: ', user);
-    await addDuelOpponent(Number(duel.id), user.id);
-    let userData = await getPersonalDataById(Number(user.id));
-    if (!userData) {
-      await setPersonalData(user, String(inviter));
-      userData = await getPersonalDataById(Number(user.id));
-    }
-    const opponentData = await getPersonalDataById(Number(inviter));
+    await addDuelOpponent(Number(duel.id), userId);
+    let userData = await getPersonalDataById(userId);
+    const opponentData = await getPersonalDataById(inviterId);
     console.log('User data: ', userData);
     console.log('Opponent data: ', opponentData);
     if (opponentData) {
