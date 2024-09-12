@@ -41,7 +41,7 @@ export const isUserInDuelResponse = async (req: Request, res: Response) => {
     );
     return;
   }
-  const userId = (await getUserData (req.params.login))?.id;
+  const userId = await getUserId(req.params.login);
   if (!userId) {
     res.status(404).send(
       JSON.stringify({
@@ -64,7 +64,7 @@ export const opponentResponse = async (req: Request, res: Response) => {
     );
     return;
   }
-  const userId = (await getUserData (req.params.login))?.id;
+  const userId = await getUserId(req.params.login);
   if (!userId) {
     res.status(404).send(
       JSON.stringify({
@@ -151,10 +151,10 @@ export const finishDuelResponse = async (req: Request, res: Response) => {
     });
     return;
   }
-
+  const winner_id = body.winner ? await getUserId(body.winner) : null
   const result = await finishDuel(
     body.duelId,
-    body.winner?.toLowerCase() || '',
+    winner_id,
   );
 
   res.status(200).send(JSON.stringify({ result: result }));
@@ -426,7 +426,12 @@ export const acceptDuelByAdmin = async (req: Request, res: Response) => {
       res.status(400).send({ error: 'Wrong duel id' });
       return;
     }
-    const result = await addDuelOpponent(body.duel, body.secondUser);
+    const secondUSerId = await getUserId(body.secondUser);
+    if (!secondUSerId) {
+      res.status(400).send({ error: 'Unknown opponent id' });
+      return;
+    }
+    const result = await addDuelOpponent(body.duel, secondUSerId);
     if (result) {
       res.status(200).send({ result });
       return;
