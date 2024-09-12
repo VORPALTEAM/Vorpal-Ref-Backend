@@ -14,7 +14,7 @@ import { getValueByKey } from '../models/common';
 import { error } from 'console';
 import { checkTelegramAuth, getSignableMessage, validateByInitData } from '../utils/auth';
 import Web3 from 'web3';
-import { getUserData, getUserWallets } from '../models/user';
+import { getUserData, getUserId, getUserWallets } from '../models/user';
 
 const web3 = new Web3(Web3.givenProvider);
 
@@ -40,6 +40,7 @@ export const createBox = async (req: Request, res: Response) => {
     !body.ownerLogin ||
     !body.signature
   ) {
+    console.log("Body with missed: ", body);
     res.status(400).send({
       error: 'Some of nessesary parameters is missing',
     });
@@ -61,12 +62,17 @@ export const createBox = async (req: Request, res: Response) => {
     res.status(400).send({ error: "Wrong signature"});
     return;
   }
-
+  const userId = await getUserId(body.ownerLogin);
+  if (!userId) {
+    res.status(400).send({ error: "Unknown owner"});
+    return;
+  }
   try {
     // const isHolderCreated = await CreateNewHolder(body.ownerLogin)
+
     const boxId = await createNewBox(
       body.level,
-      body.ownerLogin?.toLowerCase()
+      userId
     );
     if (!boxId) {
       res.status(400).send({
