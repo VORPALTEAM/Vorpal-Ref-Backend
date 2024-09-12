@@ -1,16 +1,7 @@
-import { Markup } from 'telegraf';
 import { TelegramAuthData, tgChannelData } from '../../types';
-import { getDaylyAuthDate, createTelegramAuthHash } from '../../utils/auth';
 import {
-  addDuelOpponent,
-  createDuel,
-  finishDuel,
-  getDuelDataByInviter,
-  getDuelDataByUser,
   getWatchingChannels,
-  setPersonalData,
 } from '../../models/telegram';
-import { duel_lifetime } from '../../config';
 import { Bot } from '../bot';
 import { duelText, inviteLink, messages, startText } from '../constants';
 import { sendMessageWithSave } from './utils';

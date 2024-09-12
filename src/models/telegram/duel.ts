@@ -42,7 +42,7 @@ export async function isUserInDuel(userId: number) {
   const timeS = Math.round(new Date().getTime() / 1000);
   const duelTime = Number(duelRow.creation);
   if (timeS - duelTime > duel_lifetime) {
-    await finishDuel(duelRow.duel_id, null);
+    await finishDuel(duelRow.id, null);
     return null;
   }
   if (!duelRow.login1 || !duelRow.login2) {
@@ -95,6 +95,7 @@ export async function getDuelDataByUser(
   const result = await Q(query);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
+  console.log("Found row: ", row.id)
   const duelInfo: DuelInfo = {
     id: row.id,
     id1: (await getAuthData(row.user_1_id))?.telegram.chat_id,
@@ -134,6 +135,10 @@ export async function getDuelDataByInviter(
 }
 
 export async function finishDuel(duelId: number, winner: number | null) {
+  if (!duelId) {
+    console.log("Duel id not presented");
+    return false;
+  }
   const query = `UPDATE "duels" SET is_finished = true, winner = ${winner} WHERE "id" = ${duelId};`;
   const result = await Q(query, false);
   return result ? true : false;

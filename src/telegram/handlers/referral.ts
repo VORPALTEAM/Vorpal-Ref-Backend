@@ -1,12 +1,4 @@
 import TelegramBot from 'node-telegram-bot-api';
-import {
-  addDuelOpponent,
-  finishDuel,
-  getDuelDataByUser,
-  getOpponent,
-  getUserTransactions,
-  removeDuelOpponent,
-} from '../../models/telegram';
 import { duel_lifetime } from '../../config';
 import { duelText, inviteLink, messages, startText } from '../constants';
 import { InlineKeyboard } from './keyboard';
