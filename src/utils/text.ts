@@ -10,3 +10,7 @@ export function generateRandomString(symbols: number) {
     }
     return result;
   }
+
+export function dateSec(): number {
+  return Math.round(new Date().getTime() / 1000)
+}

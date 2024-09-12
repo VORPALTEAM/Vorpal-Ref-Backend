@@ -198,6 +198,22 @@ const tableCreationQueries = [
         id SERIAL PRIMARY KEY,
         user_id integer NOT NULL UNIQUE,
         last_received integer
+    );`,
+    `CREATE TABLE IF NOT EXISTS tournaments (
+        id SERIAL PRIMARY KEY,
+        date_start integer,
+        date_end integer
+    );`,
+    `CREATE TABLE IF NOT EXISTS tournament_participants (
+        id SERIAL PRIMARY KEY,
+        tournament_id integer,
+        user_id integer,
+        UNIQUE (user_id, tournament_id)
+    );`,
+    `CREATE TABLE IF NOT EXISTS duel_in_tournament (
+        id SERIAL PRIMARY KEY,
+        duel_id integer,
+        tournament_id integer
     );`
    /* `ALTER TABLE "telegram_personal" ADD CONSTRAINT user_id_ref FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,
    `ALTER TABLE "wallets" ADD CONSTRAINT user_id_wallet FOREIGN KEY ("user_id") REFERENCES "users" ("id");`,

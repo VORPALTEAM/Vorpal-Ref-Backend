@@ -151,7 +151,7 @@ export async function deleteDuel(duelId: number) {
   return result ? true : false;
 }
 
-export async function createDuel(user1: number, user2?: number) {
+export async function createDuel(user1: number, user2?: number): Promise<number | null> {
 
   const dt = Math.round(new Date().getTime() / 1000);
   const query = `INSERT INTO "duels" 
