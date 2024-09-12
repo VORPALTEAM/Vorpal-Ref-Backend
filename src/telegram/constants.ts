@@ -22,6 +22,7 @@ export const usingRegExps: RegExp[] = [
   /\/duel/,
   /\/referral/,
   /\/reward/,
+  /\/part/,
   /\/start(?:\?startapp=([^]+))?/
 ];
 

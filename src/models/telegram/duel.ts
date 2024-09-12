@@ -45,10 +45,10 @@ export async function isUserInDuel(userId: number) {
     await finishDuel(duelRow.id, null);
     return null;
   }
-  if (!duelRow.login1 || !duelRow.login2) {
+  if (!duelRow.user_1_id || !duelRow.user_2_id) {
     return null;
   }
-  return duelRow.duel_id;
+  return duelRow.id;
 }
 
 export async function getDuelData(duelId: number): Promise<DuelInfo | null> {

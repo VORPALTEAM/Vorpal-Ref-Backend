@@ -13,6 +13,8 @@ import { SetupBotMenuCommands } from './cmdSetup';
 import { getPersonalDataById, getPersonalDataByUsername } from '../models/telegram';
 import { initOldBot } from './old';
 import { dailyRewardHandler } from './handlers/dailyReward';
+import { adminCmdHandler } from './admin/cmd';
+import { tournamentTakePartHandler } from './handlers/tournament';
 
 
 export function telegramBotLaunch() {
@@ -41,6 +43,11 @@ export function telegramBotLaunch() {
   Bot.onText(/\/reward/, async (msg, match) => {
 
     await dailyRewardHandler (Bot, msg);
+  });
+
+  Bot.onText(/\/part/, async (msg, match) => {
+
+    await tournamentTakePartHandler (Bot, msg);
   });
 
   Bot.onText(/\/start(.+)/, async (msg, match) => {
@@ -123,6 +130,9 @@ export function telegramBotLaunch() {
   Bot.on('message', async (msg, match) => {
     const txt: string = msg.text || "";
     switch (true) {
+      case txt.indexOf("adminCmd") === 0:
+        await adminCmdHandler(Bot, msg, txt);
+        break;
       case txt === "Start": 
         await startHandler (Bot, msg, match)
         break;

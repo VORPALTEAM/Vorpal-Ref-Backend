@@ -24,7 +24,7 @@ export async function takePartInTournament (userId: number, tourId: number) {
     })
 }
 
-export async function getPArticipantsIds () {
+export async function getParticipantsIds (): Promise<string[]> {
     const active = await getActiveTournament();
     if (!active) return [];
     const query = `SELECT 
