@@ -1,7 +1,7 @@
 import { getActiveTournament, getParticipantsIds, takePartInTournament } from "../../models/tournament";
 import TelegramBot from "node-telegram-bot-api";
 import { sendMessageWithSave } from "./utils";
-import { createUserIfNotExists, getUserId } from "models/user";
+import { createUserIfNotExists, getUserId } from "../../models/user";
 
 
 export const tournamentTakePartHandler = async (bot: TelegramBot, msg: TelegramBot.Message) => {
