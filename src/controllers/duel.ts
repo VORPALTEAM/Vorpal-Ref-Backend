@@ -120,7 +120,22 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
     return;
   }
   const data = await getDuelDataByUser(userId);
-  res.status(200).send(JSON.stringify({ data: data }));
+  if (!data) {
+    res.status(200).send(JSON.stringify({ data: null }));
+    return;
+  }
+  const part1 = await getUserData(String(data.id1));
+  const part2 = await getUserData(String(data.id2));
+  const dataToSend = {
+    id: data?.id,
+    id1: part1?.id,
+    id2: part2?.id || null,
+    nickName1: part1?.username || "Anonimous",
+    nickName2: part2?.username || "Anonimous",
+    creation: data.creation,
+    is_finished: data.is_finished
+  }
+  res.status(200).send(JSON.stringify({ data: dataToSend }));
   return;
 };
 
