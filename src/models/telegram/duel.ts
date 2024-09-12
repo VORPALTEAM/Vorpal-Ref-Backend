@@ -99,7 +99,7 @@ export async function getDuelDataByUser(
   const duelInfo: DuelInfo = {
     id: row.id,
     id1: row.user_1_id,
-    id2: row.user_1_id,
+    id2: row.user_2_id,
     nickName1: (await getUserById(row.user_1_id))?.username || "Unnamed",
     nickName2: (await getUserById(row.user_2_id))?.username || "Unnamed",
     creation: row.creation,
