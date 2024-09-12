@@ -75,7 +75,7 @@ export async function getUserBalanceRow(userId: number) {
 export async function getAvailableBoxesByOwner(
   userId: number
 ) {
-  const listQuery = `SELECT * FROM boxes WHERE owner_id = ${userId} AND isOpen = false;`;
+  const listQuery = `SELECT * FROM boxes WHERE owner_id = ${userId} AND is_open = false;`;
   const response = await Q(listQuery);
   return response || [];
 }
