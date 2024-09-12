@@ -24,7 +24,7 @@ import { saveMessage } from '../../models/telegram/history';
 import { sendMessageWithSave, truncateChat } from './utils';
 import { getUserInviter } from '../../models/telegram/referral';
 import { Bot } from '../bot';
-import { createUserIfNotExists, getUserData } from '../../models/user';
+import { createUserIfNotExists, getUserData, getUserId } from '../../models/user';
 
 export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) => {
   const chatId = msg.chat.id;
@@ -103,7 +103,7 @@ export const duelAcceptHandler = async (bot: TelegramBot, msg: any, match: any) 
 
     if (
       (createdDuel.id2 &&
-        createdDuel.id2 !== String(linkAuthDataPrev.id)) ||
+        createdDuel.id2 !== userId) ||
       createdDuel.is_finished ||
       timeNow - createdDuel.creation > duel_lifetime
     ) {
