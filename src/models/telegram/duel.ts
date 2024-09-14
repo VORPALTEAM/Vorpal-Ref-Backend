@@ -52,7 +52,7 @@ export async function isUserInDuel(userId: number) {
 }
 
 export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
-  const query = `SELECT "user_1_id", "user_2_id", "creation", "isfinished", "winner_id" FROM "duels" WHERE "id" = ${duelId};`;
+  const query = `SELECT "user_1_id", "user_2_id", "creation", "is_finished", "winner_id" FROM "duels" WHERE "id" = ${duelId};`;
   const result = await Q(query, true);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
