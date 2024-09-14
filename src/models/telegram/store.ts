@@ -32,7 +32,12 @@ export async function putItemOnSale (data: {
 export async function getStoreItems(): Promise<StoreItem[]> {
   const query = `SELECT * FROM "items";`;
   const result = await Q(query);
-  return result || [];
+
+  // Replace null in rareness with "usual"
+  return (result || []).map(item => ({
+    ...item,
+    rareness: item.rareness === null ? 'usual' : item.rareness
+  }));
 }
 
 export async function getStoreItem(
@@ -41,7 +46,10 @@ export async function getStoreItem(
 ): Promise<StoreItem | null> {
   const query = `SELECT * FROM "store_items" WHERE "${param}" = ${value};`;
   const result = await Q(query);
-  return result && result.length > 0 ? result[0] : null;
+  return result && result.length > 0 ? {
+    ...result[0],
+    rareness: result[0].rareness === null ? 'usual' : result[0].rareness
+  } : null;
 }
 
 export async function createItemBalanceRow(login: string, itemId: number) {
