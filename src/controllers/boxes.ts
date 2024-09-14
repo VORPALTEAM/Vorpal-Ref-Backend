@@ -15,6 +15,7 @@ import { error } from 'console';
 import { checkTelegramAuth, getSignableMessage, validateByInitData } from '../utils/auth';
 import Web3 from 'web3';
 import { getUserData, getUserId, getUserWallets } from '../models/user';
+import { getUserAssetsWithNames } from '../models/telegram';
 
 const web3 = new Web3(Web3.givenProvider);
 
@@ -220,9 +221,9 @@ export const getUserResources = async (req: Request, res: Response) => {
       });
       return;
     }
-    const assets = await getUserAssets(userId)
+    const assets = await getUserAssetsWithNames (userId)
     res.status(200).send({
-      assets: assets,
+      assets,
     });
   } catch (e) {
     res.status(400).send({

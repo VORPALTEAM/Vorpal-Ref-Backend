@@ -95,6 +95,22 @@ export async function getItemSaleData (itemId: number): Promise<itemSaleData | n
   return result && result.length > 0 ? result[0] : null
 }
 
+export async function getUserAssetsWithNames (userId: number) {
+  const result = new Map();
+  const query = `
+  SELECT items.name, user_balances.amount FROM items, user_balances 
+  WHERE items.id = user_balances.item_id
+  AND user_balances.user_id = ${userId};
+  `
+  const items = await Q(query, true);
+  if (items) {
+    items.forEach((i) => {
+      result.set(i.name, i.amount)
+    })
+  }
+  return Object.fromEntries(result);
+}
+
 export async function getItemName (itemId: number) {
   const query = `SELECT name FROM items WHERE id = ${itemId};`;
   const result = await Q(query, true);
