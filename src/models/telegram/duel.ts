@@ -58,7 +58,7 @@ export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
   const row: any = result[0];
   const userData1 = await getUserById(row.user_1_id);
   const userData2 = await getUserById(row.user_2_id);
-  console.log("Found data: ", userData1, userData2)
+  console.log("Found users: ", userData1, userData2)
   const duelInfo: DuelInfo = {
     id: duelId,
     id1: row.user_1_id,
