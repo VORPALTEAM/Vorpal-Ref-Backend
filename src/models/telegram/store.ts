@@ -105,7 +105,7 @@ export async function getUserAssetsWithNames (userId: number) {
   const items = await Q(query, true);
   if (items) {
     items.forEach((i) => {
-      result.set(i.name, i.amount)
+      result.set(i.name === "VRP" ? "token" : i.name, i.amount)
     })
   }
   return Object.fromEntries(result);

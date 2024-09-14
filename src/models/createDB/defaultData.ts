@@ -11,7 +11,7 @@ INSERT INTO "network_families" (name) VALUES ('TON'), ('EVM');`,
 INSERT INTO "items" (
 	name, total_count, img_preview, img_full, type, rareness, description)
 	VALUES 
-    ('tVRP', null, '/gui/images/icons/coins.png', '/gui/images/icons/coins.png', 'currency', null, ''),
+    ('VRP', null, '/gui/images/icons/coins.png', '/gui/images/icons/coins.png', 'currency', null, ''),
     ('spores', null, '/gui/images/icons/spores.png', '/gui/images/icons/spores.png', 'currency', null, ''),
     ('spice', null, '/gui/images/icons/spice.png', '/gui/images/icons/spice.png', 'currency', null, ''),
     ('metal', null, '/gui/images/icons/metal.png', '/gui/images/icons/metal.png', 'currency', null, ''),
