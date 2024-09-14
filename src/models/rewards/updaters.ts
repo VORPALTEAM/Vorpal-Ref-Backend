@@ -52,7 +52,7 @@ export async function updateResourceTransaction(
   const updateQuery = `INSERT INTO user_balances (user_id, item_id, amount)
     VALUES (${userId}, ${resourceId}, ${amount})
     ON CONFLICT (user_id, item_id)
-    DO UPDATE SET amount = amount + ${amount} WHERE user_id = ${userId} AND item_id = ${resourceId}
+    DO UPDATE SET amount = user_balances.amount + ${amount} WHERE user_balances.user_id = ${userId} AND user_balances.item_id = ${resourceId}
     RETURNING *;`;
   const logQuery = `INSERT INTO "resource_txn_log" 
   ("userlogin", "time", "resource", "amount", "reason")
