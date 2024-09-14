@@ -29,6 +29,7 @@ import { InlineKeyboard } from '../telegram/handlers/keyboard';
 import { duel_lifetime } from '../config';
 import { TelegramAuthData, TelegramAuthNote } from 'types';
 import { createUserIfNotExists, getUserById, getUserData, getUserId, getUserTelegramChat } from '../models/user';
+import { createNewBox } from 'models/rewards';
 
 export const web3 = new Web3(Web3.givenProvider);
 
@@ -178,8 +179,21 @@ export const finishDuelResponse = async (req: Request, res: Response) => {
     body.duelId,
     winner_id,
   );
+  let rewarded = false
+  const duelData = await getDuelData(Number(body.duelId));
+  const user1 = duelData?.id1;
+  const user2 = duelData?.id2;
+  console.log("Found data: ",  duelData, user1, user2)
+  if (user1 && user2) {
+    const pairCount = await getDuelPairCount (user1, user2);
+    if (pairCount === 1) {
+       await createNewBox(1, user1);
+       await createNewBox(1, user2);
+       rewarded = true;
+    }
+  }
 
-  res.status(200).send(JSON.stringify({ result: result }));
+  res.status(200).send(JSON.stringify({ result: result, rewarded }));
   return;
 };
 
