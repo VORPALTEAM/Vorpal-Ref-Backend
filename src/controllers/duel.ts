@@ -29,7 +29,7 @@ import { InlineKeyboard } from '../telegram/handlers/keyboard';
 import { duel_lifetime } from '../config';
 import { TelegramAuthData, TelegramAuthNote } from 'types';
 import { createUserIfNotExists, getUserById, getUserData, getUserId, getUserTelegramChat } from '../models/user';
-import { createNewBox } from 'models/rewards';
+import { createNewBox } from '../models/rewards';
 
 export const web3 = new Web3(Web3.givenProvider);
 
