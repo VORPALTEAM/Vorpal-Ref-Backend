@@ -186,10 +186,12 @@ export const finishDuelResponse = async (req: Request, res: Response) => {
   console.log("Found data: ",  duelData, user1, user2)
   if (user1 && user2) {
     const pairCount = await getDuelPairCount (user1, user2);
-    console.log("Count: ", pairCount);
-    if (pairCount === 2) {
-       await createNewBox(1, user1);
-       await createNewBox(1, user2);
+    console.log("Count: ", pairCount)
+    if (Number(pairCount) === 1) {
+       console.log("Box giving: ")
+       const box1 = await createNewBox(1, user1);
+       const box2 = await createNewBox(1, user2);
+       console.log("Given: ", box1, box2)
        rewarded = true;
     }
   }
