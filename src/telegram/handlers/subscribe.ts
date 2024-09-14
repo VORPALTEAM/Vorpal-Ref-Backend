@@ -19,9 +19,11 @@ export async function sendSubscribeMessage(userId: number, chatId: number, lang 
   };
 
   if (subscribes.length > 0) {
-    await sendMessageWithSave(Bot, chatId, messages.subscribeRequest, {
-      reply_markup: keyboardS,
-    });
+    setTimeout(() => {
+      sendMessageWithSave(Bot, chatId, messages.subscribeRequest, {
+        reply_markup: keyboardS,
+      });
+    }, 1101)
   }
 }
 

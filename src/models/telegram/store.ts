@@ -1,6 +1,6 @@
 import { runQuery as Q, runQuery } from '../connection';
 import { getUserAssets, getUserBalanceRow } from '../rewards';
-import { TelegramAuthData, StoreItem, storeItemBalance } from '../../types';
+import { TelegramAuthData, StoreItem, storeItemBalance, DisplayStoreItem } from '../../types';
 
 export async function addStoreItem(item: StoreItem) {
   const query = `INSERT INTO public.items(
@@ -29,13 +29,59 @@ export async function putItemOnSale (data: {
   return await runQuery(query, false);
 }
 
-export async function getStoreItems(): Promise<StoreItem[]> {
-  const query = `SELECT * FROM "items";`;
+/*
+export interface DisplayStoreItem {
+  id: number;
+  item: string;
+  type: string;
+  rareness: string;
+  description?: string;
+  img_preview?: string;
+  img_full?: string;
+  per_user: number | null;
+  total_count: number | null;
+  cost: number;
+  currency: string;
+}
+
+CREATE TABLE IF NOT EXISTS "store" (
+     id serial PRIMARY KEY,
+     item_id integer,
+     currency_id integer,
+     price integer,
+     user_balance_limit integer,
+     available_count integer
+    );
+
+CREATE TABLE IF NOT EXISTS "items" (
+     id serial PRIMARY KEY,
+     name varchar(32) NOT NULL UNIQUE,
+     total_count integer,
+     img_preview varchar(256),
+     img_full varchar(256),
+     type varchar(32), 
+     rareness varchar(32), 
+     description varchar(128)
+    );
+*/
+
+export async function getStoreItems(): Promise<DisplayStoreItem[]> {
+  const query = `
+  SELECT items.id, items.name as item, items.type,
+    items.rareness, items.description, items.img_preview, items.img_full,
+    store.user_balance_limit as per_user, store.available_count as total_count,
+    store.price as cost, 
+    currency_items.name as currency
+  FROM "items"
+  JOIN "store" ON store.item_id = items.id
+  LEFT JOIN "items" as currency_items ON currency_items.id = store.currency_id
+  WHERE items.id IN (SELECT item_id FROM store);`;
   const result = await Q(query);
 
   // Replace null in rareness with "usual"
   return (result || []).map(item => ({
     ...item,
+    currency: item.currency === "VRP" ? "token" : item.currency,
     rareness: item.rareness === null ? 'usual' : item.rareness
   }));
 }
@@ -43,43 +89,48 @@ export async function getStoreItems(): Promise<StoreItem[]> {
 export async function getStoreItem(
   param: string,
   value: string | number,
-): Promise<StoreItem | null> {
-  const query = `SELECT * FROM "store_items" WHERE "${param}" = ${value};`;
+): Promise<DisplayStoreItem | null> {
+  const query = `
+    SELECT items.id, items.name as item, items.type,
+      items.rareness, items.description, items.img_preview, items.img_full,
+      store.user_balance_limit as per_user, store.available_count as total_count,
+      store.price as cost, 
+      currency_items.name as currency
+    FROM "items"
+    JOIN "store" ON store.item_id = items.id
+    LEFT JOIN "items" as currency_items ON currency_items.id = store.currency_id
+    WHERE items."${param}" = '${value}'
+    LIMIT 1;
+  `;
   const result = await Q(query);
   return result && result.length > 0 ? {
     ...result[0],
+    currency: result[0].currency === "VRP" ? "token" : result[0].currency,
     rareness: result[0].rareness === null ? 'usual' : result[0].rareness
   } : null;
 }
 
-export async function createItemBalanceRow(login: string, itemId: number) {
-  const query = `INSERT INTO "store_item_balances" ("user_name", "item_id", "balance")
-    VALUES ('${login}', ${itemId}, 0);`;
-  const result = await Q(query, false);
-  return result ? true : false;
-}
-
 export async function getUserItemBalance(
-  login: string,
+  userId: number,
   itemId: number,
 ): Promise<number | null> {
-  const query = `SELECT * FROM "store_item_balances" 
-   WHERE "user_name" = '${login}' AND "item_id" = ${itemId};`;
+  const query = `SELECT amount FROM "user_balances" 
+   WHERE "user_id" = '${userId}' AND "item_id" = ${itemId};`;
   const result = await Q(query);
-  return result && result.length > 0 ? result[0].balance : null;
+  return result && result.length > 0 ? result[0].amount : null;
 }
 
 export async function getUserAllItemBalances(
-  login: string,
+  userId: number,
 ): Promise<{ itemId: number; balance: number }[] | null> {
-  const query = `SELECT * FROM "store_item_balances" 
-   WHERE "user_name" = '${login}';`;
+  const query = `SELECT item_id, amount FROM "user_balances" 
+   WHERE "user_id" = '${userId}';`;
   const result = await Q(query);
   return result
     ? result.map((item) => {
         return {
           itemId: item.item_id,
-          balance: item.balance,
+          balance: item.amount,
         };
       })
     : [];

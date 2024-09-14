@@ -128,6 +128,20 @@ export interface StoreItem {
   currency_id?: string;
 }
 
+export interface DisplayStoreItem {
+  id: number;
+  item: string;
+  type: string;
+  rareness: string;
+  description?: string;
+  img_preview?: string;
+  img_full?: string;
+  per_user: number | null;
+  total_count: number | null;
+  cost: number;
+  currency: string;
+}
+
 export interface storeItemBalance {
   id: number;
   user_name: string;

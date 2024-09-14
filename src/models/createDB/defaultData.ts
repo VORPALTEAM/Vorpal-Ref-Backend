@@ -21,6 +21,13 @@ INSERT INTO "items" (
     ('laser1', null, '/gui/images/icons/laser-red.png', '/gui/images/icons/laser-red.png', 'laser', 'usual', ''),
     ('laser2', null, '/gui/images/icons/laser-white.png', '/gui/images/icons/laser-white.png', 'laser', 'rare', ''),
     ('laser3', null, '/gui/images/icons/laser-violet.png', '/gui/images/icons/laser-violet.png', 'laser', 'relict', ''); 
+`,`
+INSERT INTO public.store(
+	item_id, currency_id, price, user_balance_limit, available_count)
+	VALUES 
+    (8, 1, 1, null, null), 
+    (9, 1, 2, 1, 10),
+    (10, 1, 3, 1, 3);
 `
 
 ];

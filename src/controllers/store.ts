@@ -14,10 +14,15 @@ export const balanceResponse = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.itemId || !body.login) {
-        res.status(400).send("Nessesary parameters missed")
+        res.status(400).send("Nessesary parameters missed");
+        return;
     }
-
-    const balance = await getUserItemBalance (body.login, body.itemId);
+    const user = await getUserId(body.login, body.login?.toLowerCase());
+    if (!user) {
+        res.status(400).send("User not found");
+        return;
+    }
+    const balance = await getUserItemBalance (user, body.itemId);
     res.status(200).send(JSON.stringify({
         balance: balance || 0
     }))
@@ -29,10 +34,17 @@ export const balanceAllResponse = async (req: Request, res: Response) => {
     if (!body.login) {
         res.status(400).send({ error: "Nessesary parameters missed"})
     }
-
-    const balance = await getUserAllItemBalances (body.login);
+    const user  = await getUserId(body.login, body.login.toLowerCase());
+    if (!user) {
+        res.status(200).send(JSON.stringify({
+            balance: null,
+            error: "User not found"
+        }));
+        return;
+    }
+    const balance = await getUserAllItemBalances (user);
     res.status(200).send(JSON.stringify({
-        balance: balance || 0
+        balance
     }))
 }
 
@@ -40,10 +52,17 @@ export const checkAvailableResponse = async (req: Request, res: Response) => {
     const body = req.body
 
     if (!body.itemId || !body.login || !body.amount) {
-        res.status(400).send(JSON.stringify({error: "Nessesary parameters missed"}))
+        res.status(400).send(JSON.stringify({error: "Nessesary parameters missed"}));
+        return;
     }
-
-    const isAvailable = await isItemAvailableToBuy (body.login, body.itemId, body.amount);
+    const user  = await getUserId(body.login, body.login.toLowerCase());
+    if (!user) {
+        res.status(400).send(JSON.stringify({
+            error: "User not found"
+        }));
+        return;
+    }
+    const isAvailable = await isItemAvailableToBuy (user, body.itemId, body.amount);
     res.status(200).send(JSON.stringify(isAvailable))
 }
 
