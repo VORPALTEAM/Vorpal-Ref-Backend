@@ -56,12 +56,15 @@ export async function getDuelData(duelId: number): Promise<DuelInfo | null> {
   const result = await Q(query, true);
   if (!result || result.length === 0) return null;
   const row: any = result[0];
+  const userData1 = await getUserById(row.user_1_id);
+  const userData2 = await getUserById(row.user_2_id);
+  console.log("Found data: ", userData1, userData2)
   const duelInfo: DuelInfo = {
     id: duelId,
     id1: row.user_1_id,
     id2: row.user_2_id,
-    nickName1: (await getUserById(row.user_1_id))?.username || "Unnamed",
-    nickName2: (await getUserById(row.user_2_id))?.username || "Unnamed",
+    nickName1: userData1?.username || "Unnamed",
+    nickName2: userData2?.username || "Unnamed",
     creation: row.creation,
     is_started: row.is_started,
     is_finished: row.is_finished,
