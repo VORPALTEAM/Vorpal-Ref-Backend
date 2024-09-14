@@ -235,6 +235,9 @@ export async function buyItem(buyerId: number, itemId: number, amount: number) {
   }
 
   const buyQuery = `
+     INSERT INTO user_balances (user_id, item_id, amount)
+     VALUES (${buyerId}, ${itemId}, ${amount})
+     ON CONFLICT (user_id, item_id) DO
      UPDATE user_balances SET amount = amount + ${amount} WHERE user_id = ${buyerId} AND item_id = ${itemId};
      UPDATE user_balances SET amount = amount - ${amount * (saleData.price || 0)} WHERE user_id = ${buyerId} AND item_id = ${saleData.currency_id};
   `
