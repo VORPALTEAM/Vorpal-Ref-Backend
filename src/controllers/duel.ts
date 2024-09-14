@@ -187,7 +187,7 @@ export const finishDuelResponse = async (req: Request, res: Response) => {
   if (user1 && user2) {
     const pairCount = await getDuelPairCount (user1, user2);
     console.log("Count: ", pairCount);
-    if (pairCount === 1) {
+    if (pairCount === 2) {
        await createNewBox(1, user1);
        await createNewBox(1, user2);
        rewarded = true;
