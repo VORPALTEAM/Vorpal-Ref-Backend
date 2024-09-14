@@ -27,7 +27,7 @@ export async function getDuelPairCount(
   userId1: number,
   userId2: number,
 ): Promise<number> {
-  const query = `SELECT COUNT(*) FROM "duels" WHERE (user_1_id = ${userId1} AND user_2_id = ${userId2}) OR (user_1_id = ${userId1} AND user_2_id = ${userId2});`;
+  const query = `SELECT COUNT(*) FROM "duels" WHERE (user_1_id = ${userId1} AND user_2_id = ${userId2}) OR (user_2_id = ${userId1} AND user_1_id = ${userId2});`;
   const result = await Q(query);
   return result && result.length > 0 ? result[0].count : 0;
 }
