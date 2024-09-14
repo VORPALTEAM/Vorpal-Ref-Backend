@@ -49,10 +49,10 @@ export async function updateResourceTransaction(
   message: string = '',
 ) {
   const time = Math.round(new Date().getTime() / 1000);
-  const updateQuery = `INSERT INTO user_balances (user_id, item_id, count)
+  const updateQuery = `INSERT INTO user_balances (user_id, item_id, amount)
     VALUES (${userId}, ${resourceId}, ${amount})
     ON CONFLICT (user_id, item_id)
-    DO UPDATE SET count = user_balances.count + $3
+    DO UPDATE SET amount = user_balances.count + $3
     RETURNING *;`;
   const logQuery = `INSERT INTO "resource_txn_log" 
   ("userlogin", "time", "resource", "amount", "reason")
@@ -125,8 +125,6 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
   const valueVRP = Math.round(Math.random() * 5) + 5;
 
   await  resourceTransactionWithReferrals (owner, 1, valueVRP, rewardmessage);
-  // const vrpQuery = `UPDATE resources SET token = token + ${valueVRP} 
-  //     WHERE ownerAddress IN (SELECT ownerAddress FROM boxes WHERE id = ${boxId})`;
   // await connection.query(vrpQuery);
   const rewardId: number = (() => {
     switch (true) {
