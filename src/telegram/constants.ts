@@ -14,7 +14,7 @@ export const duelRefuseText = "Refuse a duel";
 export const referralText = "🤝Watch referrals";
 export const webAppName = process.env.WEB_APP_NAME || "vorpalgalaxy";
 
-export const communityTgUrl = "https://t.me/VorpalAnnouncements";
+export const communityTgUrl = "https://t.me/VorpalDefender"; // "https://t.me/VorpalAnnouncements";
 
 export const usingRegExps: RegExp[] = [
   /\/start/,
