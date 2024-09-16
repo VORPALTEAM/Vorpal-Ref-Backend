@@ -27,9 +27,10 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
       hash: '',
     };
 
-    const inviterLogin = match[1]?.toLowerCase();
+    const inviter = match[1]?.toLowerCase();
 
-    const inviterId = await getUserId(inviterLogin);
+    // const inviterId = await getUserId(inviterLogin);
+    const inviterId = Number(inviter)
     const userId = await createUserIfNotExists("user", undefined, inviterId || undefined, linkAuthDataPrev);
 
     /* if (!linkAuthDataPrev.username) {
