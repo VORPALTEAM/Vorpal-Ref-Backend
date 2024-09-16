@@ -5,7 +5,7 @@ import { InlineKeyboard } from './keyboard';
 import { sendMessageWithSave } from './utils';
 import { getReferralCount, getReferralStatsByUserTelegramId, getReferralTotalRewardsByUser } from '../../models/telegram/referral';
 import { Bot } from '../bot';
-import { createUserIfNotExists } from 'models/user';
+import { createUserIfNotExists } from '../../models/user';
 
 export const referralStatsAction = async (bot: TelegramBot, query: TelegramBot.CallbackQuery) => {
     console.log("History requested")
