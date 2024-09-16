@@ -5,7 +5,7 @@ import { writeLog } from "../../models/log";
 
 export let actualStarList: StarList = [];
 export let lastUpdateRequqstTime = 0;
-let watchingTimer: NodeJS.Timer;
+let watchingTimer;
 
 export function updateLastTime (time: number) {
     lastUpdateRequqstTime = time;

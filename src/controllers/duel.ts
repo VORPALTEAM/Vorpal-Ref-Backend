@@ -129,8 +129,8 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
   const displayId1 = await getUserTelegramChat(data.id1);
   const displayId2 = data.id2 ? await getUserTelegramChat(data.id2) : null;
   console.log("Chats: ", displayId1, displayId2);
-  const part1 = await getUserData(String(data.id1));
-  const part2 = await getUserData(String(data.id2));
+  const part1 = await getUserData(displayId1 || String(data.id1));
+  const part2 = await getUserData(displayId2 || String(data.id2));
   console.log("Ids: ", part1, part2);
   const dateSec = Math.round(new Date().getTime() / 1000);
   const dataToSend = {

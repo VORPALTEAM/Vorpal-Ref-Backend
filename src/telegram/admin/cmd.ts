@@ -8,11 +8,13 @@ import { getUserData } from '../../models/user';
 import TelegramBot from 'node-telegram-bot-api';
 import { sendMessageWithSave } from '../handlers/utils';
 import { createDuelInTournamentAction } from './tournament';
+import { downloadReferralStats } from './referral';
 
 export const admin_commands = [
   'create_duel',
   'create_tournament',
   'get_participants',
+  'referral_stats'
 ];
 
 export const adminCmdHandler = async (
@@ -84,6 +86,8 @@ export const adminCmdHandler = async (
       );
       return;
       break;
+    case admin_commands[3]: 
+      return downloadReferralStats(bot, msg)
     default:
       sendMessageWithSave(
         bot,

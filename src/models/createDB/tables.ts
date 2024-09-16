@@ -152,6 +152,11 @@ const tableCreationQueries = [
      rareness varchar(32), 
      description varchar(128)
     );`,
+    `CREATE TABLE IF NOT EXISTS "referral_names" (
+     id serial PRIMARY KEY,
+     link_id,
+     name
+    );`,
     `CREATE TABLE IF NOT EXISTS "boxes" (
      id serial PRIMARY KEY,
      owner_id integer,
