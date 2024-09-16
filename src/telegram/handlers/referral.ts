@@ -11,16 +11,6 @@ export const referralStatsAction = async (bot: TelegramBot, query: TelegramBot.C
     console.log("History requested")
     if (!query.message) return;
 
-    /* const transactions = await GetReferralStatsByUser (query.from.username);
-    if (transactions.length === 0) {
-        SendMessageWithSave (Bot, query.message.chat.id, "No referral rewards yet");
-        return;
-    } */
-
-    /*
-    const historyText = `<b>Your rewards from referrals:</b>\n ${transactions.map((txn) => {
-        return `LeveL: ${txn.level}, for: ${txn.for}, resource: ${txn.resource}, amount: ${txn.amount}\n`
-   })}` */
     const user = await createUserIfNotExists("user", undefined, undefined, query.from);
     const refCounts = await getReferralCount(user);
     const historyText = `

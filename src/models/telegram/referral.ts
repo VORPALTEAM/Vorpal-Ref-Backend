@@ -33,9 +33,9 @@ export async function writeReferralStats(data: {
   const dt = data.date || Math.round(new Date().getTime() / 1000);
   const query = `INSERT INTO "telegram_referral_stats"  
   ("recipient", "referrer", "resource", "amount", "reward_date", "level") 
-  VALUES (${data.to}, ${data.for}, '${
+  VALUES (${data.to}, ${data.for},  ${
     data.resource
-  }', ${data.amount}, ${dt}, ${data.level});`;
+  }, ${data.amount}, ${dt}, ${data.level});`;
   console.log("Ref stats update query: ", query )
   const result = await Q(query, false);
   return result ? true : false;
@@ -121,11 +121,12 @@ export async function getReferralTotalRewardsByUser(login: string): Promise<{ite
   const user = await getUserData(login);
   if (!user) return [];
   const query = `
-     SELECT resource, SUM(amount) as total_amount
-       FROM "telegram_referral_stats"
-       WHERE recipient = ${user.id}
-       GROUP BY resource
-       ORDER BY total_amount DESC; 
+     SELECT items.id, items.name, trs.resource, SUM(trs.amount) as total_amount
+     FROM "telegram_referral_stats" as trs
+     JOIN "items" ON items.id = trs.resource
+     WHERE trs.recipient = ${user.id}
+     GROUP BY items.id, items.name, trs.resource
+     ORDER BY total_amount DESC;
   `
   const data = await Q(query);
   return data ? data.map((row: any) => {

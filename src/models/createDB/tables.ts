@@ -62,7 +62,7 @@ const tableCreationQueries = [
       id serial PRIMARY KEY,
       recipient integer,
       referrer integer,
-      resource varchar(128),
+      resource integer,
       amount integer,
       reward_date integer,
       level integer
