@@ -33,7 +33,7 @@ export async function writeReferralStats(data: {
   const dt = data.date || Math.round(new Date().getTime() / 1000);
   const query = `INSERT INTO "telegram_referral_stats"  
   ("recipient", "referrer", "resource", "amount", "reward_date", "level") 
-  VALUES ('${data.to}', '${data.for}', '${
+  VALUES (${data.to}, ${data.for}, '${
     data.resource
   }', ${data.amount}, ${dt}, ${data.level});`;
   console.log("Ref stats update query: ", query )

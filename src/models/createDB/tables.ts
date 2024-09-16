@@ -58,6 +58,15 @@ const tableCreationQueries = [
       date_completed DATE,
       completed BOOLEAN
    );`,
+   `CREATE TABLE IF NOT EXISTS "telegram_referral_stats" (
+      id serial PRIMARY KEY,
+      recipient integer,
+      referrer integer,
+      resource varchar(128),
+      amount integer,
+      reward_date integer,
+      level integer
+    );`,
    `CREATE TABLE IF NOT EXISTS "watching_tg_subscriptions" (
      id serial PRIMARY KEY,
 	  channel_name varchar(128),

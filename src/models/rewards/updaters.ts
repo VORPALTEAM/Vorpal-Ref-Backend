@@ -74,7 +74,7 @@ export async function sendRewardsToReferrals (userId: number, resourceId: number
   if (!ref1) return([]);
   const ref2 = (await getUserById(userId))
   const referral2 = await getUserInviterByTelegramId (ref2.id);
-  await writeReferralStats ({ to: ref1.id, for: ref2, resource: resourceId, amount: amount * referralPart1, level: 1 })
+  await writeReferralStats ({ to: ref1.id, for: ref2.id, resource: resourceId, amount: amount * referralPart1, level: 1 })
   if (referral2) {
     await writeReferralStats ({ to: referral2, for: ref1.id, resource: resourceId, amount: amount * referralPart1, level: 2 })
   }
@@ -157,7 +157,7 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
         return 6;
       default:
         openAmount = value % 1000;
-        return 1;
+        return 7;
     }
   })();
   const logQuery = `INSERT INTO box_log (boxId, opening, openResult, openAmount)
