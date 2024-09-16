@@ -41,16 +41,16 @@ export async function writeReferralStats(data: {
   return result ? true : false;
 }
 
-export async function getReferralList(inviter: string): Promise<string[]> {
-  const query = `SELECT "user_id", "username", "first_name", "last_name" FROM "telegram_personal" WHERE "inviter" = '${inviter}';`;
+export async function getReferralList(inviterId: number): Promise<string[]> {
+  const query = `SELECT "id", "username" FROM "users" WHERE "inviter_id" = ${inviterId};`;
   const result = await Q(query);
   return result ? result.map((row) => {
     return String(row.id || ``)
   }) : []
 }
 
-export async function getReferralCount(inviter: string): Promise<{level1: number; level2: number;}> {
-  const query1 = `SELECT COUNT(*) FROM "telegram_personal" WHERE "inviter" = '${inviter.toLowerCase()}';`;
+export async function getReferralCount(inviterId: number): Promise<{level1: number; level2: number;}> {
+  const query1 = `SELECT COUNT(*) FROM "users" WHERE "inviter_id" = ${inviterId};`;
   const level1 = await Q(query1, true);
   if (!level1) {
     return({
@@ -61,11 +61,11 @@ export async function getReferralCount(inviter: string): Promise<{level1: number
   /* const query2=`SELECT COUNT(*) FROM "telegram_personal" WHERE "inviter" IN 
   (SELECT "inviter" FROM "telegram_personal" WHERE "inviter" = '${inviter.toLowerCase()}');`; */
   const query2=`SELECT COUNT(*) 
-FROM "telegram_personal" 
-WHERE "inviter" IN (
-    SELECT "user_id" 
-    FROM "telegram_personal" 
-    WHERE "inviter" = '${inviter.toLowerCase()}'
+  FROM "users" 
+  WHERE "inviter_id" IN (
+    SELECT "inviter_id" 
+    FROM "users" 
+    WHERE "inviter_id" = ${inviterId}
 );`
   const level2 = await Q(query2, true);
   return({
@@ -74,14 +74,9 @@ WHERE "inviter" IN (
   })
 }
 
-export async function getReferralStatsByUserTelegramId(
-  login: string,
-  limit = 5
-): Promise<ReferralStatsData[]> {
-  const user = await getUserData(login);
-  if (!user) return [];
+export async function getReferralStatsByUserId (userId: number, limit: number) {
   const query = `SELECT id, recipient, referrer, resource, amount, reward_date, level
-	FROM "telegram_referral_stats" WHERE recipient = ${user.id} ORDER BY reward_date DESC LIMIT ${limit};`;
+	FROM "telegram_referral_stats" WHERE recipient = ${userId} ORDER BY reward_date DESC LIMIT ${limit};`;
   const data = await Q(query);
   return data ? data.map((row: any) => {
     return {
@@ -95,6 +90,32 @@ export async function getReferralStatsByUserTelegramId(
     }
   }) : [];
 }
+
+export async function getReferralStatsByUserTelegramId(
+  login: string,
+  limit = 5
+): Promise<ReferralStatsData[]> {
+  const user = await getUserData(login);
+  if (!user) return [];
+  return await getReferralStatsByUserId(user.id, limit)
+}
+
+export async function getReferralTotalRewardsById (userId: number): Promise<{item: string; amount: number}[]> {
+  const query = `
+     SELECT resource, SUM(amount) as total_amount
+       FROM "telegram_referral_stats"
+       WHERE recipient = ${userId}
+       GROUP BY resource
+       ORDER BY total_amount DESC; 
+  `
+  const data = await Q(query);
+  return data ? data.map((row: any) => {
+    return {
+      item: row.resource,
+      amount: row.total_amount
+    }
+  }) : [];
+} 
 
 export async function getReferralTotalRewardsByUser(login: string): Promise<{item: string; amount: number}[]> {
   const user = await getUserData(login);

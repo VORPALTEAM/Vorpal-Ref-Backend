@@ -5,6 +5,7 @@ import { InlineKeyboard } from './keyboard';
 import { sendMessageWithSave } from './utils';
 import { getReferralCount, getReferralStatsByUserTelegramId, getReferralTotalRewardsByUser } from '../../models/telegram/referral';
 import { Bot } from '../bot';
+import { createUserIfNotExists } from 'models/user';
 
 export const referralStatsAction = async (bot: TelegramBot, query: TelegramBot.CallbackQuery) => {
     console.log("History requested")
@@ -20,8 +21,8 @@ export const referralStatsAction = async (bot: TelegramBot, query: TelegramBot.C
     const historyText = `<b>Your rewards from referrals:</b>\n ${transactions.map((txn) => {
         return `LeveL: ${txn.level}, for: ${txn.for}, resource: ${txn.resource}, amount: ${txn.amount}\n`
    })}` */
-
-    const refCounts = await getReferralCount(String(query.from.id));
+    const user = await createUserIfNotExists("user", undefined, undefined, query.from);
+    const refCounts = await getReferralCount(user);
     const historyText = `
        <b>Level1: ${refCounts.level1}</b>
        <b>Level2: ${refCounts.level2}</b>
@@ -71,8 +72,8 @@ export const referralStatsHandler = async (bot: TelegramBot, query: TelegramBot.
    SendMessageWithSave (Bot, query.chat.id, messages.noUsername);
    return;
   } */
-
-  const refCounts = await getReferralCount(String(query.from.id));
+  const user = await createUserIfNotExists("user", undefined, undefined, query.from);
+  const refCounts = await getReferralCount(user);
   const historyText = `
      <b>Level1: ${refCounts.level1}</b>
      <b>Level2: ${refCounts.level2}</b>
