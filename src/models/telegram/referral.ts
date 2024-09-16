@@ -109,11 +109,12 @@ export async function getReferralStatsByUserTelegramId(
 
 export async function getReferralTotalRewardsById (userId: number): Promise<{item: string; amount: number}[]> {
   const query = `
-     SELECT resource, SUM(amount) as total_amount
-       FROM "telegram_referral_stats"
-       WHERE recipient = ${userId}
-       GROUP BY resource
-       ORDER BY total_amount DESC; 
+     SELECT items.id, items.name, trs.resource, SUM(trs.amount) as total_amount
+     FROM "telegram_referral_stats" as trs
+     JOIN "items" ON items.id = trs.resource
+     WHERE trs.recipient = ${userId}
+     GROUP BY items.id, items.name, trs.resource
+     ORDER BY total_amount DESC;
   `
   const data = await Q(query);
   return data ? data.map((row: any) => {
@@ -127,19 +128,5 @@ export async function getReferralTotalRewardsById (userId: number): Promise<{ite
 export async function getReferralTotalRewardsByUser(login: string): Promise<{item: string; amount: number}[]> {
   const user = await getUserData(login);
   if (!user) return [];
-  const query = `
-     SELECT items.id, items.name, trs.resource, SUM(trs.amount) as total_amount
-     FROM "telegram_referral_stats" as trs
-     JOIN "items" ON items.id = trs.resource
-     WHERE trs.recipient = ${user.id}
-     GROUP BY items.id, items.name, trs.resource
-     ORDER BY total_amount DESC;
-  `
-  const data = await Q(query);
-  return data ? data.map((row: any) => {
-    return {
-      item: row.name,
-      amount: row.total_amount
-    }
-  }) : [];
+  return await getReferralTotalRewardsById(user.id);
 }
