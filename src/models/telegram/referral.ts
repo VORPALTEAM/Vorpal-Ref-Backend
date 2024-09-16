@@ -85,6 +85,7 @@ export async function getReferralStatsByUserId (userId: number, limit: number) {
   AND items.id = resource
   ORDER BY reward_date DESC LIMIT ${limit};`;
   const data = await Q(query);
+
   return data ? data.map((row: any) => {
     return {
       id: row.id,
@@ -109,7 +110,7 @@ export async function getReferralStatsByUserTelegramId(
 
 export async function getReferralTotalRewardsById (userId: number): Promise<{item: string; amount: number}[]> {
   const query = `
-     SELECT items.id, items.name, trs.resource, SUM(trs.amount) as total_amount
+     SELECT items.id, items.name as item_name, trs.resource, SUM(trs.amount) as total_amount
      FROM "telegram_referral_stats" as trs
      JOIN "items" ON items.id = trs.resource
      WHERE trs.recipient = ${userId}
@@ -119,7 +120,7 @@ export async function getReferralTotalRewardsById (userId: number): Promise<{ite
   const data = await Q(query);
   return data ? data.map((row: any) => {
     return {
-      item: row.resource,
+      item: row.item_name,
       amount: row.total_amount
     }
   }) : [];

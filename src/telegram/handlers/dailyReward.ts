@@ -7,13 +7,14 @@ import { InlineKeyboard } from './keyboard';
 import { getChannelSubscribeList, sendSubscribeMessage } from './subscribe';
 import { createUserIfNotExists } from '../../models/user';
 import { addDailyRewardNote, getUserLastRewardDate } from '../../models/rewards/daily';
+import { dateSec } from '../../utils/text';
 
 export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Message) => {
     if (!msg.from) {
         return;
     }
     const chatId = msg.chat.id;
-    const now = new Date().getTime();
+    const now = dateSec();
     const fromId = msg.from?.id;
     const fromLang = msg.from?.language_code || 'en'
 
