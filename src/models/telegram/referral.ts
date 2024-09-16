@@ -75,15 +75,22 @@ export async function getReferralCount(inviterId: number): Promise<{level1: numb
 }
 
 export async function getReferralStatsByUserId (userId: number, limit: number) {
-  const query = `SELECT id, recipient, referrer, resource, amount, reward_date, level
-	FROM "telegram_referral_stats" WHERE recipient = ${userId} ORDER BY reward_date DESC LIMIT ${limit};`;
+  const query = `
+  SELECT trs.id, items.id, 
+    items.name as rs_name, 
+    trs.recipient, trs.referrer, trs.resource, 
+    trs.amount, trs.reward_date, trs.level
+	FROM "telegram_referral_stats" as trs, items 
+  WHERE trs.recipient = ${userId} 
+  AND items.id = resource
+  ORDER BY reward_date DESC LIMIT ${limit};`;
   const data = await Q(query);
   return data ? data.map((row: any) => {
     return {
       id: row.id,
       to: row.recipient,
       for: row.referrer,
-      resource: row.resource,
+      resource: row.rs_name,
       amount: row.amount,
       level: row.level,
       date: row.reward_date,
@@ -131,7 +138,7 @@ export async function getReferralTotalRewardsByUser(login: string): Promise<{ite
   const data = await Q(query);
   return data ? data.map((row: any) => {
     return {
-      item: row.resource,
+      item: row.name,
       amount: row.total_amount
     }
   }) : [];
