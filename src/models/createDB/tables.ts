@@ -67,13 +67,6 @@ const tableCreationQueries = [
       reward_date integer,
       level integer
     );`,
-   `CREATE TABLE IF NOT EXISTS "watching_tg_subscriptions" (
-     id serial PRIMARY KEY,
-	  channel_name varchar(128),
-	  channel_username varchar(128),
-	  channel_id varchar(128),
-     language_id integer
-    );`,
     `CREATE TABLE IF NOT EXISTS "watching_tg_subscriptions" (
      id serial PRIMARY KEY,
 	  channel_name varchar(128),
@@ -161,10 +154,17 @@ const tableCreationQueries = [
      rareness varchar(32), 
      description varchar(128)
     );`,
+    `CREATE TABLE IF NOT EXISTS "item_description_extended" (
+     id serial PRIMARY KEY,
+     item_id integer,
+     title varchar(64),
+     description_en varchar(512),
+     description_ru varchar(512)
+    );`,
     `CREATE TABLE IF NOT EXISTS "referral_names" (
      id serial PRIMARY KEY,
-     link_id,
-     name
+     link_id integer,
+     name varchar(64)
     );`,
     `CREATE TABLE IF NOT EXISTS "boxes" (
      id serial PRIMARY KEY,
