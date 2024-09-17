@@ -1,14 +1,14 @@
 import TelegramBot from 'node-telegram-bot-api';
 import path from 'path';
 import { TelegramAuthData, tgChannelData } from '../../types';
-import { GetDaylyAuthDate, CreateTelegramAuthHash } from '../../utils/auth';
-import { SendSubscribeMessage } from './subscribe';
+import { getDaylyAuthDate, createTelegramAuthHash } from '../../utils/auth';
+import { sendSubscribeMessage } from './subscribe';
 import { duel_lifetime, testPhotoUrl } from '../../config';
 import { InlineKeyboard } from './keyboard';
 import {
-  CreateDuel,
-  FinishDuel,
-  GetDuelDataByUser,
+  createDuel,
+  finishDuel,
+  getDuelDataByUser,
 } from '../../models/telegram';
 import {
   duelConfirmText,
@@ -18,12 +18,14 @@ import {
   messages,
   startText,
 } from '../constants';
-import { SendMessageWithSave, SendPhotoWithSave } from './utils';
-import { SaveMessage } from '../../models/telegram/history';
+import { sendMessageWithSave, sendPhotoWithSave } from './utils';
+import { saveMessage } from '../../models/telegram/history';
+import { Bot } from '../bot';
+import { createUserIfNotExists } from '../../models/user';
 
 export const invitePhotoPath = '/app/public/duel.png';
 
-export const DuelCreationHandler = async (
+export const duelCreationHandler = async (
   bot: TelegramBot,
   query: TelegramBot.CallbackQuery | TelegramBot.Message,
 ) => {
@@ -50,7 +52,7 @@ export const DuelCreationHandler = async (
   }
 
   const linkAuthDataPrev: TelegramAuthData = {
-    auth_date: GetDaylyAuthDate(),
+    auth_date: getDaylyAuthDate(),
     last_name: lastName?.replace(' ', '') || '',
     first_name: firstName?.replace(' ', '') || '',
     id: userId,
@@ -58,16 +60,18 @@ export const DuelCreationHandler = async (
     hash: '',
   };
 
+  const existUserId = await createUserIfNotExists("user", undefined, undefined, linkAuthDataPrev);
+
   /* if (!linkAuthDataPrev.username) {
-    SendMessageWithSave(bot, chatId, messages.noUsername);
+    SendMessageWithSave(Bot, chatId, messages.noUsername);
     return;
   } */
   const dateSec = Math.round(new Date().getTime() / 1000);
-  const userLastDuel = await GetDuelDataByUser(String(linkAuthDataPrev.id));
+  const userLastDuel = await getDuelDataByUser(existUserId);
   if (!userLastDuel) {
-    await CreateDuel(String(linkAuthDataPrev.id), '');
+    await createDuel(existUserId);
   } else {
-    const isFinished = userLastDuel.isfinished;
+    const isFinished = userLastDuel.is_finished;
     const creation = Number(userLastDuel.creation);
     if (
       !isFinished &&
@@ -75,20 +79,19 @@ export const DuelCreationHandler = async (
       userLastDuel.id1 &&
       userLastDuel.id2
     ) {
-      SendMessageWithSave(bot, chatId, messages.duelAlready);
+      sendMessageWithSave(Bot, chatId, messages.duelAlready);
       return;
     }
-    if (!isFinished || dateSec - creation >= duel_lifetime) {
-      console.log('Finish duel case 3');
-      await FinishDuel(userLastDuel.duel_id, '');
+    if (!isFinished && dateSec - creation >= duel_lifetime) {
+
+      await finishDuel(Number(userLastDuel.id), null);
     }
-    const duelId = await CreateDuel(String(linkAuthDataPrev.id), '');
-    console.log('Created, id: ', duelId);
+    const duelId = await createDuel(existUserId);
   }
 
-  await SendMessageWithSave(bot, chatId, messages.duelToForward).then(() => {
-    SendPhotoWithSave(
-      bot,
+  await sendMessageWithSave(Bot, chatId, messages.duelToForward).then(() => {
+    sendPhotoWithSave(
+      Bot,
       chatId,
       invitePhotoPath,
       messages.duelInvitation(
@@ -101,7 +104,7 @@ export const DuelCreationHandler = async (
         parse_mode: 'HTML',
       },
     ).then(() => {
-      SendMessageWithSave(bot, chatId, messages.duelCancelDescript, {
+      sendMessageWithSave(Bot, chatId, messages.duelCancelDescript, {
         reply_markup: InlineKeyboard(['duelCancel']),
       });
     });

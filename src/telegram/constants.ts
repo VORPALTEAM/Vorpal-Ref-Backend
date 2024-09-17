@@ -7,6 +7,7 @@ export const inviteLink = `https://t.me/${process.env.TELEGRAM_BOT_NAME}?start=`
 export const startText = "Start";
 export const duelText = "⚔️Create duel";
 export const enterGameText = "🌟Play demo";
+export const enterGameTextReward = "🌟Open Starmap";
 export const joinText = "🎩Join community";
 export const duelConfirmText = "Enter a duel";
 export const duelRefuseText = "Refuse a duel";
@@ -20,11 +21,15 @@ export const usingRegExps: RegExp[] = [
   /\/start (.+)/,
   /\/duel/,
   /\/referral/,
+  /\/reward/,
+  /\/part/,
   /\/start(?:\?startapp=([^]+))?/
 ];
 
+export const basicStartappLink = `https://t.me/${process.env.TELEGRAM_BOT_NAME}/${webAppName}?startapp=1`;
+
 export const messages = {
-    old: `Now we are moved to new bot, go: https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
+    old: `Now we are moved to new Bot, go: https://t.me/${process.env.TELEGRAM_BOT_NAME}`,
     welcome: `
       Welcome to a Star defender game app powered by VORPAL Engine!
       You now can start a duel with your friend or play demo with bot`,
@@ -34,6 +39,8 @@ export const messages = {
     noInviter: `
       Hello! You have been invited to a duel but user not found. You can create a your own:
     `,
+    dailyRewardOk: `Reward received, go to starmap to openbox in your inventory`,
+    dailyRewardRefuse: `You already received reward in last 24 hours, you gan get it again tomorrow`,
     duelRefiseInvitation: (login2: string) => {
       return `@${login2} cancelled an invitation. You can challenge a new player`
     },
@@ -45,7 +52,7 @@ export const messages = {
     inviteSelf: `
       Hello! You have a created duel. Enter game and wait your friend to accept invitation.
     `,
-    subscribeRequest: `Subscribe on channels to get more prizes`,
+    subscribeRequest: `Subscribe on channels to get daily rewards`,
     duelCreatedShareInfo: `
        Duel created! 
        Now to challenge a friend share him the next message with your link below:

@@ -2,12 +2,12 @@ import Web3 from 'web3';
 import sha256 from 'sha256';
 import { runQuery as Q  } from '../connection';
 import { config } from '../../config';
-import { SetValueByKey, DeleteKey } from '../balances';
-import { GenerateAuthMessage, CheckRights } from './admin';
-import { RequestUserData } from './user';
+import { setValueByKey, deleteKey } from '../common';
+import { generateAuthMessage, checkRights } from './admin';
+import { requestUserData } from './user';
 
-export async function RequestAdminData ( request ) {
-    const user = await CheckRights ( request.signature )
+export async function requestAdminData ( request ) {
+    const user = await checkRights ( request.signature )
     if ( !user ) {
         return( {
             success: false,
@@ -26,7 +26,7 @@ export async function RequestAdminData ( request ) {
     })
 }
 
-export async function SaveNewData ( request ) {
+export async function saveNewData ( request ) {
     if (!request.data) {
         return(
             {
@@ -36,7 +36,7 @@ export async function SaveNewData ( request ) {
         )
     }
 
-    const user = await CheckRights ( request.signature, request.message )
+    const user = await checkRights ( request.signature, request.message )
     if ( !user ) {
         return( {
             success: false,
@@ -47,12 +47,12 @@ export async function SaveNewData ( request ) {
 
     for (let j = 0; j < request.data.length; j++) {
 
-       await SetValueByKey(request.data[j]._key, request.data[j].value)
+       await setValueByKey(request.data[j]._key, request.data[j].value)
     }
     
     if (request.deletions && request.deletions.length > 0) {
         for (let k = 0; k < request.deletions.length; k++) {
-            await DeleteKey (request.deletions[k])
+            await deleteKey (request.deletions[k])
         }
     }
 

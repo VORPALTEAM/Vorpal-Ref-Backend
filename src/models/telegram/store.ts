@@ -1,90 +1,207 @@
-import { runQuery as Q } from '../connection';
-import { GetUserBalanceRow } from '../rewards';
-import { TelegramAuthData, StoreItem, storeItemBalance } from '../../types';
+import { runQuery as Q, runQuery } from '../connection';
+import { getUserAssets, getUserBalanceRow, zeroAssets } from '../rewards';
+import { TelegramAuthData, StoreItem, storeItemBalance, DisplayStoreItem } from '../../types';
 
-export async function AddStoreItem(item: StoreItem) {
-  const query = `INSERT INTO "store_items" 
-    ("item", "type", "rareness", "description", "img_preview", "img_full", "per_user", "total_count", "cost", "currency")
-    VALUES ('${item.item}', '${item.type}', '${item.rareness}', 
-    '${item.description || ''}', 
-    '${item.img_preview || ''}', 
-    '${item.img_full || ''}', 
-    ${item.per_user}, 
-    ${item.total_count}, 
-    ${item.cost}, 
-    '${item.currency}');`;
-  const result = await Q(query, false);
-  return result ? true : false;
+export async function addStoreItem(item: StoreItem) {
+  const query = `INSERT INTO public.items(
+	name, total_count, img_preview, img_full, type, rareness, description)
+	VALUES ('${item.name}', ${item.total_count}, 
+  '${item.img_preview || ""}', '${item.img_full||""}', 
+  '${item.type || ""}', '${item.rareness || "usual"}', 
+  '${item.description || ""}') RETURNING "id";`;
+  const result = await Q(query, true);
+  return result && result.length > 0? result[0].id : null;
 }
 
-export async function GetStoreItems(): Promise<StoreItem[]> {
-  const query = `SELECT * FROM "store_items";`;
+export async function putItemOnSale (data: {
+  itemId: number, 
+  price?: number, 
+  currencyId?: number,
+  userBalanceLimit?: number,
+  availableCount?: number
+  }) {
+  const query = `
+     INSERT INTO public.store(
+	    item_id, currency_id, price, user_balance_limit, available_count)
+	   VALUES (${data.itemId}, ${data.currencyId || 1}, ${data.price || 0}, 
+     ${data.userBalanceLimit || null}, ${data.availableCount || null}) RETURNING id;
+  `
+  return await runQuery(query, false);
+}
+
+/*
+export interface DisplayStoreItem {
+  id: number;
+  item: string;
+  type: string;
+  rareness: string;
+  description?: string;
+  img_preview?: string;
+  img_full?: string;
+  per_user: number | null;
+  total_count: number | null;
+  cost: number;
+  currency: string;
+}
+
+CREATE TABLE IF NOT EXISTS "store" (
+     id serial PRIMARY KEY,
+     item_id integer,
+     currency_id integer,
+     price integer,
+     user_balance_limit integer,
+     available_count integer
+    );
+
+CREATE TABLE IF NOT EXISTS "items" (
+     id serial PRIMARY KEY,
+     name varchar(32) NOT NULL UNIQUE,
+     total_count integer,
+     img_preview varchar(256),
+     img_full varchar(256),
+     type varchar(32), 
+     rareness varchar(32), 
+     description varchar(128)
+    );
+*/
+
+export async function getStoreItems(): Promise<DisplayStoreItem[]> {
+  const query = `
+  SELECT items.id, items.name as item, items.type,
+    items.rareness, items.description, items.img_preview, items.img_full,
+    store.user_balance_limit as per_user, store.available_count as total_count,
+    store.price as cost, 
+    currency_items.name as currency
+  FROM "items"
+  JOIN "store" ON store.item_id = items.id
+  LEFT JOIN "items" as currency_items ON currency_items.id = store.currency_id
+  WHERE items.id IN (SELECT item_id FROM store);`;
   const result = await Q(query);
-  return result || [];
+
+  // Replace null in rareness with "usual"
+  return (result || []).map(item => ({
+    ...item,
+    currency: item.currency === "VRP" ? "token" : item.currency,
+    rareness: item.rareness === null ? 'usual' : item.rareness
+  }));
 }
 
-export async function GetStoreItem(
+export async function getStoreItem(
   param: string,
   value: string | number,
-): Promise<StoreItem | null> {
-  const query = `SELECT * FROM "store_items" WHERE "${param}" = ${value};`;
+): Promise<DisplayStoreItem | null> {
+  const query = `
+    SELECT items.id, items.name as item, items.type,
+      items.rareness, items.description, items.img_preview, items.img_full,
+      store.user_balance_limit as per_user, store.available_count as total_count,
+      store.price as cost, 
+      currency_items.name as currency
+    FROM "items"
+    JOIN "store" ON store.item_id = items.id
+    LEFT JOIN "items" as currency_items ON currency_items.id = store.currency_id
+    WHERE items."${param}" = '${value}'
+    LIMIT 1;
+  `;
   const result = await Q(query);
-  return result && result.length > 0 ? result[0] : null;
+  return result && result.length > 0 ? {
+    ...result[0],
+    currency: result[0].currency === "VRP" ? "token" : result[0].currency,
+    rareness: result[0].rareness === null ? 'usual' : result[0].rareness
+  } : null;
 }
 
-export async function CreateItemBalanceRow(login: string, itemId: number) {
-  const query = `INSERT INTO "store_item_balances" ("user_name", "item_id", "balance")
-    VALUES ('${login}', ${itemId}, 0);`;
-  const result = await Q(query, false);
-  return result ? true : false;
-}
-
-export async function GetUserItemBalance(
-  login: string,
+export async function getUserItemBalance(
+  userId: number,
   itemId: number,
 ): Promise<number | null> {
-  const query = `SELECT * FROM "store_item_balances" 
-   WHERE "user_name" = '${login}' AND "item_id" = ${itemId};`;
+  const query = `SELECT amount FROM "user_balances" 
+   WHERE "user_id" = '${userId}' AND "item_id" = ${itemId};`;
   const result = await Q(query);
-  return result && result.length > 0 ? result[0].balance : null;
+  return result && result.length > 0 ? result[0].amount : null;
 }
 
-export async function GetUserAllItemBalances(
-  login: string,
+export async function getUserAllItemBalances(
+  userId: number,
 ): Promise<{ itemId: number; balance: number }[] | null> {
-  const query = `SELECT * FROM "store_item_balances" 
-   WHERE "user_name" = '${login}';`;
+  const query = `SELECT item_id, amount FROM "user_balances" 
+   WHERE "user_id" = '${userId}';`;
   const result = await Q(query);
   return result
     ? result.map((item) => {
         return {
           itemId: item.item_id,
-          balance: item.balance,
+          balance: item.amount,
         };
       })
     : [];
 }
 
-export async function IsItemAvailableToBuy(
-  login: string,
+export interface itemSaleData 
+  {
+    id: number;
+    name: string;
+    price?: number;
+    currency_id: number;
+    user_balance_limit?: number;
+    available_count?: number;
+  }
+
+
+export async function getItemSaleData (itemId: number): Promise<itemSaleData | null> {
+  const query = `SELECT store.price, store.currency_id, store.user_balance_limit, store.available_count, items.id, items.name
+  FROM store, items WHERE store.item_id = items.id AND store.item_id = ${itemId};`;
+  const result = await Q(query, true);
+  return result && result.length > 0 ? result[0] : null
+}
+
+export async function getUserAssetsWithNames (userId: number) {
+  const result = new Map();
+  const query = `
+  SELECT items.name, user_balances.amount FROM items, user_balances 
+  WHERE items.id = user_balances.item_id
+  AND user_balances.user_id = ${userId};
+  `
+  const items = await Q(query, true);
+  if (items) {
+    items.forEach((i) => {
+      result.set(i.name === "VRP" ? "token" : i.name, i.amount)
+    });
+  }
+  for(let key in zeroAssets) {
+     if (!result.get(key)) {
+       result.set(key, 0);
+     }
+  }
+  return Object.fromEntries(result);
+}
+
+export async function getItemName (itemId: number) {
+  const query = `SELECT name FROM items WHERE id = ${itemId};`;
+  const result = await Q(query, true);
+  return result && result.length > 0 ? result[0].name : null
+}
+
+export async function isItemAvailableToBuy(
+  userId: number,
   itemId: number,
   amount: number,
 ) {
-  const storeItem = await GetStoreItem('id', itemId);
-  const itemBalance = await GetUserItemBalance(login, itemId);
-  const currencyBalance = await GetUserBalanceRow(login, login);
+  const userAssets = await getUserAssets(userId);
+  const saleData = await getItemSaleData(itemId);
 
-  if (!storeItem) {
+  if (!saleData) {
     return {
       ok: false,
-      error: 'Store item not exist',
+      error: 'Store item is not for sale',
     };
   }
 
+  const currencyName = await getItemName (saleData.currency_id)
+
   if (
-    storeItem.per_user !== null &&
-    itemBalance !== null &&
-    itemBalance >= storeItem.per_user
+    saleData.user_balance_limit &&
+    userAssets[saleData.name] &&
+    userAssets[saleData.name] + amount > saleData.user_balance_limit
   ) {
     return {
       ok: false,
@@ -92,14 +209,14 @@ export async function IsItemAvailableToBuy(
     };
   }
 
-  if (storeItem.total_count !== null && amount > storeItem.total_count) {
+  if ((saleData.available_count || saleData.available_count === 0) && amount > saleData.available_count) {
     return {
       ok: false,
       error: 'Amount larger than available for sale',
     };
   }
 
-  if (storeItem.cost * amount > currencyBalance[storeItem.currency]) {
+  if ((saleData.price || saleData.price === 0) &&  saleData.price * amount > userAssets[currencyName]) {
     return {
       ok: false,
       error: 'Insufficient funds to buy',
@@ -111,38 +228,35 @@ export async function IsItemAvailableToBuy(
   };
 }
 
-export async function BuyItem(buyer: string, itemId: number, amount: number) {
-  const isAvailable = await IsItemAvailableToBuy(buyer, itemId, amount);
+export async function buyItem(buyerId: number, itemId: number, amount: number) {
+  const isAvailable = await isItemAvailableToBuy(buyerId, itemId, amount);
   if (!isAvailable.ok) {
     return isAvailable;
   }
-  const itemBalance = await GetUserItemBalance(buyer, itemId);
-  if (itemBalance === null) {
-    await CreateItemBalanceRow(buyer, itemId);
+
+  const saleData = await getItemSaleData(itemId);
+  if (!saleData) {
+    return false;
   }
-  const currencyQuery = `SELECT "currency", "cost" FROM "store_items" WHERE "id" = ${itemId};`;
-  let currency = '';
-  let cost = 0;
-  const currencyResult = await Q(currencyQuery);
-  if (!currencyResult || currencyResult.length === 0)
-    return 'Currency not found';
-  currency = currencyResult[0].currency;
-  cost = currencyResult[0].cost;
 
-  const balanceQuery = `UPDATE "store_item_balances" SET balance = balance + ${amount}
-  WHERE "user_name" = '${buyer}' AND "item_id" = ${itemId};`;
-  const storeQuery = `UPDATE "store_items" SET total_count = total_count - ${amount}
-  WHERE "id" = ${itemId};`;
-  const subBalanceQuery = `UPDATE "resources" SET ${currency} = ${currency} - ${cost} 
-  where ownerlogin = '${buyer}' OR owneraddress = '${buyer}';`;
+  const buyQuery = `
+         BEGIN;
 
-  const result = await Promise.all([
-    Q(balanceQuery, false),
-    Q(storeQuery, false),
-    Q(subBalanceQuery, false),
-  ]);
+         INSERT INTO user_balances (user_id, item_id, amount)
+         VALUES (${buyerId}, ${itemId}, ${amount})
+         ON CONFLICT (user_id, item_id)
+         DO UPDATE SET amount = user_balances.amount + ${amount};
+
+         UPDATE user_balances
+         SET amount = amount - ${amount * (saleData.price || 0)}
+        WHERE user_id = ${buyerId} AND item_id = ${saleData.currency_id};
+
+        COMMIT;
+  `
+
+  const result = await Q(buyQuery)
   return {
-    ok: result.indexOf(null) > -1 ? false : true,
-    error: result.indexOf(null) > -1 ? 'Unknown' : '',
+    ok: result ? true : false,
+    error: !result ? 'Unknown' : '',
   };
 }

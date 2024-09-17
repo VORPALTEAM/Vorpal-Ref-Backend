@@ -1,36 +1,39 @@
 import { Request, Response } from 'express';
-import { GetValueByKey } from '../models/balances';
-import { GetSignableMessage } from '../utils/auth';
+import { getValueByKey } from '../models/common';
+import { getSignableMessage } from '../utils/auth';
 import {
-  AddDuelOpponent,
-  CreateDuel,
-  DeleteDuel,
-  FinishDuel,
-  GetDuelData,
-  GetDuelDataByUser,
-  GetDuelPairCount,
-  GetOnlineCount,
-  GetOpponent,
-  IsUserInDuel,
-  SetOnlineCount,
+  addDuelOpponent,
+  createDuel,
+  deleteDuel,
+  finishDuel,
+  getDuelData,
+  getDuelDataByUser,
+  getDuelPairCount,
+  getOnlineCount,
+  getOpponent,
+  getUserDuelCount,
+  isUserInDuel,
+  setOnlineCount,
 } from '../models/telegram/duel';
 import Web3 from 'web3';
-import { UniversalAuth } from './common';
+import { universalAuth } from './common';
 import {
-  GetPersonalDataById,
-  GetPersonalDataByUsername,
-  SetPersonalData,
+  getPersonalDataById,
+  getPersonalDataByUsername,
+  setPersonalData,
 } from '../models/telegram';
-import { SendMessageWithSave } from '../telegram/handlers/utils';
-import { bot } from '../telegram/bot';
+import { sendMessageWithSave } from '../telegram/handlers/utils';
+import { Bot } from '../telegram/bot';
 import { messages } from '../telegram/constants';
 import { InlineKeyboard } from '../telegram/handlers/keyboard';
 import { duel_lifetime } from '../config';
 import { TelegramAuthData, TelegramAuthNote } from 'types';
+import { createUserIfNotExists, getUserById, getUserData, getUserId, getUserTelegramChat } from '../models/user';
+import { createNewBox } from '../models/rewards';
 
 export const web3 = new Web3(Web3.givenProvider);
 
-export const IsUserInDuelResponce = async (req: Request, res: Response) => {
+export const isUserInDuelResponse = async (req: Request, res: Response) => {
   if (!req.params.login) {
     res.status(400).send(
       JSON.stringify({
@@ -39,13 +42,21 @@ export const IsUserInDuelResponce = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await IsUserInDuel(String(req.params.login).toLowerCase());
+  const userId = await getUserId(req.params.login);
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await isUserInDuel(userId);
   res.status(200).send(JSON.stringify({ inDuel: data }));
   return;
 };
 
-export const OpponentResponce = async (req: Request, res: Response) => {
+export const opponentResponse = async (req: Request, res: Response) => {
   if (!req.params.login) {
     res.status(400).send(
       JSON.stringify({
@@ -54,13 +65,21 @@ export const OpponentResponce = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await GetOpponent(req.params.login);
+  const userId = await getUserId(req.params.login);
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await getOpponent(userId);
   res.status(200).send(JSON.stringify({ opponent: data }));
   return;
 };
 
-export const DuelDataResponce = async (req: Request, res: Response) => {
+export const duelDataResponse = async (req: Request, res: Response) => {
   if (!req.params.id) {
     res.status(400).send(
       JSON.stringify({
@@ -69,13 +88,21 @@ export const DuelDataResponce = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await GetDuelData(req.params.id);
+  const userId = (await getUserData (req.params.id))?.id;
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await getDuelData(userId);
   res.status(200).send(JSON.stringify({ data: data }));
   return;
 };
 
-export const DuelDataByLoginResponce = async (req: Request, res: Response) => {
+export const duelDataByLoginResponse = async (req: Request, res: Response) => {
   if (!req.params.login) {
     res.status(400).send(
       JSON.stringify({
@@ -84,13 +111,44 @@ export const DuelDataByLoginResponce = async (req: Request, res: Response) => {
     );
     return;
   }
-
-  const data = await GetDuelDataByUser(req.params.login.toLowerCase());
-  res.status(200).send(JSON.stringify({ data: data }));
+  const userId = (await getUserData (req.params.login))?.id;
+  if (!userId) {
+    res.status(404).send(
+      JSON.stringify({
+        error: 'User not found',
+      }),
+    );
+    return;
+  }
+  const data = await getDuelDataByUser(userId);
+  console.log("Found data: ", data);
+  if (!data) {
+    res.status(200).send(JSON.stringify({ data: null }));
+    return;
+  }
+  const displayId1 = await getUserTelegramChat(data.id1);
+  const displayId2 = data.id2 ? await getUserTelegramChat(data.id2) : null;
+  console.log("Chats: ", displayId1, displayId2);
+  const part1 = await getUserData(displayId1 || String(data.id1));
+  const part2 = await getUserData(displayId2 || String(data.id2));
+  console.log("Ids: ", part1, part2);
+  const dateSec = Math.round(new Date().getTime() / 1000);
+  const dataToSend = {
+    id: data?.id,
+    duel_id: data?.id,
+    id1: displayId1,
+    id2: displayId2,
+    nickName1: part1?.username || "Anonimous",
+    nickName2: part2?.username || "Anonimous",
+    creation: data.creation,
+    isexpired: dateSec - data.creation > 900 ? true : false,
+    isfinished: data.is_finished
+  }
+  res.status(200).send(JSON.stringify({ data: dataToSend }));
   return;
 };
 
-export const FinishDuelResponce = async (req: Request, res: Response) => {
+export const finishDuelResponse = async (req: Request, res: Response) => {
   console.log('Duel finish requested');
   const body = req.body;
   if (!body.duelId || !body.signature) {
@@ -98,10 +156,9 @@ export const FinishDuelResponce = async (req: Request, res: Response) => {
       error: 'Some of nessesary parameters is missing',
     });
   }
-  const msg = GetSignableMessage();
+  const msg = getSignableMessage();
   const address = web3.eth.accounts.recover(msg, body.signature).toLowerCase();
-  const adminAddress = await GetValueByKey('ADMIN_WALLET');
-  console.log('Finish duel request received for: ', body.duelId);
+  const adminAddress = await getValueByKey('ADMIN_WALLET');
 
   if (address !== adminAddress.toLowerCase()) {
     res.status(403).send({
@@ -110,7 +167,7 @@ export const FinishDuelResponce = async (req: Request, res: Response) => {
     return;
   }
 
-  const isFinished = (await GetDuelData(body.duelId))?.isfinished;
+  const isFinished = (await getDuelData(body.duelId))?.is_finished;
 
   if (isFinished) {
     res.status(400).send({
@@ -118,27 +175,42 @@ export const FinishDuelResponce = async (req: Request, res: Response) => {
     });
     return;
   }
-
-  const result = await FinishDuel(
+  const winner_id = body.winner ? await getUserId(body.winner) : null
+  const result = await finishDuel(
     body.duelId,
-    body.winner?.toLowerCase() || '',
+    winner_id,
   );
+  let rewarded = false
+  const duelData = await getDuelData(Number(body.duelId));
+  const user1 = duelData?.id1;
+  const user2 = duelData?.id2;
+  console.log("Found data: ",  duelData, user1, user2)
+  if (user1 && user2) {
+    const pairCount = await getDuelPairCount (user1, user2);
+    console.log("Count: ", pairCount)
+    if (Number(pairCount) === 1) {
+       console.log("Box giving: ")
+       const box1 = await createNewBox(1, user1);
+       const box2 = await createNewBox(1, user2);
+       console.log("Given: ", box1, box2)
+       rewarded = true;
+    }
+  }
 
-  res.status(200).send(JSON.stringify({ result: result }));
+  res.status(200).send(JSON.stringify({ result: result, rewarded }));
   return;
 };
 
-export const DuelDeletionResponce = async (req: Request, res: Response) => {
-  console.log('Duel delete requested');
+export const duelDeletionResponse = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.duelId || !body.signature) {
     res.status(400).send({
       error: 'Some of nessesary parameters is missing',
     });
   }
-  const msg = GetSignableMessage();
+  const msg = getSignableMessage();
   const address = web3.eth.accounts.recover(msg, body.signature).toLowerCase();
-  const adminAddress = await GetValueByKey('ADMIN_WALLET');
+  const adminAddress = await getValueByKey('ADMIN_WALLET');
 
   if (address !== adminAddress.toLowerCase()) {
     res.status(403).send({
@@ -152,13 +224,13 @@ export const DuelDeletionResponce = async (req: Request, res: Response) => {
     console.log(e.message);
   }
 
-  const result = await DeleteDuel(body.duelId);
+  const result = await deleteDuel(body.duelId);
   res.status(200).send({
     deleted: result,
   });
 };
 
-export const RewardConditionResponce = async (req: Request, res: Response) => {
+export const rewardConditionResponse = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.login1 || !body.login2) {
     res.status(400).send({
@@ -167,9 +239,17 @@ export const RewardConditionResponce = async (req: Request, res: Response) => {
     return;
   }
   try {
-    const duelCount = await GetDuelPairCount(
-      body.login1.toLowerCase(),
-      body.login2.toLowerCase(),
+    const userId1 = await getUserId(body.login1);
+    const userId2 = await getUserId(body.login2);
+    if (!userId1 || !userId2) {
+      res.status(200).send({
+        reward: true,
+      });
+      return;
+    }
+    const duelCount = await getDuelPairCount(
+      userId1,
+      userId2,
     );
     res.status(200).send({
       reward: duelCount <= 1 ? true : false,
@@ -183,9 +263,9 @@ export const RewardConditionResponce = async (req: Request, res: Response) => {
   return;
 };
 
-export const OnlineCountResponce = async (req: Request, res: Response) => {
+export const onlineCountResponse = async (req: Request, res: Response) => {
   try {
-    const count = await GetOnlineCount();
+    const count = await getOnlineCount();
     res.status(200).send({
       count,
     });
@@ -196,7 +276,7 @@ export const OnlineCountResponce = async (req: Request, res: Response) => {
   }
 };
 
-export const UpdateOnlineCount = async (req: Request, res: Response) => {
+export const updateOnlineCount = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.count || !body.signature) {
     res.status(400).send({
@@ -204,9 +284,9 @@ export const UpdateOnlineCount = async (req: Request, res: Response) => {
     });
   }
 
-  const msg = GetSignableMessage();
+  const msg = getSignableMessage();
   const address = web3.eth.accounts.recover(msg, body.signature).toLowerCase();
-  const adminAddress = await GetValueByKey('ADMIN_WALLET');
+  const adminAddress = await getValueByKey('ADMIN_WALLET');
 
   if (address !== adminAddress.toLowerCase()) {
     res.status(403).send({
@@ -224,7 +304,7 @@ export const UpdateOnlineCount = async (req: Request, res: Response) => {
     return;
   }
 
-  const result = await SetOnlineCount(count);
+  const result = await setOnlineCount(count);
 
   res.status(200).send({
     saved: result,
@@ -232,9 +312,9 @@ export const UpdateOnlineCount = async (req: Request, res: Response) => {
   return;
 };
 
-export const AcceptDuelResponce = async (req: Request, res: Response) => {
+export const acceptDuelResponse = async (req: Request, res: Response) => {
   console.log('Duel accept called');
-  const user: TelegramAuthData = await UniversalAuth(req, res);
+  const user: TelegramAuthData = await universalAuth(req, res);
   console.log(user);
   if (!user || !user.id) {
     console.log('401');
@@ -246,20 +326,30 @@ export const AcceptDuelResponce = async (req: Request, res: Response) => {
     res.status(400).send({ error: 'Duel creator not in the query' });
     return null;
   }
-
   const inviter = req.body.inviter;
-  console.log('200');
+  const isFromAds = (!isNaN(Number(inviter)) && Number(inviter) < 0)
   try {
     const dateSec = Math.round(new Date().getTime() / 1000);
-    const duel = await GetDuelDataByUser(String(inviter));
-    if (!duel || duel.isfinished || dateSec - duel.creation > duel_lifetime) {
+    const inviterId = isFromAds ? Number(inviter) : await getUserId(inviter);
+    if (!inviterId) {
+      res.status(400).send({ error: 'Inviter not found' });
+      return null;
+    }
+    const userId = await createUserIfNotExists("user", undefined, inviterId, user)
+    if (isFromAds) {
+      res.status(200).send({ error: 'Welcome from partner!' });
+      return null;     
+    }
+    const duel = await getDuelDataByUser(inviterId);
+    if (!duel || duel.is_finished || dateSec - duel.creation > duel_lifetime) {
       res.status(400).send({
         success: false,
         error: 'Duel not found or expired',
       });
       return null;
     }
-    if (duel.id2 || String(duel.id1) === String(user.id)) {
+    console.log("Duel info: ", duel.id2, duel.id1);
+    if (duel.id2 || duel.id1 === userId) {
       res.status(400).send({
         success: false,
         error: 'Duel is already busy',
@@ -267,18 +357,14 @@ export const AcceptDuelResponce = async (req: Request, res: Response) => {
       return null;
     }
     console.log('Invited user: ', user);
-    await AddDuelOpponent(duel.duel_id, String(user.id || ''));
-    let userData = await GetPersonalDataById(Number(user.id));
-    if (!userData) {
-      await SetPersonalData(user, user.id, String(inviter));
-      userData = await GetPersonalDataById(Number(user.id));
-    }
-    const opponentData = await GetPersonalDataById(Number(inviter));
+    await addDuelOpponent(Number(duel.id), userId);
+    let userData = await getPersonalDataById(userId);
+    const opponentData = await getPersonalDataById(inviterId);
     console.log('User data: ', userData);
     console.log('Opponent data: ', opponentData);
     if (opponentData) {
-      await SendMessageWithSave(
-        bot,
+      await sendMessageWithSave(
+        Bot,
         opponentData.chat_id,
         messages.duelAcceptNotify(
           userData?.username || userData?.first_name || 'Anonimous',
@@ -298,16 +384,17 @@ export const AcceptDuelResponce = async (req: Request, res: Response) => {
   }
 };
 
-export const CreateDuelByAdmin = async (req: Request, res: Response) => {
+export const createDuelByAdmin = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.signature || !body.firstUser) {
     res.status(400).send({ error: 'Nessesary parameters missed' });
   }
   try {
-    const msg = GetSignableMessage();
-    const address = web3.eth.accounts.recover(msg, body.signature)
-    .toLowerCase();
-    const adminAddress = await GetValueByKey("ADMIN_WALLET");
+    const msg = getSignableMessage();
+    const address = web3.eth.accounts
+      .recover(msg, body.signature)
+      .toLowerCase();
+    const adminAddress = await getValueByKey('ADMIN_WALLET');
 
     if (address !== adminAddress.toLowerCase()) {
       res.status(403).send({
@@ -316,7 +403,7 @@ export const CreateDuelByAdmin = async (req: Request, res: Response) => {
       return;
     }
   } catch (e: any) {
-    console.log("Failed to check signature")
+    console.log('Failed to check signature');
     res.status(501).send({
       error: 'Failed to check signature',
     });
@@ -324,7 +411,14 @@ export const CreateDuelByAdmin = async (req: Request, res: Response) => {
   }
   // ToDo: signature check, add after test
   try {
-    const duel = await CreateDuel(String(body.firstUser));
+    const userId = (await getUserData(body.firstUser))?.id;
+    if (!userId) {
+      res.status(400).send({
+        error: 'User not found',
+      });
+      return;
+    }
+    const duel = await createDuel(userId);
     if (duel) {
       res.status(200).send({ duel });
       return;
@@ -339,16 +433,17 @@ export const CreateDuelByAdmin = async (req: Request, res: Response) => {
   }
 };
 
-export const AcceptDuelByAdmin = async (req: Request, res: Response) => {
+export const acceptDuelByAdmin = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.signature || !body.duel || !body.secondUser) {
     res.status(400).send({ error: 'Nessesary parameters missed' });
   }
   try {
-    const msg = GetSignableMessage();
-    const address = web3.eth.accounts.recover(msg, body.signature)
-    .toLowerCase();
-    const adminAddress = await GetValueByKey("ADMIN_WALLET");
+    const msg = getSignableMessage();
+    const address = web3.eth.accounts
+      .recover(msg, body.signature)
+      .toLowerCase();
+    const adminAddress = await getValueByKey('ADMIN_WALLET');
 
     if (address !== adminAddress.toLowerCase()) {
       res.status(403).send({
@@ -357,25 +452,30 @@ export const AcceptDuelByAdmin = async (req: Request, res: Response) => {
       return;
     }
   } catch (e: any) {
-    console.log("Failed to check signature")
+    console.log('Failed to check signature');
     res.status(501).send({
       error: 'Failed to check signature',
     });
     return;
   }
-  
+
   try {
-    const existDuel = await GetDuelData(body.duel);
+    const existDuel = await getDuelData(body.duel);
     if (
       !existDuel ||
-      existDuel.isfinished ||
+      existDuel.is_finished ||
       existDuel.id2 ||
       existDuel.id1 === body.secondUser
     ) {
       res.status(400).send({ error: 'Wrong duel id' });
       return;
     }
-    const result = await AddDuelOpponent(body.duel, body.secondUser);
+    const secondUSerId = await getUserId(body.secondUser);
+    if (!secondUSerId) {
+      res.status(400).send({ error: 'Unknown opponent id' });
+      return;
+    }
+    const result = await addDuelOpponent(body.duel, secondUSerId);
     if (result) {
       res.status(200).send({ result });
       return;
@@ -388,4 +488,21 @@ export const AcceptDuelByAdmin = async (req: Request, res: Response) => {
     res.status(500).send({ error: 'Duel creation error' });
     return;
   }
+};
+
+export const duelCountResponse = async (req: Request, res: Response) => {
+  const user = req.params.id;
+  if (!user) {
+    res.status(404).send({ error: 'no user id' });
+    return;
+  }
+  const userId = (await getUserData(user))?.id;
+  if (!userId) {
+    res.status(404).send({ error: 'User not found' });
+    return;
+  }
+  const count = await getUserDuelCount(userId);
+  res.status(200).send({
+    count,
+  });
 };

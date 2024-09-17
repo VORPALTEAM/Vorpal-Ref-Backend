@@ -1,28 +1,28 @@
 import { contractWatchingTimeout } from "../../blockchain/config";
 import { StarData, StarList } from "../../types";
 import { GetAllStarData, GetSingleStarData } from "./getter";
-import { WriteLog } from "../../models/log";
+import { writeLog } from "../../models/log";
 
 export let actualStarList: StarList = [];
 export let lastUpdateRequqstTime = 0;
-let watchingTimer: NodeJS.Timer;
+let watchingTimer;
 
-export function UpdateLastTime (time: number) {
+export function updateLastTime (time: number) {
     lastUpdateRequqstTime = time;
 }
 
-export async function UpdateStars() {
+export async function updateStars() {
     try {
         const stars = await GetAllStarData();
         if (stars) {
           actualStarList = stars;
         }
      } catch (e) {
-      WriteLog("Failed to load stars", e.message);
+      writeLog("Failed to load stars", e.message);
      }
 }
 
-export async function UpdateSingleStar (starId: number) {
+export async function updateSingleStar (starId: number) {
     try {
         const newdata = await GetSingleStarData(starId);
         if (newdata) {
@@ -37,11 +37,11 @@ export async function UpdateSingleStar (starId: number) {
           actualStarList = [...newstarList];
         }
      } catch (e) {
-      WriteLog("Failed to load stars", e.message);
+      writeLog("Failed to load stars", e.message);
      }
 }
 
-export function StartWatchingTimer () {
+export function startWatchingTimer () {
     GetAllStarData().then((res) => {
         actualStarList = res
         // console.log(actualStarList)
@@ -49,7 +49,7 @@ export function StartWatchingTimer () {
         console.log(e)
     }) ;
     watchingTimer = setInterval(async () => {
-        UpdateStars()
+        updateStars()
     }, contractWatchingTimeout)
 }
 

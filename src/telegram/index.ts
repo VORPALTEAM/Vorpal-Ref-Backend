@@ -1,3 +1,3 @@
-export { TelegramBotLaunch } from "./initial"
+export { telegramBotLaunch } from "./initial"
 
 

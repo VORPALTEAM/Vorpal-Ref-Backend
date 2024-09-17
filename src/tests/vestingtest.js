@@ -1,12 +1,6 @@
 const { WatchBlocks, WatchContracts } = require('./blockchain/WatchBlocks')
 const { 
-    FindLinkByReferral, 
-    FindLinkOwner,
-    GetValueByKey,
-    SetValueByKey,
-    UpdateScheduledBalance,
-    CreateVesting, 
-    UpdateVestings } = require('./database/balances')
+    updateVestings } = require('./database/balances')
 const Web3 = require('web3')
 const { config }= require('./blockchain/config')
 
@@ -35,6 +29,6 @@ console.log("Testing vestings : ")
 
 // WatchBlocks ()
 
-UpdateVestings()
+updateVestings()
 // SetValueByKey ('test', 'ok')
 // GetValueByKey ('test')

@@ -4,9 +4,12 @@ import { runQuery as Q, pool } from './connection';
 import Web3 from 'web3';
 import * as config from '../blockchain/config';
 import { nessesary_keys } from '../config';
-import { GetValueByKey, SetValueByKey } from './balances';
+import { getValueByKey, setValueByKey } from './common';
 
-async function DBCreateTables() {
+
+/* DEPRECATED!!! */
+
+async function dbCreateTables() {
   const TableOneQuery =`
     CREATE TABLE IF NOT EXISTS address_to_referral (
       id SERIAL PRIMARY KEY, address varchar(512) NOT NULL,
@@ -285,12 +288,12 @@ async function DBCreateTables() {
   const web3 = new Web3(config.opBSCData.rpcUrl);
   const endBlock = await web3.eth.getBlockNumber();
 
-  if (!GetValueByKey(nessesary_keys.publickey))
-    await SetValueByKey(nessesary_keys.publickey, '0x00');
-  if (!GetValueByKey(nessesary_keys.privatekey))
-    await SetValueByKey(nessesary_keys.privatekey, '0x00');
-  if (!GetValueByKey(nessesary_keys.lastblock))
-    await SetValueByKey(nessesary_keys.lastblock, `${endBlock}`);
+  if (!getValueByKey(nessesary_keys.publickey))
+    await setValueByKey(nessesary_keys.publickey, '0x00');
+  if (!getValueByKey(nessesary_keys.privatekey))
+    await setValueByKey(nessesary_keys.privatekey, '0x00');
+  if (!getValueByKey(nessesary_keys.lastblock))
+    await setValueByKey(nessesary_keys.lastblock, `${endBlock}`);
 
   return true;
 }
@@ -307,7 +310,7 @@ async function DBCreateTables() {
 switch (process.argv[2]) {
   case '--create':
     try {
-      DBCreateTables();
+      dbCreateTables();
     } catch (e) {
       console.log(e.message);
     }

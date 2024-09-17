@@ -1,4 +1,4 @@
-export function NotABusyRegex (text: string, regexList: RegExp[]): boolean {
+export function notABusyRegex (text: string, regexList: RegExp[]): boolean {
     return regexList.every(regex => !regex.test(text));
 }
 
@@ -10,3 +10,7 @@ export function generateRandomString(symbols: number) {
     }
     return result;
   }
+
+export function dateSec(): number {
+  return Math.round(new Date().getTime() / 1000)
+}

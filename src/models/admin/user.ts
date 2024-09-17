@@ -1,10 +1,10 @@
-import { WriteLog } from '../log';
-import { CheckRights } from './admin';
+import { writeLog } from '../log';
+import { checkRights } from './admin';
 import {
-  UpdateUser,
-  CreateUser,
-  DeleteUser,
-  RequestUsers,
+  updateUser,
+  createUser,
+  deleteUser,
+  requestUsers,
 } from '../users';
 
 /* 
@@ -30,8 +30,8 @@ import {
 
 */
 
-export async function RequestUserData(request) {
-  const user = await CheckRights(request.signature);
+export async function requestUserData(request) {
+  const user = await checkRights(request.signature);
   if (!user) {
     return {
       success: false,
@@ -40,10 +40,10 @@ export async function RequestUserData(request) {
     };
   }
 
-  return await RequestUsers();
+  return await requestUsers();
 }
 
-export async function UpdateUserDataAction(request) {
+export async function updateUserDataAction(request) {
   if (!request.data) {
     return {
       success: false,
@@ -51,7 +51,7 @@ export async function UpdateUserDataAction(request) {
     };
   }
 
-  const user = await CheckRights(request.signature, request.message);
+  const user = await checkRights(request.signature, request.message);
   if (!user) {
     return {
       success: false,
@@ -66,7 +66,7 @@ export async function UpdateUserDataAction(request) {
   const actionResultsCreate: any[] = [];
   const actionResultsDelete: any[] = [];
 
-  const currentUsers = JSON.stringify(await RequestUsers());
+  const currentUsers = JSON.stringify(await requestUsers());
 
   request.data.users.forEach((user) => {
     if (currentUsers.indexOf(user.address) < 0) {
@@ -77,15 +77,15 @@ export async function UpdateUserDataAction(request) {
   });
 
   updates.forEach((item) => {
-    actionResultsUpdate.push(UpdateUser(item));
+    actionResultsUpdate.push(updateUser(item));
   });
 
   creations.forEach((item) => {
-    actionResultsCreate.push(CreateUser(item));
+    actionResultsCreate.push(createUser(item));
   });
 
   request.data.deletions.forEach((address) => {
-    actionResultsDelete.push(DeleteUser(address));
+    actionResultsDelete.push(deleteUser(address));
   });
 
   return {

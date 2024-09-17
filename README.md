@@ -44,7 +44,7 @@ Get:
 
  {API_URL}api/getlinksbyowner/{id}, id - ERC20 address
 
- Responce body :
+ Response body :
 
  [{
    address : string, // '0x....'
@@ -57,7 +57,7 @@ Get:
 
  {API_URL}api/getownerdata/{id}, id - ERC20 address
 
- Responce body :
+ Response body :
  {
       links : array (usually one element),
       refCount: number,

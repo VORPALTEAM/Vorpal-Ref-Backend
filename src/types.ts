@@ -78,8 +78,8 @@ export interface TelegramAuthData {
   first_name: string;
   last_name?: string;
   username?: string;
-  auth_date: number;
-  hash: string;
+  auth_date?: number;
+  hash?: string;
 }
 
 export interface ReferralStatsData {
@@ -97,14 +97,14 @@ export interface TelegramAuthNote extends TelegramAuthData {
 }
 
 export interface DuelInfo {
-  duel_id: string;
-  id1: string;
-  id2?: string;
+  id: number;
+  id1: number;
+  id2?: number;
   nickName1?: string;
   nickName2?: string;
   creation: number;
-  isfinished?: string;
-  isexpired?: string;
+  is_finished?: string;
+  is_started?: string;
   winner?: string;
 }
 
@@ -115,6 +115,20 @@ export interface tgChannelData {
 }
 
 export interface StoreItem {
+  id?: number;
+  name: string;
+  type?: string;
+  rareness?: string;
+  description?: string;
+  img_preview?: string;
+  img_full?: string;
+  per_user: number | null;
+  total_count: number | null;
+  cost?: number;
+  currency_id?: string;
+}
+
+export interface DisplayStoreItem {
   id: number;
   item: string;
   type: string;

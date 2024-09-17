@@ -1,12 +1,12 @@
 import fs from 'fs';
 import {
-  DeleteMessagesByChatId,
-  GetMessagesByChatId,
-  SaveMessage,
+  deleteMessagesByChatId,
+  getMessagesByChatId,
+  saveMessage,
 } from '../../models/telegram/history';
 import TelegramBot from 'node-telegram-bot-api';
 
-export async function SendPhotoWithSave(
+export async function sendPhotoWithSave(
   bot: TelegramBot,
   chatId: number,
   photoPath: string,
@@ -19,7 +19,7 @@ export async function SendPhotoWithSave(
       caption: message,
       ...options
     });
-    await SaveMessage(chatId, msg.message_id);
+    // await saveMessage(chatId, msg.message_id);
     return true;
   } catch (e) {
     console.log(e.message);
@@ -27,7 +27,7 @@ export async function SendPhotoWithSave(
   }
 }
 
-export async function SendMessageWithSave(
+export async function sendMessageWithSave(
   bot: TelegramBot,
   chatId: number,
   message: string,
@@ -35,7 +35,7 @@ export async function SendMessageWithSave(
 ) {
   try {
     const msg = await bot.sendMessage(chatId, message, options);
-    await SaveMessage(chatId, msg.message_id);
+    // await saveMessage(chatId, msg.message_id);
     return true;
   } catch (e) {
     console.log(e.message);
@@ -43,8 +43,8 @@ export async function SendMessageWithSave(
   }
 }
 
-export async function TruncateChat(bot: TelegramBot, chatId: number) {
-  const messages = await GetMessagesByChatId(chatId);
+export async function truncateChat(bot: TelegramBot, chatId: number) {
+  const messages = await getMessagesByChatId(chatId);
   let isCatch = false;
   for (let j = 0; j < messages.length; j++) {
     try {
@@ -54,5 +54,5 @@ export async function TruncateChat(bot: TelegramBot, chatId: number) {
         isCatch = true;
     }
   }
-  if (!isCatch) await DeleteMessagesByChatId(chatId);
+  if (!isCatch) await deleteMessagesByChatId(chatId);
 }

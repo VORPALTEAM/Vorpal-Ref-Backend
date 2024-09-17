@@ -1,30 +1,27 @@
 import { Request, Response } from 'express';
 import {
-  CreateNewBox,
-  GetAvailableBoxesByOwner,
-  GetBoxOpenResult,
-  GetBoxOwner,
-  GetUserBalanceRow,
-  GiveResources,
+  createNewBox,
+  getAvailableBoxesByOwner,
+  getBoxOpenResult,
+  getBoxOwner,
+  getResourceId,
+  getUserAssets,
+  getUserBalanceRow,
+  giveResources,
   openBox,
 } from '../models/rewards';
-import { GetValueByKey } from '../models/balances';
+import { getValueByKey } from '../models/common';
 import { error } from 'console';
-import { CheckTelegramAuth, GetSignableMessage, ValidateByInitData } from '../utils/auth';
+import { checkTelegramAuth, getSignableMessage, validateByInitData } from '../utils/auth';
 import Web3 from 'web3';
-const express = require('express');
-const bodyParser = require('body-parser');
+import { getUserData, getUserId, getUserWallets } from '../models/user';
+import { getUserAssetsWithNames } from '../models/telegram';
 
 const web3 = new Web3(Web3.givenProvider);
 
-const AuthMsg = (): string => {
-  const dt = new Date().getTime();
-  return 'auth_' + String(dt - (dt % 600000));
-};
-
 let adminWallet = '';
 
-GetValueByKey('ADMIN_WALLET').then((value) => {
+getValueByKey('ADMIN_WALLET').then((value) => {
   adminWallet = value.toLowerCase();
 });
 
@@ -37,24 +34,24 @@ GetValueByKey('ADMIN_WALLET').then((value) => {
   }
 */
 
-export const CreateBox = async (req: Request, res: Response) => {
+export const createBox = async (req: Request, res: Response) => {
   const body = req.body;
   if (
     !body.level ||
-    !body.ownerAddress ||
     !body.ownerLogin ||
     !body.signature
   ) {
+    console.log("Body with missed: ", body);
     res.status(400).send({
       error: 'Some of nessesary parameters is missing',
     });
   }
   console.log("Box creation request: ", req.body)
   try {
-    const msg = GetSignableMessage();
+    const msg = getSignableMessage();
     const address = web3.eth.accounts.recover(msg, body.signature)
     .toLowerCase();
-    const adminAddress = await GetValueByKey("ADMIN_WALLET");
+    const adminAddress = await getValueByKey("ADMIN_WALLET");
   
     if (address !== adminAddress.toLowerCase()) {
        res.status(403).send({
@@ -66,16 +63,25 @@ export const CreateBox = async (req: Request, res: Response) => {
     res.status(400).send({ error: "Wrong signature"});
     return;
   }
-
+  const userId = await getUserId(body.ownerLogin);
+  if (!userId) {
+    res.status(400).send({ error: "Unknown owner"});
+    return;
+  }
   try {
-    // const isHolderCreated = await CreateNewHolder(body.ownerAddress)
-    const boxId = await CreateNewBox(
+    // const isHolderCreated = await CreateNewHolder(body.ownerLogin)
+
+    const boxId = await createNewBox(
       body.level,
-      body.ownerAddress.toLowerCase(),
-      body.ownerLogin,
+      userId
     );
+    if (!boxId) {
+      res.status(400).send({
+        error: "Box creation failed"
+      })
+    }
     res.status(200).send({
-      box: boxId.max,
+      box: boxId,
     });
   } catch (e) {
     res.status(400).send({
@@ -84,25 +90,21 @@ export const CreateBox = async (req: Request, res: Response) => {
   }
 };
 
-export const OpenBoxRequest = async (req: Request, res: Response) => {
+export const openBoxRequest = async (req: Request, res: Response) => {
   const body = req.body;
-  /* if (body.telegramInitData) {
-    console.log("User init data: ", body.telegramInitData);
-    const validationResult = ValidateByInitData (body.telegramInitData);
-    console.log("Result: ", validationResult)
-  } */
+
   if (!body.boxId || (!body.signature && !body.telegramData && !body.telegramInitData)) {
     res.status(400).send({
       error: 'Some of nessesary parameters is missing',
     });
   }
-  console.log("Box opening requested", body.boxId, body.telegramData, body.signature)
+
   try {
-    const msg = GetSignableMessage();
+    const msg = getSignableMessage();
     const address = body.signature ? web3.eth.accounts.recover(msg, body.signature)
     .toLowerCase() : "";
-    const adminAddress = await GetValueByKey("ADMIN_WALLET");
-    const boxOwner = await GetBoxOwner(body.boxId);
+    const adminAddress = await getValueByKey("ADMIN_WALLET");
+    const boxOwner = await getBoxOwner(body.boxId);
 
     if (!boxOwner) {
       res.status(400).send({
@@ -111,11 +113,19 @@ export const OpenBoxRequest = async (req: Request, res: Response) => {
     }
 
     const telegramDataValidation = 
-    body.telegramInitData ? ValidateByInitData (body.telegramInitData) :
-    body.telegramData? CheckTelegramAuth(body.telegramData).success : null;
+    body.telegramInitData ? validateByInitData (body.telegramInitData) :
+    body.telegramData? checkTelegramAuth(body.telegramData).success : null;
+    const userId = (await getUserData(body.telegramInitData.id || body.telegramData.id, address))?.id;
+    if (!userId) {
+      res.status(400).send({
+        error: "User not found",
+      });
+      return;
+    }
+    const ownerWallets = await getUserWallets(userId);
   
     if (address !== adminAddress.toLowerCase() 
-      && address !== boxOwner.toLowerCase() &&
+      && ownerWallets.indexOf(address) === -1 &&
     !telegramDataValidation) {
       res.status(403).send({
         error: "Caller have no rights to open",
@@ -139,14 +149,14 @@ export const OpenBoxRequest = async (req: Request, res: Response) => {
   }
 };
 
-export const GiveResourcesResponce = async (req: Request, res: Response) => {
+export const giveResourcesResponse = async (req: Request, res: Response) => {
   const body = req.body;
   if (!body.signature) {
     res.status(400).send({
       error: 'Message must be sgned by admin',
     });
   }
-  if (!body.ownerAddress && !body.ownerLogin) {
+  if (!body.ownerLogin) {
     res.status(400).send({
       error: 'Nessesary user parameters is missing',
     });
@@ -157,10 +167,10 @@ export const GiveResourcesResponce = async (req: Request, res: Response) => {
     });
   }
   try {
-    const msg = GetSignableMessage();
+    const msg = getSignableMessage();
     const address = web3.eth.accounts.recover(msg, body.signature)
     .toLowerCase();
-    const adminAddress = await GetValueByKey("ADMIN_WALLET");
+    const adminAddress = await getValueByKey("ADMIN_WALLET");
   
     if (address !== adminAddress.toLowerCase()) {
        res.status(403).send({
@@ -172,36 +182,48 @@ export const GiveResourcesResponce = async (req: Request, res: Response) => {
     res.status(400).send({ error: "Wrong signature"});
     return;
   }
-
-  const result = await GiveResources(
-    body.ownerAddress?.toLowerCase() || '',
-    body.ownerLogin || '',
-    body.resource,
+  const resourceId = await getResourceId(body.resource);
+  if (!resourceId) {
+    res.status(400).send({ error: "Resource not found"});
+    return;
+  }
+  const userId = (await getUserData(body.ownerLogin, body.ownerLogin?.toLowerCase()))?.id;
+  if (!userId) {
+    res.status(400).send({ error: "User not found"});
+    return;
+  }
+  const result = await giveResources(
+    userId,
+    resourceId,
     body.amount,
   );
 
   res.status(200).send(result);
 };
 
-export const GetUserBoxes = async (req: Request, res: Response) => {
+export const getUserBoxes = async (req: Request, res: Response) => {
   res.send({ ok: 'ok' });
 };
 
-export const GetUserResources = async (req: Request, res: Response) => {
+export const getUserResources = async (req: Request, res: Response) => {
   const body = req.body;
-  if (!body.ownerAddress && !body.ownerLogin) {
+  if (!body.ownerLogin) {
     res.status(400).send({
       error: 'Nessesary parameters is missing',
     });
     return;
   }
   try {
-    const assets = await GetUserBalanceRow(
-      body.ownerAddress?.toLowerCase() || '0x00',
-      body.ownerLogin || '',
-    );
+    const userId = (await getUserData(body.ownerLogin, body.ownerLogin?.toLowerCase()))?.id;
+    if (!userId) {
+      res.status(400).send({
+        error: 'User not found',
+      });
+      return;
+    }
+    const assets = await getUserAssetsWithNames (userId)
     res.status(200).send({
-      assets: assets,
+      assets,
     });
   } catch (e) {
     res.status(400).send({
@@ -211,20 +233,26 @@ export const GetUserResources = async (req: Request, res: Response) => {
   // res.send({ ok: 'ok' });
 };
 
-export const GetUserAvailableBoxes = async (req: Request, res: Response) => {
+export const getUserAvailableBoxes = async (req: Request, res: Response) => {
   const body = req.body;
-  if (!body.ownerAddress && !body.ownerLogin) {
+  if (!body.ownerLogin) {
     res.status(400).send({
       error: 'Nessesary parameters is missing',
     });
   }
-  const result = await GetAvailableBoxesByOwner (body.ownerAddress?.toLowerCase() || '',
-  body.ownerLogin || '')
+  const userId = (await getUserData(body.ownerLogin, body.ownerLogin?.toLowerCase()))?.id;
+  if (!userId) {
+    res.status(400).send({
+      error: 'User not found',
+    });
+    return;
+  }
+  const result = await getAvailableBoxesByOwner (userId);
   res.status(200).send(result)
 
 }
 
-export const GetBoxOpenResultResponce = async (req: Request, res: Response) => {
+export const getBoxOpenResultResponse = async (req: Request, res: Response) => {
   const body = req.body;
 
   if (!body.boxId) {
@@ -233,6 +261,6 @@ export const GetBoxOpenResultResponce = async (req: Request, res: Response) => {
     });
   }
 
-  const result = await GetBoxOpenResult (body.boxId);
+  const result = await getBoxOpenResult (body.boxId);
   res.status(200).send(result)
 }

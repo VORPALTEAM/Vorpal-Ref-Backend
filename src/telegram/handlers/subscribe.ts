@@ -1,22 +1,13 @@
-import { Markup } from 'telegraf';
 import { TelegramAuthData, tgChannelData } from '../../types';
-import { GetDaylyAuthDate, CreateTelegramAuthHash } from '../../utils/auth';
 import {
-  AddDuelOpponent,
-  CreateDuel,
-  FinishDuel,
-  GetDuelDataByInviter,
-  GetDuelDataByUser,
-  GetWatchingChannels,
-  SetPersonalData,
+  getWatchingChannels,
 } from '../../models/telegram';
-import { duel_lifetime } from '../../config';
-import { bot } from '../bot';
+import { Bot } from '../bot';
 import { duelText, inviteLink, messages, startText } from '../constants';
-import { SendMessageWithSave } from './utils';
+import { sendMessageWithSave } from './utils';
 
-export async function SendSubscribeMessage(userId: number, chatId: number) {
-  const subscribes = await GetChannelSubscribeList(userId);
+export async function sendSubscribeMessage(userId: number, chatId: number, lang = 'en') {
+  const subscribes = await getChannelSubscribeList(userId, lang);
 
   const inlineButtons = subscribes.map((item) => ({
     text: item.name,
@@ -29,24 +20,24 @@ export async function SendSubscribeMessage(userId: number, chatId: number) {
 
   if (subscribes.length > 0) {
     setTimeout(() => {
-      SendMessageWithSave(bot, chatId, messages.subscribeRequest, {
+      sendMessageWithSave(Bot, chatId, messages.subscribeRequest, {
         reply_markup: keyboardS,
       });
     }, 1101)
   }
 }
 
-export async function GetChannelSubscribeList(
+export async function getChannelSubscribeList(
   userId: number,
+  lang = 'en'
 ): Promise<tgChannelData[]> {
-  const channels = await GetWatchingChannels();
-  console.log('Subscriptions to watch: ', channels);
+  const channels = await getWatchingChannels(lang);
   const subscribes: tgChannelData[] = [];
 
   for (let j = 0; j < channels.length; j++) {
     // console.log("Channel: ", channels[j])
     try {
-      const chatMember = await bot.getChatMember(channels[j].id, userId);
+      const chatMember = await Bot.getChatMember(channels[j].id, userId);
       if (!chatMember) {
         continue;
       }

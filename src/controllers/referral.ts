@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { WithdrawRevenue } from "../models/withdraw";
-import { GetBalances } from "../models/balances";
-import { AddNewLink, RegisterReferral, GetLinksByOwner, GetRefCount } from "../models/links";
+import { withdrawRevenue } from "../models/withdraw";
+import { getBalances } from "../models/common";
+import { addNewLink, registerReferral, getLinksByOwner, getRefCount } from "../models/links";
 
-export const ReferralApiDefault = async (req: Request, res: Response) => {
+export const referralApiDefault = async (req: Request, res: Response) => {
 
   const postData = req.body;
 
@@ -27,7 +27,7 @@ export const ReferralApiDefault = async (req: Request, res: Response) => {
       }
       res.status(200).send(JSON.stringify({
         creation: "newLink",
-        result: await AddNewLink(postData.owner, postData.reward1, postData.reward2)
+        result: await addNewLink(postData.owner, postData.reward1, postData.reward2)
       }));
      break;
      case "RegisterReferral":
@@ -40,7 +40,7 @@ export const ReferralApiDefault = async (req: Request, res: Response) => {
       }
       res.status(200).send(JSON.stringify({
         creation: "register",
-        result: await RegisterReferral ( postData.client, postData.link )
+        result: await registerReferral ( postData.client, postData.link )
       }));
      break;
      case "GetLinksByOwner":
@@ -53,7 +53,7 @@ export const ReferralApiDefault = async (req: Request, res: Response) => {
       }
       res.status(200).send(JSON.stringify({
         creation: "getLinks",
-        result: await GetLinksByOwner ( postData.owner ),
+        result: await getLinksByOwner ( postData.owner ),
         warn: "Deprecated. Please request from /api/getlinksbyowner/0x1e... as a get param"
       }));
     break;
@@ -66,7 +66,7 @@ export const ReferralApiDefault = async (req: Request, res: Response) => {
   }
 }
 
-export const GetLinksByOwnerResponse = async (req: Request, res: Response) => {
+export const getLinksByOwnerResponse = async (req: Request, res: Response) => {
 
   if (!req.params.id) {
     res.status(400).send(JSON.stringify({
@@ -76,13 +76,13 @@ export const GetLinksByOwnerResponse = async (req: Request, res: Response) => {
   }
 
   const userId = req.params.id.toLowerCase()
-  const links = await GetLinksByOwner ( userId )
+  const links = await getLinksByOwner ( userId )
    res.status(200).send(JSON.stringify({
       links : links
    }));
 }
 
-export const GetOwnerDataResponse = async (req: Request, res: Response) => {
+export const getOwnerDataResponse = async (req: Request, res: Response) => {
 
   if (!req.params.id) {
     res.status(400).send(JSON.stringify({
@@ -92,13 +92,13 @@ export const GetOwnerDataResponse = async (req: Request, res: Response) => {
   }
 
   const userId = req.params.id.toLowerCase()
-  const links = await GetLinksByOwner ( userId )
-  const balances = await GetBalances ( userId )
+  const links = await getLinksByOwner ( userId )
+  const balances = await getBalances ( userId )
 
   let refCount = 0
 
   for (let v = 0; v < links.length; v++) {
-    const response = await GetRefCount (links[v].link_key)
+    const response = await getRefCount (links[v].link_key)
 
     refCount += Number(response[0].count)
   }
@@ -111,7 +111,7 @@ export const GetOwnerDataResponse = async (req: Request, res: Response) => {
    }));
 }
 
-export const WithdrawRewardAction = async (req: Request, res: Response) => {
+export const withdrawRewardAction = async (req: Request, res: Response) => {
 
   res.setHeader('Access-Control-Request-Headers', 'Content-Type, Accept');
   res.setHeader('Content-Type', 'application/json');
@@ -126,7 +126,7 @@ export const WithdrawRewardAction = async (req: Request, res: Response) => {
       return false
     }
     console.log("Wait for processing")
-    const withdrawmsg = await WithdrawRevenue(postData.address, postData.signature)
+    const withdrawmsg = await withdrawRevenue(postData.address, postData.signature)
 
     res.status(withdrawmsg.success ? 200 : 400).send(JSON.stringify(withdrawmsg));
 }

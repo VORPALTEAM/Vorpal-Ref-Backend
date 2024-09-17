@@ -6,7 +6,7 @@ const defaultUserData = {
     address: "0x0000000000000000000000000"
 }
 
-export async function RequestUsers () {
+export async function requestUsers () {
     const userQuery = `SELECT address, login, rights FROM users;`
     const userData = await Q(userQuery)
   
@@ -17,7 +17,7 @@ export async function RequestUsers () {
     })
 }
 
-export async function UpdateUser (data = defaultUserData) {
+export async function updateUser (data = defaultUserData) {
     if (data === defaultUserData || !data.address || data.login === undefined || data.rights === undefined) {
         return ({
             success: false,
@@ -46,7 +46,7 @@ export async function UpdateUser (data = defaultUserData) {
 }
 
 
-export async function CreateUser (data = defaultUserData) {
+export async function createUser (data = defaultUserData) {
     if (data === defaultUserData || !data.address || !data.login || !data.rights) {
         return ({
             success: false,
@@ -74,14 +74,14 @@ export async function CreateUser (data = defaultUserData) {
     })
 }
 
-export async function DeleteUser (address = defaultUserData.address) {
+export async function deleteUser (address = defaultUserData.address) {
     if (address === defaultUserData.address || !address) {
         return false;
     }
 
     const addr = address.toLowerCase()
 
-    const checkCount = await RequestUsers ();
+    const checkCount = await requestUsers ();
     if (checkCount.content.length < 2) {
         return ({
             success: false,

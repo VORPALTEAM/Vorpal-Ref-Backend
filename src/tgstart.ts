@@ -1,4 +1,3 @@
-import { TelegramBotLaunch } from "./telegram";
+import { telegramBotLaunch } from "./telegram";
 
-
-TelegramBotLaunch(); 
+telegramBotLaunch(); 
