@@ -70,10 +70,11 @@ export async function getStoreItems(): Promise<DisplayStoreItem[]> {
   SELECT items.id, items.name as item, items.type,
     items.rareness, items.description, items.img_preview, items.img_full,
     store.user_balance_limit as per_user, store.available_count as total_count,
-    store.price as cost, 
+    store.price as cost, ide.title, ide.description_en, 
     currency_items.name as currency
   FROM "items"
   JOIN "store" ON store.item_id = items.id
+  JOIN "item_description_extended" as "ide" ON ide.item_id = items.id
   LEFT JOIN "items" as currency_items ON currency_items.id = store.currency_id
   WHERE items.id IN (SELECT item_id FROM store);`;
   const result = await Q(query);
@@ -81,6 +82,8 @@ export async function getStoreItems(): Promise<DisplayStoreItem[]> {
   // Replace null in rareness with "usual"
   return (result || []).map(item => ({
     ...item,
+    item: item.title,
+    description: item.description_en,
     currency: item.currency === "VRP" ? "token" : item.currency,
     rareness: item.rareness === null ? 'usual' : item.rareness
   }));
