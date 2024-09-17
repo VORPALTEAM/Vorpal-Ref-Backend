@@ -234,8 +234,8 @@ export async function isItemAvailableToBuy(
 export async function decreaseSaleAmount (itemId: number, amount = 1) {
   const query = `
   UPDATE items 
-    SET total_amount = GREATEST(total_amount - ${amount}, 0) 
-    WHERE id = ${itemId} AND total_amount IS NOT NULL;
+    SET total_count = GREATEST(total_count - ${amount}, 0) 
+    WHERE id = ${itemId} AND total_count IS NOT NULL;
   
   UPDATE store 
     SET available_count = GREATEST(available_count - ${amount}, 0) 
