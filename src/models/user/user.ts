@@ -196,8 +196,13 @@ export async function getUserData(telegramId?: string, wallet?: string): Promise
   return !result ? null : result.length > 0 ? result[0] : null;
 }
 
-export async function getUserById(userId: number) {
-  const query = `SELECT * FROM users WHERE "id" = ${userId};`;
+export async function getUserById(userId: number): Promise<{
+  id: number;
+  inviter_id?: number;
+  username?:string;
+  role_id: number;
+}| null> {
+  const query = `SELECT id, inviter_id, username, role_id FROM users WHERE "id" = ${userId};`;
   const result = await runQuery(query, true);
   return result && result.length > 0 ? result[0] : null;
 }

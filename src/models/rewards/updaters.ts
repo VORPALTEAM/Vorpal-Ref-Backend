@@ -70,11 +70,11 @@ export async function updateResourceTransaction(
 }
 
 export async function sendRewardsToReferrals (userId: number, resourceId: number, amount: number) {
-  const ref1 = (await getUserById(userId)).inviter_id
+  const ref1 = (await getUserById(userId))?.inviter_id;
   if (!ref1) return([]);
   //const ref2 = (await getUserById(userId))
-  const referral2 = await getUserInviterByTelegramId (ref1.id);
-  await writeReferralStats ({ to: ref1.id, for: userId, resource: resourceId, amount: amount * referralPart1, level: 1 })
+  const referral2 = (await getUserById(ref1))?.inviter_id;
+  await writeReferralStats ({ to: ref1, for: userId, resource: resourceId, amount: amount * referralPart1, level: 1 })
   if (referral2) {
     await writeReferralStats ({ to: referral2, for: userId, resource: resourceId, amount: amount * referralPart1, level: 2 })
   }
