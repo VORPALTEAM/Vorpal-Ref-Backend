@@ -38,8 +38,8 @@ export const universalAuth = async (req: Request, res: Response) => {
     }
 
     if (body.telegramInitData) {
-        console.log("Validation result: ", validateByInitData (body.telegramInitData))
-        console.log("Entered data: ", body.telegramInitData)
+        // console.log("Validation result: ", validateByInitData (body.telegramInitData))
+        // console.log("Entered data: ", body.telegramInitData)
         const validationResult = validateByInitData (body.telegramInitData);
         if (!validationResult) {
             return null
@@ -51,7 +51,7 @@ export const universalAuth = async (req: Request, res: Response) => {
             }
             const userDecoded = decodeURIComponent(userEncoded);
             const parsedData = JSON.parse(userDecoded);
-            console.log("Parsed: ", parsedData);
+            // console.log("Parsed: ", parsedData);
             return parsedData
         } catch (e) {
             console.log(e);

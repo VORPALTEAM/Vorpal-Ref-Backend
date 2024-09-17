@@ -70,16 +70,16 @@ export async function updateResourceTransaction(
 }
 
 export async function sendRewardsToReferrals (userId: number, resourceId: number, amount: number) {
-  const ref1 = (await getUserById(userId))
+  const ref1 = (await getUserById(userId))?.inviter_id;
   if (!ref1) return([]);
-  const ref2 = (await getUserById(userId))
-  const referral2 = await getUserInviterByTelegramId (ref2.id);
-  await writeReferralStats ({ to: ref1.id, for: ref2.id, resource: resourceId, amount: amount * referralPart1, level: 1 })
+  //const ref2 = (await getUserById(userId))
+  const referral2 = (await getUserById(ref1))?.inviter_id;
+  await writeReferralStats ({ to: ref1, for: userId, resource: resourceId, amount: amount * referralPart1, level: 1 })
   if (referral2) {
-    await writeReferralStats ({ to: referral2, for: ref1.id, resource: resourceId, amount: amount * referralPart1, level: 2 })
+    await writeReferralStats ({ to: referral2, for: userId, resource: resourceId, amount: amount * referralPart1, level: 2 })
   }
   return Promise.all([
-    updateResourceTransaction(userId, resourceId, amount * referralPart1, rewardrefmessage),
+    updateResourceTransaction(ref1, resourceId, amount * referralPart1, rewardrefmessage),
     referral2 ? updateResourceTransaction(referral2, resourceId, amount * referralPart2, rewardrefmessage) : true,
   ])
 }
