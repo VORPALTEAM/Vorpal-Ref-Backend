@@ -135,5 +135,12 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
   await pool.query(boxCloseQuery);
   return {
     success: true,
+    result: [{
+      resourceId: rewardId,
+      amount: openAmount
+    }, {
+      resourceId: 1,
+      amount: valueVRP
+    }]
   };
 }
