@@ -2,7 +2,7 @@ require('dotenv').config();
 import { runQuery as Q } from '../connection';
 // import { WriteLog } from '../../database/log';
 
-const zeroAssets = {
+export const zeroAssets = {
   laser1: 0,
   laser2: 0,
   laser3: 0,

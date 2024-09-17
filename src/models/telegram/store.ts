@@ -1,5 +1,5 @@
 import { runQuery as Q, runQuery } from '../connection';
-import { getUserAssets, getUserBalanceRow } from '../rewards';
+import { getUserAssets, getUserBalanceRow, zeroAssets } from '../rewards';
 import { TelegramAuthData, StoreItem, storeItemBalance, DisplayStoreItem } from '../../types';
 
 export async function addStoreItem(item: StoreItem) {
@@ -165,7 +165,12 @@ export async function getUserAssetsWithNames (userId: number) {
   if (items) {
     items.forEach((i) => {
       result.set(i.name === "VRP" ? "token" : i.name, i.amount)
-    })
+    });
+  }
+  for(let key in zeroAssets) {
+     if (!result.get(key)) {
+       result.set(key, 0);
+     }
   }
   return Object.fromEntries(result);
 }
