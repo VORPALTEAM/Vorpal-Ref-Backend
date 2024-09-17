@@ -76,7 +76,7 @@ export async function sendRewardsToReferrals (userId: number, resourceId: number
   const referral2 = (await getUserById(ref1))?.inviter_id;
   await writeReferralStats ({ to: ref1, for: userId, resource: resourceId, amount: amount * referralPart1, level: 1 })
   if (referral2) {
-    await writeReferralStats ({ to: referral2, for: userId, resource: resourceId, amount: amount * referralPart1, level: 2 })
+    await writeReferralStats ({ to: referral2, for: userId, resource: resourceId, amount: amount * referralPart2, level: 2 })
   }
   return Promise.all([
     updateResourceTransaction(ref1, resourceId, amount * referralPart1, rewardrefmessage),

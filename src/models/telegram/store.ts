@@ -231,6 +231,19 @@ export async function isItemAvailableToBuy(
   };
 }
 
+export async function decreaseSaleAmount (itemId: number, amount = 1) {
+  const query = `
+  UPDATE items 
+    SET total_amount = GREATEST(total_amount - ${amount}, 0) 
+    WHERE id = ${itemId} AND total_amount IS NOT NULL;
+  
+  UPDATE store 
+    SET available_count = GREATEST(available_count - ${amount}, 0) 
+    WHERE item_id = ${itemId} AND available_count IS NOT NULL;
+  `;
+   return await runQuery(query)  
+}
+
 export async function buyItem(buyerId: number, itemId: number, amount: number) {
   const isAvailable = await isItemAvailableToBuy(buyerId, itemId, amount);
   if (!isAvailable.ok) {
@@ -257,7 +270,10 @@ export async function buyItem(buyerId: number, itemId: number, amount: number) {
         COMMIT;
   `
 
-  const result = await Q(buyQuery)
+  const result = await Q(buyQuery);
+  if (result) {
+    decreaseSaleAmount(itemId, amount)
+  }
   return {
     ok: result ? true : false,
     error: !result ? 'Unknown' : '',
