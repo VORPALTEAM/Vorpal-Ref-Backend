@@ -92,7 +92,6 @@ export async function resourceTransactionWithReferrals (userId: number, resource
 }
 
 export async function openBox(boxId: number, telegramData: TelegramAuthData) {
-  let openAmount = 0;
   const boxCheckQuery = `SELECT is_open FROM boxes WHERE id = ${boxId};`;
   const check = await pool.query(boxCheckQuery);
   if (check.rows.length === 0) {
@@ -121,45 +120,13 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
       error: 'Caller is not a box owner',
     };
   }
+  const openAmount = 10 + Math.round(Math.random() * 40);
   const value = Math.round(Math.random() * 10000);
   const valueVRP = Math.round(Math.random() * 5) + 5;
 
   await  resourceTransactionWithReferrals (owner, 1, valueVRP, rewardmessage);
   // await connection.query(vrpQuery);
-  const rewardId: number = (() => {
-    switch (true) {
-      /* case value < 100:
-        openAmount = 1;
-        return 'laser3';
-      case value < 300:
-        openAmount = 1;
-        return 'laser2';
-      case value < 1000:
-        openAmount = 1;
-        return 'laser1'; */
-      /* case value < 2500:
-        openAmount = value % 1000; 
-        return 'token'; */
-      case value < 2000:
-        openAmount = value % 1000;
-        return 2;
-      case value < 4000:
-        openAmount = value % 1000;
-        return 3;
-      case value < 6000:
-        openAmount = value % 1000;
-        return 4;
-      case value < 8000:
-        openAmount = value % 1000;
-        return 5;
-      case value <= 10000:
-        openAmount = value % 1000;
-        return 6;
-      default:
-        openAmount = value % 1000;
-        return 7;
-    }
-  })();
+  const rewardId: number = Math.floor(value / 2000) + 2;
   const logQuery = `INSERT INTO box_log (boxId, opening, openResult, openAmount)
     VALUES (${boxId}, CURRENT_TIMESTAMP, '${rewardId}', ${openAmount});`;
   const boxCloseQuery = `UPDATE boxes SET is_open = true WHERE id = ${boxId};`;

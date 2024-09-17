@@ -7,7 +7,7 @@ export function SetupBotMenuCommands () {
             { command: '/duel', description: 'Create duel' },
             { command: '/referral', description: 'Referral info' },
             { command: '/reward', description: 'Daily reward' },
-            { command: '/part', description: 'Take part in tournament' }
+           /* { command: '/part', description: 'Take part in tournament' } */
           ]);
         // console.log("Result: ", cmd)
     } catch (e: any) {
