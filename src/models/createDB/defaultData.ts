@@ -21,7 +21,7 @@ INSERT INTO "items" (
     ('laser1', null, '/gui/images/icons/laser-red.png', '/gui/images/icons/laser-red.png', 'skin', 'Rare', 'RARE LASER SKIN'),
     ('laser2', null, '/gui/images/icons/laser-white.png', '/gui/images/icons/laser-white.png', 'skin', 'Mythic', 'MYTHIC LASER SKIN'),
     ('laser3', null, '/gui/images/icons/laser-violet.png', '/gui/images/icons/laser-violet.png', 'skin', 'Legendary', 'LEGENDARY LASER SKIN'),
-    ('legendarybox', 10, '/gui/images/store/secret_box.png', '/gui/images/store/secret_box.png', 'physical', 'Legendary', ''LEGENDARY BOX),
+    ('legendarybox', 10, '/gui/images/store/secret_box.png', '/gui/images/store/secret_box.png', 'physical', 'Legendary', 'LEGENDARY BOX'),
     ('thetrendsemoji', null, '/gui/images/store/trends_imogi.png', '/gui/images/store/trends_imogi.png', 'skin', 'Rare', ''),
     ('thetrendsticket', null, '/gui/images/store/tiskets.png', '/gui/images/store/tiskets.png', 'ticket', 'Rare', ''),
     ('thetrendsdiscount', 400, '/gui/images/store/trends_discount.png', '/gui/images/store/trends_discount.png', 'discount', 'Rare', ''),
