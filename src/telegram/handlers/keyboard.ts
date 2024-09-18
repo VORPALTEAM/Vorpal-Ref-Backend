@@ -44,7 +44,7 @@ export const InlineKeyboard = (actions: string[], inviter?: string) => {
             url: basicStartappLink
           });
         break;
-      case a.indexOf('enterGameReward') > -1:
+      case a.indexOf('GameToReward') > -1:
         row.push({
             text: enterGameTextReward,
             url: basicStartappLink

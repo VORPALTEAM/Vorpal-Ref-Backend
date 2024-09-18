@@ -45,9 +45,9 @@ export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Mess
         await createNewBox(1, userId);
         await  addDailyRewardNote(userId)
         await sendMessageWithSave(bot, chatId, messages.dailyRewardOk,
-            { reply_markup: InlineKeyboard(['enterGameReward']) },);
+            { reply_markup: InlineKeyboard(['GameToReward']) },);
     } else {
-        const timeToStr = formatTime(now - lastReward);
+        const timeToStr = formatTime(86400 - (now - lastReward));
         await sendMessageWithSave(bot, chatId, messages.dailyRewardTimer(timeToStr));
     }
 }
