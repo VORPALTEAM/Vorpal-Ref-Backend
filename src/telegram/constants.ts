@@ -41,6 +41,9 @@ export const messages = {
     `,
     dailyRewardOk: `Reward received, go to starmap to openbox in your inventory`,
     dailyRewardRefuse: `You already received reward in last 24 hours, you can get it again tomorrow`,
+    dailyRewardTimer: (timeStr: string) => {
+      return `You already received reward recently, try again after ${timeStr}`
+    },
     duelRefiseInvitation: (login2: string) => {
       return `@${login2} cancelled an invitation. You can challenge a new player`
     },

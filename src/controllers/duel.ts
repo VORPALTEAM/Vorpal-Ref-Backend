@@ -121,17 +121,17 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
     return;
   }
   const data = await getDuelDataByUser(userId);
-  console.log("Found data: ", data);
+
   if (!data) {
     res.status(200).send(JSON.stringify({ data: null }));
     return;
   }
   const displayId1 = await getUserTelegramChat(data.id1);
   const displayId2 = data.id2 ? await getUserTelegramChat(data.id2) : null;
-  console.log("Chats: ", displayId1, displayId2);
+
   const part1 = await getUserData(displayId1 || String(data.id1));
   const part2 = await getUserData(displayId2 || String(data.id2));
-  console.log("Ids: ", part1, part2);
+
   const dateSec = Math.round(new Date().getTime() / 1000);
   const dataToSend = {
     id: data?.id,
@@ -149,7 +149,7 @@ export const duelDataByLoginResponse = async (req: Request, res: Response) => {
 };
 
 export const finishDuelResponse = async (req: Request, res: Response) => {
-  console.log('Duel finish requested');
+
   const body = req.body;
   if (!body.duelId || !body.signature) {
     res.status(400).send({
@@ -184,15 +184,13 @@ export const finishDuelResponse = async (req: Request, res: Response) => {
   const duelData = await getDuelData(Number(body.duelId));
   const user1 = duelData?.id1;
   const user2 = duelData?.id2;
-  console.log("Found data: ",  duelData, user1, user2)
+
   if (user1 && user2) {
     const pairCount = await getDuelPairCount (user1, user2);
-    console.log("Count: ", pairCount)
+
     if (Number(pairCount) === 1) {
-       console.log("Box giving: ")
-       const box1 = await createNewBox(1, user1);
-       const box2 = await createNewBox(1, user2);
-       console.log("Given: ", box1, box2)
+       await createNewBox(1, user1);
+       await createNewBox(1, user2);
        rewarded = true;
     }
   }
@@ -313,16 +311,13 @@ export const updateOnlineCount = async (req: Request, res: Response) => {
 };
 
 export const acceptDuelResponse = async (req: Request, res: Response) => {
-  console.log('Duel accept called');
   const user: TelegramAuthData = await universalAuth(req, res);
-  console.log(user);
+
   if (!user || !user.id) {
-    console.log('401');
     res.status(401).send({ error: 'Unauthorized' });
     return null;
   }
   if (!req.body.inviter) {
-    console.log('400');
     res.status(400).send({ error: 'Duel creator not in the query' });
     return null;
   }
@@ -348,7 +343,6 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
       });
       return null;
     }
-    console.log("Duel info: ", duel.id2, duel.id1);
     if (duel.id2 || duel.id1 === userId) {
       res.status(400).send({
         success: false,
@@ -356,12 +350,11 @@ export const acceptDuelResponse = async (req: Request, res: Response) => {
       });
       return null;
     }
-    console.log('Invited user: ', user);
+
     await addDuelOpponent(Number(duel.id), userId);
     let userData = await getPersonalDataById(userId);
     const opponentData = await getPersonalDataById(inviterId);
-    console.log('User data: ', userData);
-    console.log('Opponent data: ', opponentData);
+
     if (opponentData) {
       await sendMessageWithSave(
         Bot,
