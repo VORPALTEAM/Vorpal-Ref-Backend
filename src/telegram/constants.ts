@@ -40,7 +40,10 @@ export const messages = {
       Hello! You have been invited to a duel but user not found. You can create a your own:
     `,
     dailyRewardOk: `Reward received, go to starmap to openbox in your inventory`,
-    dailyRewardRefuse: `You already received reward in last 24 hours, you gan get it again tomorrow`,
+    dailyRewardRefuse: `You already received reward in last 24 hours, you can get it again tomorrow`,
+    dailyRewardTimer: (timeStr: string) => {
+      return `You already received reward recently, try again after ${timeStr}`
+    },
     duelRefiseInvitation: (login2: string) => {
       return `@${login2} cancelled an invitation. You can challenge a new player`
     },
