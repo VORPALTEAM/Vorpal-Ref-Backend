@@ -1,4 +1,4 @@
-import { geFinishedDuelsCount, getReferralStats, getTotalUsers } from "../../models/stats";
+import { getAllDuelsCount, getDailyRewardReceiversCount, getDuelsCountLastDate, getFinishedDuelsCount, getReferralStats, getTotalUsers } from "../../models/stats";
 import TelegramBot from "node-telegram-bot-api";
 import * as CSV from 'csv-writer'
 import fs from 'fs';
@@ -10,7 +10,10 @@ export async function downloadReferralStats (bot: TelegramBot, msg: TelegramBot.
     if (!chat) return;
     const stats = await getReferralStats();
     const totalUsers = await getTotalUsers();
-    const finishedDuels = await geFinishedDuelsCount ();
+    const finishedDuels = await getFinishedDuelsCount ();
+    const allDuels = await getAllDuelsCount();
+    const duelsLastDate = await getDuelsCountLastDate();
+    const dailyRewardReceiversLastDay = await getDailyRewardReceiversCount ();
     
     const csvWriter = CSV.createArrayCsvWriter({
         path: csvFilePath,
@@ -23,6 +26,9 @@ export async function downloadReferralStats (bot: TelegramBot, msg: TelegramBot.
     await csvWriter.writeRecords([
        [ "Total users: ", totalUsers],
        [ "Total duels finished: ", finishedDuels],
+       [ "Total duels: ", allDuels],
+       [ "Total duels last 24h: ", duelsLastDate],
+       [ "Last 24h daily reward receivers: ", dailyRewardReceiversLastDay]
     ])
 
     const fileStream = fs.createReadStream(csvFilePath)
