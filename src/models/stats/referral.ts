@@ -1,4 +1,4 @@
-import { dateSec } from "utils/text";
+import { dateSec } from "../../utils/text";
 import { runQuery } from "../../models/connection"
 
 export async function getReferralStats (): Promise<{inviter_id: number, user_count: number}[]> {
