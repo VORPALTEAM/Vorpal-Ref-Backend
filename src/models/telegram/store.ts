@@ -295,11 +295,11 @@ export async function buyItem(buyerId: number, itemId: number, amount: number) {
         SET amount = amount - ${amount * (saleData.price || 0)}
         WHERE user_id = ${buyerId} 
           AND item_id = ${saleData.currency_id}
-          AND amount >= ${amount * (saleData.price || 0)}; 
+          AND amount >= ${amount * (saleData.price || 0)}
 
         IF NOT FOUND THEN
          ROLLBACK;  
-         RAISE EXCEPTION 'Insufficient funds';
+         RAISE EXCEPTION 'Insufficient funds'
 
         COMMIT;
   `
