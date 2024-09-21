@@ -7,8 +7,9 @@ export class AdminSession {
     lastAction: string;
     liveTimer: NodeJS.Timeout;
 
-    textPost: string;
-    photoPost: any;
+    public textPost: string;
+    public photoPost: any;
+    public postKEyboard: any;
 
     constructor(
         userId: string
