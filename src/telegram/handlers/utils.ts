@@ -5,6 +5,8 @@ import {
   saveMessage,
 } from '../../models/telegram/history';
 import TelegramBot from 'node-telegram-bot-api';
+import { getAllTelegramUsers } from '../../models/user';
+import { messageSendingInterval } from '../../config';
 
 export async function sendPhotoWithSave(
   bot: TelegramBot,
@@ -55,4 +57,20 @@ export async function truncateChat(bot: TelegramBot, chatId: number) {
     }
   }
   if (!isCatch) await deleteMessagesByChatId(chatId);
+}
+
+export async function massSendMessageThroughQueue(bot: TelegramBot, message: string,
+  options?: TelegramBot.SendMessageOptions,) {
+    return new Promise(async (resolve, reject) => {
+      const users = await getAllTelegramUsers();
+      let index = 0;
+      const queue = setInterval(async () => {
+        index++;
+        await sendMessageWithSave(bot, users[index].chat_id,message, options)
+        if (index >= users.length - 1) {
+          clearInterval(queue);
+          resolve(true);
+        }
+      }, messageSendingInterval)
+    })
 }

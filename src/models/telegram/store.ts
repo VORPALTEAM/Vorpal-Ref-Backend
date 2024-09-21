@@ -192,6 +192,33 @@ export async function isItemAvailableToBuy(
   const userAssets = await getUserAssets(userId);
   const saleData = await getItemSaleData(itemId);
 
+  const checkPriceRequest = `SELECT amount FROM user_balances WHERE user_id = ${userId}
+  AND item_id IN (SELECT currency_id FROM store WHERE item_id = ${itemId});`
+  const currencyUserAmount = await runQuery(checkPriceRequest, true);
+  const amountRequiredRequest = `SELECT price FROM STORE where item_id = ${itemId};`;
+  const priceRequest = await runQuery(amountRequiredRequest, true);
+  if (!currencyUserAmount || currencyUserAmount.length === 0) {
+    return {
+      ok: false,
+      error: 'No currency user have',
+    };
+  }
+  if (!priceRequest || priceRequest.length === 0) {
+    return {
+      ok: false,
+      error: 'Item is not for sale',
+    };
+  }
+  const currencyHave = currencyUserAmount[0].amount;
+  const currencyRequired = priceRequest[0].price * amount
+  if (currencyHave < currencyRequired) {
+    return {
+      ok: false,
+      error: 'Insufficient funds to buy',
+    };
+  }
+  
+
   if (!saleData) {
     return {
       ok: false,

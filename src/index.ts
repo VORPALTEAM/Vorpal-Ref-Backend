@@ -4,6 +4,7 @@ import { startWatchingTimer } from './blockchain/Stars/watcher';
 import { apiVersion } from './config';
 import { app } from './server';
 import { initRoutes } from './routes';
+import { initPublisherBot } from './telegram/publisher';
 
 
 dotEnv.config();
@@ -17,3 +18,4 @@ app.listen(port, () => {
 
 telegramBotLaunch();
 startWatchingTimer();
+initPublisherBot();
