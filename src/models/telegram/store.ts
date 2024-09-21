@@ -300,7 +300,7 @@ export async function buyItem(buyerId: number, itemId: number, amount: number) {
         IF NOT FOUND THEN
          ROLLBACK;  
          RAISE EXCEPTION 'Insufficient funds'
-
+        END IF;
         COMMIT;
   `
 
