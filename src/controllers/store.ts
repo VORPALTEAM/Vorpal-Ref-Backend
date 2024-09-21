@@ -99,7 +99,7 @@ export const buyResponse = async (req: Request, res: Response) => {
         }
         const isAvailable = await isItemAvailableToBuy(userId, body.itemId, body.amount);
         if (!isAvailable.ok) {
-            res.status(400).send(JSON.stringify({error: "Auth failed"}))
+            res.status(400).send(JSON.stringify({error: isAvailable.error}))
             return;
         }
         const buy = await buyItem (userId, body.itemId, body.amount);
