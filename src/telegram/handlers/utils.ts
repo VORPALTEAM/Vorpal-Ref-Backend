@@ -5,7 +5,7 @@ import {
   saveMessage,
 } from '../../models/telegram/history';
 import TelegramBot from 'node-telegram-bot-api';
-import { getAllTelegramUsers } from 'models/user';
+import { getAllTelegramUsers } from '../../models/user';
 import { messageSendingInterval } from '../../config';
 
 export async function sendPhotoWithSave(
