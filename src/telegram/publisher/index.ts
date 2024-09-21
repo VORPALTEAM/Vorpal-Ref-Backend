@@ -8,7 +8,15 @@ export const publisherBot = new TelegramBot(api_token || "");
 
 export function initPublisherBot() {
     console.log("Bot strted: ")
-    publisherBot.on("text", async (msg) => {
+    publisherBot.onText(/\/start/, async (msg) => {
+        const chat = msg?.from?.id;
+        console.log("Received: ", chat, msg.text);
+        if (!chat) return;
+        const user = await getUserData(String(chat));
+        const isAdmin = user?.role_id === 2
+        sendMessageWithSave(publisherBot, chat, `Your id is: ${msg?.from?.id}, you admin: ${isAdmin}`);
+    })
+    publisherBot.on("message", async (msg) => {
         const chat = msg?.from?.id;
         console.log("Received: ", chat, msg.text);
         if (!chat) return;
