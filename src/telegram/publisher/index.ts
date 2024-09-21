@@ -20,8 +20,8 @@ export function initPublisherBot() {
             return;
         }
         const session = getAdminSession(String(chat));
+        sendMessageWithSave(publisherBot, chat, `Sending text: ${msg.text}, action: ${session.getLastAction()}`);
         session.setLastAction("post");
-        sendMessageWithSave(publisherBot, chat, `Sending text: ${msg.text}`);
     })
 }
 
