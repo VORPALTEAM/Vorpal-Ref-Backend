@@ -193,8 +193,8 @@ export async function isItemAvailableToBuy(
   const checkPriceRequest = `SELECT amount FROM user_balances WHERE user_id = ${userId}
   AND item_id IN (SELECT currency_id FROM store WHERE item_id = ${itemId});`
   const currencyUserAmount = await runQuery(checkPriceRequest, true);
-  const amountRequiredRequest = `SELECT price FROM STORE where item_id = ${itemId} AND available_amount
-  IS NULL OR available_amount >= ${amount};`;
+  const amountRequiredRequest = `SELECT price FROM STORE where item_id = ${itemId} AND available_count
+  IS NULL OR available_count >= ${amount};`;
   const priceRequest = await runQuery(amountRequiredRequest, true);
   if (!currencyUserAmount || currencyUserAmount.length === 0) {
     return {
@@ -219,7 +219,7 @@ export async function isItemAvailableToBuy(
   
   const userAssets = await getUserAssets(userId);
   const saleData = await getItemSaleData(itemId);
-  
+
   if (!saleData) {
     return {
       ok: false,
