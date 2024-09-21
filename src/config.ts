@@ -1,4 +1,6 @@
-export const apiVersion= 112;
+export const apiVersion= 122;
+export const messageSendingInterval = 500;
+export const adminSesionLifetime = 3600000;
 
 export const config = {
    networkId: 97,

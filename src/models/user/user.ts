@@ -262,3 +262,13 @@ export async function getUserTelegramChat(userId: number): Promise<string | null
     return null
   }
 }
+
+export async function getAllTelegramUsers() {
+  const query = `SELECT chat_id, username, first_name FROM telegram_personal;`;
+  const result = await runQuery(query, true);
+  return result ? result.map(item => ({
+    chat_id: item.chat_id,
+    username: item.username,
+    first_name: item.first_name
+  })) : []
+}

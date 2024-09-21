@@ -9,7 +9,6 @@ import TelegramBot from 'node-telegram-bot-api';
 import { sendMessageWithSave } from '../handlers/utils';
 import { createDuelInTournamentAction } from './tournament';
 import { downloadReferralStats } from './referral';
-import { getAdminSession } from './session';
 
 export const adminCmdInfo = {
       help: "Get list of all commands",
@@ -53,12 +52,7 @@ export const adminCmdHandler = async (
     sendMessageWithSave(bot, chat, `No rights to send admin commands`);
     return;
   }
-  const session = getAdminSession(String(chat));
-  if (session.getLastAction() === admin_commands[4]) {
-    sendMessageWithSave(bot, chat, `Will send it: ${cmd}`);
-    return;
-  }
-  session.setLastAction(command);
+  
   switch (command) {
     case admin_commands[0]:
       if (cmdData.length < 4) {
