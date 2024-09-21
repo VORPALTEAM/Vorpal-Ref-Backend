@@ -4,10 +4,10 @@ import { getUserData } from '../../models/user';
 
 const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
 
-export const publisherBot = new TelegramBot(api_token || "");
+export const publisherBot = new TelegramBot(api_token || "", { polling: true });
 
 export function initPublisherBot() {
-    console.log("Bot strted: ")
+    console.log("Bot strted: ", publisherBot.listenerCount, publisherBot.getMe())
     publisherBot.onText(/\/start/, async (msg) => {
         const chat = msg?.from?.id;
         console.log("Received: ", chat, msg.text);
