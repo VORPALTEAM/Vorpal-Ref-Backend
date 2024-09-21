@@ -7,8 +7,10 @@ const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
 export const publisherBot = new TelegramBot(api_token || "");
 
 export function initPublisherBot() {
+    console.log("Bot strted: ")
     publisherBot.on("text", async (msg) => {
         const chat = msg?.from?.id;
+        console.log("Received: ", chat, msg.text);
         if (!chat) return;
         const user = await getUserData(String(chat));
         const isAdmin = user?.role_id === 2
