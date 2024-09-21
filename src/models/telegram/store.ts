@@ -189,13 +189,12 @@ export async function isItemAvailableToBuy(
   itemId: number,
   amount: number,
 ) {
-  const userAssets = await getUserAssets(userId);
-  const saleData = await getItemSaleData(itemId);
 
   const checkPriceRequest = `SELECT amount FROM user_balances WHERE user_id = ${userId}
   AND item_id IN (SELECT currency_id FROM store WHERE item_id = ${itemId});`
   const currencyUserAmount = await runQuery(checkPriceRequest, true);
-  const amountRequiredRequest = `SELECT price FROM STORE where item_id = ${itemId};`;
+  const amountRequiredRequest = `SELECT price FROM STORE where item_id = ${itemId} AND available_amount
+  IS NULL OR available_amount >= ${amount};`;
   const priceRequest = await runQuery(amountRequiredRequest, true);
   if (!currencyUserAmount || currencyUserAmount.length === 0) {
     return {
@@ -210,15 +209,17 @@ export async function isItemAvailableToBuy(
     };
   }
   const currencyHave = currencyUserAmount[0].amount;
-  const currencyRequired = priceRequest[0].price * amount
-  if (currencyHave < currencyRequired) {
+  const currencyRequired = priceRequest[0].price ? priceRequest[0].price * amount : null
+  if (currencyRequired !== null && currencyHave < currencyRequired) {
     return {
       ok: false,
       error: 'Insufficient funds to buy',
     };
   }
   
-
+  const userAssets = await getUserAssets(userId);
+  const saleData = await getItemSaleData(itemId);
+  
   if (!saleData) {
     return {
       ok: false,
@@ -290,9 +291,15 @@ export async function buyItem(buyerId: number, itemId: number, amount: number) {
          ON CONFLICT (user_id, item_id)
          DO UPDATE SET amount = user_balances.amount + ${amount};
 
-         UPDATE user_balances
-         SET amount = amount - ${amount * (saleData.price || 0)}
-        WHERE user_id = ${buyerId} AND item_id = ${saleData.currency_id};
+        UPDATE user_balances
+        SET amount = amount - ${amount * (saleData.price || 0)}
+        WHERE user_id = ${buyerId} 
+          AND item_id = ${saleData.currency_id}
+          AND amount >= ${amount * (saleData.price || 0)}; 
+
+        IF NOT FOUND THEN
+         ROLLBACK;  
+         RAISE EXCEPTION 'Insufficient funds';
 
         COMMIT;
   `
