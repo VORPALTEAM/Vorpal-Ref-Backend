@@ -15,24 +15,91 @@ export function initPublisherBot() {
   if (!publisherBot) return;
   setupBotMenu(publisherBot, menu);
 
-  publisherBot.onText(/\/start/, (msg) => {
+  publisherBot.onText(/\/start/, async (msg) => {
     const chat = msg?.from?.id;
     if (!chat) return;
+    const user = await getUserData(String(chat));
+    const isAdmin = user?.role_id === 2;
+    if (!isAdmin) {
+      sendMessageWithSave(
+        publisherBot,
+        chat,
+        `Function allowed for admins only`,
+      );
+      return;
+    }
+    sendMessageWithSave(publisherBot, chat, `Choose /newpost to start posting`);
+    const session = getAdminSession(String(chat));
+  });
+  publisherBot.onText(/\/newpost/, async (msg) => {
+    const chat = msg?.from?.id;
+    if (!chat) return;
+    const user = await getUserData(String(chat));
+    const isAdmin = user?.role_id === 2;
+    if (!isAdmin) {
+      sendMessageWithSave(
+        publisherBot,
+        chat,
+        `Function allowed for admins only`,
+      );
+      return;
+    }
+    const session = getAdminSession(String(chat));
+    session.setLastAction("init_post");
+    session.textPost = null;
+    session.photoPost = null;
+    session.postKeyboard = null;
+    sendMessageWithSave(publisherBot, chat, `All right, a new post. Enter a post conent below:`);
+  });
+  publisherBot.onText(/\/addkeyboard/, async (msg) => {
+    const chat = msg?.from?.id;
+    if (!chat) return;
+    const user = await getUserData(String(chat));
+    const isAdmin = user?.role_id === 2;
+    if (!isAdmin) {
+      sendMessageWithSave(
+        publisherBot,
+        chat,
+        `Function allowed for admins only`,
+      );
+      return;
+    }
+    const session = getAdminSession(String(chat));
+    if (!session.textPost && !session.photoPost) {
+        sendMessageWithSave(publisherBot, chat, `Please, enter the post content at first`);
+        return;
+    }
+    sendMessageWithSave(publisherBot, chat, `Enter message with name and url with space as a Link https://site.com`);
+    session.setLastAction("enter_keyboard");
+  });
+  publisherBot.onText(/\/confirmpost/, async (msg) => {
+    const chat = msg?.from?.id;
+    if (!chat) return;
+    const user = await getUserData(String(chat));
+    const isAdmin = user?.role_id === 2;
+    if (!isAdmin) {
+      sendMessageWithSave(
+        publisherBot,
+        chat,
+        `Function allowed for admins only`,
+      );
+      return;
+    }
     sendMessageWithSave(publisherBot, chat, `Started`);
   });
-  publisherBot.onText(/\/newpost/, (msg) => {
+  publisherBot.onText(/\/cancelpost/, async (msg) => {
     const chat = msg?.from?.id;
     if (!chat) return;
-    sendMessageWithSave(publisherBot, chat, `Started`);
-  });
-  publisherBot.onText(/\/addkeyboard/, (msg) => {
-    const chat = msg?.from?.id;
-    if (!chat) return;
-    sendMessageWithSave(publisherBot, chat, `Started`);
-  });
-  publisherBot.onText(/\/confirmpost/, (msg) => {
-    const chat = msg?.from?.id;
-    if (!chat) return;
+    const user = await getUserData(String(chat));
+    const isAdmin = user?.role_id === 2;
+    if (!isAdmin) {
+      sendMessageWithSave(
+        publisherBot,
+        chat,
+        `Function allowed for admins only`,
+      );
+      return;
+    }
     sendMessageWithSave(publisherBot, chat, `Started`);
   });
 
@@ -54,11 +121,23 @@ export function initPublisherBot() {
       return;
     }
     const session = getAdminSession(String(chat));
-    sendMessageWithSave(
-      publisherBot,
-      chat,
-      `Sending text: ${msg.text}, action: ${session.getLastAction()}`,
-    );
-    session.setLastAction('post');
+    const action = session.getLastAction();
+    if (action === "init_post") {
+        session.textPost = msg.text;
+        sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
+        setTimeout(() => {
+            sendMessageWithSave(publisherBot, chat, msg?.text || "");
+        }, 1101);
+        return;
+    }
+    if (action === "enter_keyboard") {
+        session.textPost = msg.text;
+        sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
+        setTimeout(() => {
+            sendMessageWithSave(publisherBot, chat, msg?.text || "");
+        }, 1101);
+        return;
+    }
+ 
   });
 }

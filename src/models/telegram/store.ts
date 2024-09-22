@@ -284,20 +284,27 @@ export async function buyItem(buyerId: number, itemId: number, amount: number) {
   }
 
   const buyQuery = `
-         BEGIN;
+    DO $$
+    BEGIN
+    INSERT INTO user_balances (user_id, item_id, amount)
+    VALUES (${buyerId}, ${itemId}, ${amount})
+    ON CONFLICT (user_id, item_id)
+    DO UPDATE SET amount = user_balances.amount + ${amount};
 
-         INSERT INTO user_balances (user_id, item_id, amount)
-         VALUES (${buyerId}, ${itemId}, ${amount})
-         ON CONFLICT (user_id, item_id)
-         DO UPDATE SET amount = user_balances.amount + ${amount};
+    UPDATE user_balances
+    SET amount = amount - ${amount * (saleData.price || 0)}
+    WHERE user_id = ${buyerId}  
+      AND item_id = ${saleData.currency_id}
+      AND amount >= ${amount * (saleData.price || 0)};
 
-        UPDATE user_balances
-        SET amount = amount - ${amount * (saleData.price || 0)}
-        WHERE user_id = ${buyerId} 
-          AND item_id = ${saleData.currency_id}
-          AND amount >= ${amount * (saleData.price || 0)};
-          
-        COMMIT;
+    IF NOT FOUND THEN
+        ROLLBACK;
+        RAISE EXCEPTION 'Insufficient funds';
+    END IF;
+
+    COMMIT;
+    END;
+    $$ LANGUAGE plpgsql;
   `
 
   const result = await Q(buyQuery);
