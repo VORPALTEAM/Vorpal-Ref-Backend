@@ -1,10 +1,11 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { sendMessageWithSave } from '../handlers/utils';
+import { massSendMessageThroughQueue, sendMessageWithSave } from '../handlers/utils';
 import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
 import { notABusyRegex } from '../../utils/text';
-import { setupBotMenu } from './functions';
+import { adminCmdPreprocess, setupBotMenu } from './functions';
+import { Bot } from '../../telegram/bot';
 
 const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
 
@@ -16,55 +17,25 @@ export function initPublisherBot() {
   setupBotMenu(publisherBot, menu);
 
   publisherBot.onText(/\/start/, async (msg) => {
-    const chat = msg?.from?.id;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
-    }
     sendMessageWithSave(publisherBot, chat, `Choose /newpost to start posting`);
-    const session = getAdminSession(String(chat));
+    const session = getAdminSession(chat);
   });
   publisherBot.onText(/\/newpost/, async (msg) => {
-    const chat = msg?.from?.id;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
-    }
-    const session = getAdminSession(String(chat));
+    const session = getAdminSession(chat);
     session.setLastAction("init_post");
-    session.textPost = null;
-    session.photoPost = null;
-    session.postKeyboard = null;
+    session.textPost = undefined;
+    session.photoPost = undefined;
+    session.postKeyboard = undefined;
     sendMessageWithSave(publisherBot, chat, `All right, a new post. Enter a post conent below:`);
   });
   publisherBot.onText(/\/addkeyboard/, async (msg) => {
-    const chat = msg?.from?.id;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
-    }
-    const session = getAdminSession(String(chat));
+    const session = getAdminSession(chat);
     if (!session.textPost && !session.photoPost) {
         sendMessageWithSave(publisherBot, chat, `Please, enter the post content at first`);
         return;
@@ -73,54 +44,39 @@ export function initPublisherBot() {
     session.setLastAction("enter_keyboard");
   });
   publisherBot.onText(/\/confirmpost/, async (msg) => {
-    const chat = msg?.from?.id;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
+    const session = getAdminSession(chat);
+    if (!session.textPost && !session.photoPost) {
+        sendMessageWithSave(publisherBot, chat, `Please, create post at first`);
+        return;
     }
-    sendMessageWithSave(publisherBot, chat, `Started`);
+    sendMessageWithSave(publisherBot, chat, `Message sending started`);
+    if (session.photoPost) {
+        // massSendMessageThroughQueue(Bot, session.textPost || "", )
+        return;
+    }
+    if (session.textPost) {
+        massSendMessageThroughQueue(Bot, session.textPost || "", {
+            parse_mode: "HTML"
+        })
+        return;
+    }
   });
   publisherBot.onText(/\/cancelpost/, async (msg) => {
-    const chat = msg?.from?.id;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
-    }
-    sendMessageWithSave(publisherBot, chat, `Started`);
+    const session = getAdminSession(chat);
+    session.textPost = undefined;
+    session.photoPost = undefined;
+    session.postKeyboard = undefined;
+    sendMessageWithSave(publisherBot, chat, `Post creation cancelled`);
   });
 
   publisherBot.on('message', async (msg) => {
-    const chat = msg?.from?.id;
-    console.log('Received: ', chat, msg.text);
-    if (!msg?.text || !notABusyRegex(msg?.text, commands)) {
-      return;
-    }
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
-    }
-    const session = getAdminSession(String(chat));
+    const session = getAdminSession(chat);
     const action = session.getLastAction();
     if (action === "init_post") {
         session.textPost = msg.text;
@@ -131,6 +87,8 @@ export function initPublisherBot() {
         return;
     }
     if (action === "enter_keyboard") {
+        const chat = await adminCmdPreprocess(publisherBot, msg);
+        if (!chat) return;
         session.textPost = msg.text;
         sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
         setTimeout(() => {

@@ -1,18 +1,18 @@
 import { adminSesionLifetime } from "../../config";
 
-export const sessions = new Map<string, AdminSession>();
+export const sessions = new Map<number, AdminSession>();
 
 export class AdminSession {
-    userId: string;
+    userId: number;
     lastAction: string;
     liveTimer: NodeJS.Timeout;
 
-    public textPost: string | null;
-    public photoPost: any;
-    public postKeyboard: any;
+    public textPost?: string;
+    public photoPost?: any;
+    public postKeyboard?: any;
 
     constructor(
-        userId: string
+        userId: number
     ){
         this.userId = userId;
         this.lastAction = "init";
@@ -40,7 +40,7 @@ export class AdminSession {
     } 
 }
 
-export function getAdminSession (userId: string): AdminSession {
+export function getAdminSession (userId: number): AdminSession {
     return sessions.get(userId) ||(() => {
         const newSession = new AdminSession(userId);
         sessions.set(userId, newSession);
