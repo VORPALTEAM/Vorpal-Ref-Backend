@@ -9,6 +9,7 @@ export class AdminSession {
 
     public textPost?: string;
     public photoPost?: { img: string, text?: string};
+    public videoPost?: { img: string, text?: string}
     public postKeyboard?: any;
 
     constructor(
