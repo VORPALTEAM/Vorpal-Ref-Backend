@@ -15,9 +15,15 @@ export async function sendPhotoWithSave(
   message: string,
   isLocal?: boolean,
   options?: TelegramBot.SendMessageOptions,
+  isVideo?: boolean
 ) {
   try {
-    const msg = await bot.sendPhoto(chatId, isLocal? fs.createReadStream(photoPath) : photoPath, {
+    const msg = isVideo ?
+    await bot.sendVideo(chatId, isLocal? fs.createReadStream(photoPath) : photoPath, {
+      caption: message,
+      ...options
+    }) :
+    await bot.sendPhoto(chatId, isLocal? fs.createReadStream(photoPath) : photoPath, {
       caption: message,
       ...options
     });
@@ -80,15 +86,21 @@ export async function massSendMessageThroughQueue(bot: TelegramBot, message: str
     })
 }
 
-export async function massSendPhotoThroughQueue(bot: TelegramBot, photoId: string, message?: string,
-  options?: TelegramBot.SendMessageOptions) {
+export async function massSendPhotoThroughQueue(
+  bot: TelegramBot, photoId: string, message?: string,
+  options?: TelegramBot.SendMessageOptions, isVideo?: boolean) {
     return new Promise(async (resolve, reject) => {
       const users = await getAllTelegramUsers();
       let index = 0;
       const queue = setInterval(async () => {
         index++;
         try {
-          const msg = await bot.sendPhoto(users[index].chat_id, photoId, {
+          isVideo? 
+          await bot.sendVideo (users[index].chat_id, photoId, {
+            caption: message,
+            ...options
+          }) :
+          await bot.sendPhoto(users[index].chat_id, photoId, {
             caption: message,
             ...options
           });

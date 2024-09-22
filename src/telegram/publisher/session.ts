@@ -8,8 +8,7 @@ export class AdminSession {
     liveTimer: NodeJS.Timeout;
 
     public textPost?: string;
-    public photoPost?: { img: string, text?: string};
-    public videoPost?: { img: string, text?: string}
+    public photoPost?: { img: string, text?: string, video?: boolean};
     public postKeyboard?: any;
 
     constructor(

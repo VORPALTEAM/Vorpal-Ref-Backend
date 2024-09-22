@@ -71,7 +71,7 @@ export function initPublisherBot() {
             reply_markup: session.postKeyboard ? {
                 inline_keyboard: session.postKeyboard
             } : undefined
-        });
+        }, !!session.photoPost?.video);
         return;
     }
     if (session.textPost) {
