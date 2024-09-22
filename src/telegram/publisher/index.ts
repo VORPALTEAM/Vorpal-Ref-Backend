@@ -11,13 +11,20 @@ import { adminCmdPreprocess, setupBotMenu } from './functions';
 import { Bot } from '../../telegram/bot';
 
 const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
+const photoDirectory = "../../../downloads"
 
 export const publisherBot = api_token? new TelegramBot(api_token || '', { polling: true }) : null;
 
 export function initPublisherBot() {
+    if (!fs.existsSync(photoDirectory)) {
+        fs.mkdirSync(photoDirectory, { recursive: true });
+    }
+
   console.log('Publisher started');
   if (!publisherBot) return;
   setupBotMenu(publisherBot, menu);
+
+
 
   publisherBot.onText(/\/start/, async (msg) => {
     const chat = await adminCmdPreprocess(publisherBot, msg);
@@ -135,7 +142,7 @@ export function initPublisherBot() {
             responseType: 'stream'
         });
 
-        const localFilePath = `./downloads/${file.file_path?.split('/').pop()}`;
+        const localFilePath = `./photoDirectory/${file.file_path?.split('/').pop()}`;
         console.log("loaded photo: ", localFilePath);
         const writer = fs.createWriteStream(localFilePath);
         /* const msg = await Bot.sendPhoto(chat, file.file_unique_id, {
