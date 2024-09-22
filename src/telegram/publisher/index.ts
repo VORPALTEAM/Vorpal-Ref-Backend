@@ -84,8 +84,8 @@ export function initPublisherBot() {
     const session = getAdminSession(chat);
     const action = session.getLastAction();
     if (action === "init_post") {
-        session.textPost = msg.text;
-        console.log("Text: ", msg.text);
+        session.textPost = escapeMarkdownV2(msg.text);
+        console.log("Text: ", session.textPost);  
         sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
         setTimeout(() => {
             sendMessageWithSave(publisherBot, chat, escapeMarkdownV2(msg.text || ""), {
