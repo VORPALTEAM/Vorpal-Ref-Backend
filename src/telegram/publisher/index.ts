@@ -104,4 +104,8 @@ export function initPublisherBot() {
     await mediaHandler(msg)
   })
 
+  publisherBot.on("video", async (msg) => {
+    await mediaHandler(msg)
+  })
+
 }
