@@ -142,7 +142,7 @@ export function initPublisherBot() {
             responseType: 'stream'
         });
 
-        const localFilePath = `./photoDirectory/${file.file_path?.split('/').pop()}`;
+        const localFilePath = `${photoDirectory}/${file.file_path?.split('/').pop()}`;
         console.log("loaded photo: ", localFilePath);
         const writer = fs.createWriteStream(localFilePath);
         /* const msg = await Bot.sendPhoto(chat, file.file_unique_id, {
