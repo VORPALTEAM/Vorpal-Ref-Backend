@@ -76,7 +76,7 @@ export async function massSendMessageThroughQueue(bot: TelegramBot, message: str
 }
 
 export async function massSendPhotoThroughQueue(bot: TelegramBot, photoId: string, message?: string,
-  options?: TelegramBot.SendMessageOptions,) {
+  options?: TelegramBot.SendMessageOptions) {
     return new Promise(async (resolve, reject) => {
       const users = await getAllTelegramUsers();
       let index = 0;

@@ -123,7 +123,12 @@ export function initPublisherBot() {
             return;
         }
         const photo = msg.photo[msg.photo.length - 1];  // Use the highest resolution photo
-        session.photoPost = { img: photo.file_id, text: escapeHTML(msg.caption)};
+        const file = await publisherBot.getFile(photo.file_id);
+        /* const msg = await Bot.sendPhoto(chat, file.file_unique_id, {
+            caption: message,
+            ...options
+          }); */
+        session.photoPost = { img: photo.file_unique_id, text: escapeHTML(msg.caption)};
         sendMessageWithSave(publisherBot, chat, `Look at your photo post and send it if ok: `);
         setTimeout(() => {
             publisherBot.sendPhoto(chat, session.photoPost?.img || "", {
