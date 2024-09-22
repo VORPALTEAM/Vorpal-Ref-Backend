@@ -4,7 +4,7 @@ import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
 import { notABusyRegex } from '../../utils/text';
-import { adminCmdPreprocess, setupBotMenu } from './functions';
+import { adminCmdPreprocess, escapeMarkdownV2, setupBotMenu } from './functions';
 import { Bot } from '../../telegram/bot';
 
 const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
@@ -58,7 +58,7 @@ export function initPublisherBot() {
         return;
     }
     if (session.textPost) {
-        massSendMessageThroughQueue(Bot, session.textPost || "", {
+        massSendMessageThroughQueue(Bot, escapeMarkdownV2(session.textPost || ""), {
             parse_mode: "MarkdownV2"
         })
         return;
@@ -85,6 +85,7 @@ export function initPublisherBot() {
     const action = session.getLastAction();
     if (action === "init_post") {
         session.textPost = msg.text;
+        console.log("Text: ", msg.text);
         sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
         setTimeout(() => {
             sendMessageWithSave(publisherBot, chat, msg?.text || "");

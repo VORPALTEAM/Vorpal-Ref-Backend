@@ -18,6 +18,10 @@ export function setupBotMenu (bot: TelegramBot, commands: cmd[]) {
     
 }
 
+export function escapeMarkdownV2(text) {
+    return text.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
+}
+
 
 export async function adminCmdPreprocess (bot: TelegramBot, msg: TelegramBot.Message): Promise<number | null> {
     const chat = msg?.from?.id;
