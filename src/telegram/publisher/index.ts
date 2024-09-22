@@ -129,11 +129,13 @@ export function initPublisherBot() {
         const fileUrl = `https://api.telegram.org/file/bot${api_token}/${file.file_path}`;
 
         const response = await fetch(fileUrl);
+        console.log("Url responce:" , response.ok);
         if (!response.ok || !response?.body) {
             sendMessageWithSave(publisherBot, chat, "Failed to load photo");
             return;
         }
         const localFilePath = `./downloads/${file.file_path?.split('/').pop()}`;
+        console.log("loaded photo: ", localFilePath);
         const writer = fs.createWriteStream(localFilePath);
         /* const msg = await Bot.sendPhoto(chat, file.file_unique_id, {
             caption: message,
@@ -148,9 +150,10 @@ export function initPublisherBot() {
         });
         const newFile = await sendPhotoWithSave(Bot, chat, localFilePath, "", true, {});
         if (!newFile) {
-            sendMessageWithSave(publisherBot, chat, "Failed to resend photo")
+            sendMessageWithSave(publisherBot, chat, "Failed to resend photo");
+            return;
         }
-        session.photoPost = { img: newFile || "", text: escapeHTML(msg.caption)};
+        session.photoPost = { img: newFile || "", text: msg.caption};
         sendMessageWithSave(publisherBot, chat, `Look at your photo post and send it if ok: `);
         setTimeout(() => {
             publisherBot.sendPhoto(chat, photo.file_id, {
