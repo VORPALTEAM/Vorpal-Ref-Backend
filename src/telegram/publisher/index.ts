@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import fs from 'fs';
-import { Readable } from "stream";
+import fetch from 'node-fetch';
+import Readable from 'stream';
 import { massSendMessageThroughQueue, massSendPhotoThroughQueue, sendMessageWithSave, sendPhotoWithSave } from '../handlers/utils';
 import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
@@ -141,8 +142,8 @@ export function initPublisherBot() {
             caption: message,
             ...options
           }); */
-
-        Readable.fromWeb(response.body).pipe(writer);
+        
+        Readable["fromWeb"](response.body).pipe(writer);
 
         await new Promise((resolve, reject) => {
             writer.on('finish', () => resolve(localFilePath));
