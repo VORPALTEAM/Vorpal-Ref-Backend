@@ -66,13 +66,19 @@ export function initPublisherBot() {
     sendMessageWithSave(publisherBot, chat, `Message sending started`);
     if (session.photoPost) {
         massSendPhotoThroughQueue(Bot, session.photoPost?.img || "", session.photoPost?.text, {
-            parse_mode: "HTML"
+            parse_mode: "HTML",
+            reply_markup: session.postKeyboard ? {
+                inline_keyboard: session.postKeyboard
+            } : undefined
         });
         return;
     }
     if (session.textPost) {
         massSendMessageThroughQueue(Bot, session.textPost || "", {
-            parse_mode: "HTML"
+            parse_mode: "HTML",
+            reply_markup: session.postKeyboard ? {
+                inline_keyboard: session.postKeyboard
+            } : undefined
         })
         return;
     }
@@ -110,10 +116,26 @@ export function initPublisherBot() {
     if (action === "enter_keyboard") {
         const chat = await adminCmdPreprocess(publisherBot, msg);
         if (!chat) return;
-        session.textPost = msg.text;
+        const keyboardInfo = msg?.text.split(" ");
+        if (!keyboardInfo || keyboardInfo.length < 2) {
+            sendMessageWithSave(publisherBot, chat, `Invalid entry`);
+            return;
+        }
+        session.postKeyboard = [
+            [
+                {
+                    text: keyboardInfo[0], 
+                    url: keyboardInfo[1]
+                }
+            ]
+        ]
         sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
         setTimeout(() => {
-            sendMessageWithSave(publisherBot, chat, msg?.text || "");
+            sendMessageWithSave(publisherBot, chat, "", {
+                reply_markup: {
+                    inline_keyboard: session.postKeyboard
+                }
+            });
         }, 1101);
         return;
     }
