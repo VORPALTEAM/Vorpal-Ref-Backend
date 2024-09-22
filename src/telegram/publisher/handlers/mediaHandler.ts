@@ -18,11 +18,12 @@ export const mediaHandler = async (msg: TelegramBot.Message) => {
 
     if (action === "init_post") {
         if (!publisherBot) return;
-        if (!msg.photo || msg.photo.length === 0) {
-            sendMessageWithSave(publisherBot, chat, "No photo in message");
+        if ((!msg.photo || msg.photo.length === 0) && !msg.video) {
+            sendMessageWithSave(publisherBot, chat, "No media in message");
             return;
         }
-        const photo = msg.photo[msg.photo.length - 1];  // Use the highest resolution photo
+        const video = msg.video;
+        const photo = msg.video || (msg.photo && (msg.photo.length > 0) ? msg.photo[msg.photo.length - 1] : {file_id: ""});  // Use the highest resolution photo
         const file = await publisherBot.getFile(photo.file_id);
         const fileUrl = `https://api.telegram.org/file/bot${publisher_api_token}/${file.file_path}`;
 
