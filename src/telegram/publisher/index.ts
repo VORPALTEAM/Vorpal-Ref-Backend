@@ -4,7 +4,7 @@ import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
 import { notABusyRegex } from '../../utils/text';
-import { adminCmdPreprocess, escapeMarkdownV2, setupBotMenu } from './functions';
+import { adminCmdPreprocess, escapeHTML, escapeMarkdownV2, setupBotMenu } from './functions';
 import { Bot } from '../../telegram/bot';
 
 const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
@@ -47,6 +47,7 @@ export function initPublisherBot() {
     const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
     const session = getAdminSession(chat);
+    console.log("Session info: ", session.textPost, session.photoPost);
     if (!session.textPost && !session.photoPost) {
         sendMessageWithSave(publisherBot, chat, `Please, create post at first`);
         return;
@@ -122,11 +123,11 @@ export function initPublisherBot() {
             return;
         }
         const photo = msg.photo[msg.photo.length - 1];  // Use the highest resolution photo
-        session.photoPost = { img: photo.file_id, text: msg.caption};
+        session.photoPost = { img: photo.file_id, text: escapeHTML(msg.caption)};
         sendMessageWithSave(publisherBot, chat, `Look at your photo post and send it if ok: `);
         setTimeout(() => {
             publisherBot.sendPhoto(chat, session.photoPost?.img || "", {
-                caption: session.photoPost?.text,
+                caption: escapeHTML(session.photoPost?.text),
                 parse_mode: "HTML"
             });
         }, 1101);

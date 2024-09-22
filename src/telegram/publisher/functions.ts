@@ -22,6 +22,14 @@ export function escapeMarkdownV2(text) {
     return text.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
 }
 
+export function escapeHTML(text) {
+    return text.replace(/&/g, '&amp;')
+               .replace(/</g, '&lt;')
+               .replace(/>/g, '&gt;')
+               .replace(/"/g, '&quot;')
+               .replace(/'/g, '&#039;');
+}
+
 
 export async function adminCmdPreprocess (bot: TelegramBot, msg: TelegramBot.Message): Promise<number | null> {
     const chat = msg?.from?.id;
