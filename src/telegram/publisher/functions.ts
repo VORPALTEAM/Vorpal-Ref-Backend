@@ -18,17 +18,17 @@ export function setupBotMenu (bot: TelegramBot, commands: cmd[]) {
     
 }
 
-export function escapeMarkdownV2(text) {
+/* export function escapeMarkdownV2(text) {
     return text.replace(/([_*[\]()~`>#+\-=|{}.!])/g, '\\$1');
 }
 
-export function escapeHTML(text) {
+export function escapeHTML(text: string): string {
     return text.replace(/&/g, '&amp;')
                .replace(/</g, '&lt;')
                .replace(/>/g, '&gt;')
                .replace(/"/g, '&quot;')
                .replace(/'/g, '&#039;');
-}
+} */
 
 
 export async function adminCmdPreprocess (bot: TelegramBot, msg: TelegramBot.Message): Promise<number | null> {

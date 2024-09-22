@@ -6,7 +6,7 @@ import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
 import { notABusyRegex } from '../../utils/text';
-import { adminCmdPreprocess, escapeHTML, escapeMarkdownV2, setupBotMenu } from './functions';
+import { adminCmdPreprocess, setupBotMenu } from './functions';
 import { Bot } from '../../telegram/bot';
 
 const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
