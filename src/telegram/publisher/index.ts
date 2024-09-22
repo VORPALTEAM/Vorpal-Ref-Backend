@@ -1,5 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { massSendMessageThroughQueue, massSendPhotoThroughQueue, sendMessageWithSave } from '../handlers/utils';
+import fs from 'fs';
+import { Readable } from "stream";
+import { massSendMessageThroughQueue, massSendPhotoThroughQueue, sendMessageWithSave, sendPhotoWithSave } from '../handlers/utils';
 import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
@@ -124,14 +126,34 @@ export function initPublisherBot() {
         }
         const photo = msg.photo[msg.photo.length - 1];  // Use the highest resolution photo
         const file = await publisherBot.getFile(photo.file_id);
+        const fileUrl = `https://api.telegram.org/file/bot${api_token}/${file.file_path}`;
+
+        const response = await fetch(fileUrl);
+        if (!response.ok || !response?.body) {
+            sendMessageWithSave(publisherBot, chat, "Failed to load photo");
+            return;
+        }
+        const localFilePath = `./downloads/${file.file_path?.split('/').pop()}`;
+        const writer = fs.createWriteStream(localFilePath);
         /* const msg = await Bot.sendPhoto(chat, file.file_unique_id, {
             caption: message,
             ...options
           }); */
-        session.photoPost = { img: photo.file_unique_id, text: escapeHTML(msg.caption)};
+
+        Readable.fromWeb(response.body).pipe(writer);
+
+        await new Promise((resolve, reject) => {
+            writer.on('finish', () => resolve(localFilePath));
+            writer.on('error', reject);
+        });
+        const newFile = await sendPhotoWithSave(Bot, chat, localFilePath, "", true, {});
+        if (!newFile) {
+            sendMessageWithSave(publisherBot, chat, "Failed to resend photo")
+        }
+        session.photoPost = { img: newFile || "", text: escapeHTML(msg.caption)};
         sendMessageWithSave(publisherBot, chat, `Look at your photo post and send it if ok: `);
         setTimeout(() => {
-            publisherBot.sendPhoto(chat, session.photoPost?.img || "", {
+            publisherBot.sendPhoto(chat, photo.file_id, {
                 caption: session.photoPost?.text,
                 parse_mode: "HTML"
             });

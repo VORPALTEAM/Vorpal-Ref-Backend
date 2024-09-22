@@ -21,8 +21,13 @@ export async function sendPhotoWithSave(
       caption: message,
       ...options
     });
+    if (msg.photo && msg.photo.length > 0) {
+      const newFileId = msg.photo[msg.photo.length - 1].file_id; // Get the highest resolution file_id
+      return newFileId; // Return the new file_id
+    }
+
     // await saveMessage(chatId, msg.message_id);
-    return true;
+    return false;
   } catch (e) {
     console.log(e.message);
     return false;
