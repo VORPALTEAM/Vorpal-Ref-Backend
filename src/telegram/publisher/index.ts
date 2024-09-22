@@ -88,7 +88,9 @@ export function initPublisherBot() {
         console.log("Text: ", msg.text);
         sendMessageWithSave(publisherBot, chat, `Look at your post and send it if ok: `);
         setTimeout(() => {
-            sendMessageWithSave(publisherBot, chat, msg?.text || "");
+            sendMessageWithSave(publisherBot, chat, escapeMarkdownV2(msg.text || ""), {
+                parse_mode: "MarkdownV2"
+            });
         }, 1101);
         return;
     }
