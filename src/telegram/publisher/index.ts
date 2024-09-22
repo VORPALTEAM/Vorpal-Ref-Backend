@@ -127,7 +127,7 @@ export function initPublisherBot() {
         sendMessageWithSave(publisherBot, chat, `Look at your photo post and send it if ok: `);
         setTimeout(() => {
             publisherBot.sendPhoto(chat, session.photoPost?.img || "", {
-                caption: escapeHTML(session.photoPost?.text),
+                caption: session.photoPost?.text,
                 parse_mode: "HTML"
             });
         }, 1101);
