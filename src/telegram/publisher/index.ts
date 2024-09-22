@@ -1,6 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import fs from 'fs';
-import fetch from 'node-fetch';
+import axios from 'axios';
 import Readable from 'stream';
 import { massSendMessageThroughQueue, massSendPhotoThroughQueue, sendMessageWithSave, sendPhotoWithSave } from '../handlers/utils';
 import { getUserData } from '../../models/user';
@@ -129,12 +129,12 @@ export function initPublisherBot() {
         const file = await publisherBot.getFile(photo.file_id);
         const fileUrl = `https://api.telegram.org/file/bot${api_token}/${file.file_path}`;
 
-        const response = await fetch(fileUrl);
-        console.log("Url responce:" , response.ok);
-        if (!response.ok || !response?.body) {
-            sendMessageWithSave(publisherBot, chat, "Failed to load photo");
-            return;
-        }
+        const response = await axios({
+            url: fileUrl,
+            method: 'GET',
+            responseType: 'stream'
+        });
+
         const localFilePath = `./downloads/${file.file_path?.split('/').pop()}`;
         console.log("loaded photo: ", localFilePath);
         const writer = fs.createWriteStream(localFilePath);
@@ -142,8 +142,7 @@ export function initPublisherBot() {
             caption: message,
             ...options
           }); */
-        
-        Readable["fromWeb"](response.body).pipe(writer);
+        response.data.pipe(writer);
 
         await new Promise((resolve, reject) => {
             writer.on('finish', () => resolve(localFilePath));
