@@ -74,3 +74,27 @@ export async function massSendMessageThroughQueue(bot: TelegramBot, message: str
       }, messageSendingInterval)
     })
 }
+
+export async function massSendPhotoThroughQueue(bot: TelegramBot, photoId: string, message?: string,
+  options?: TelegramBot.SendMessageOptions,) {
+    return new Promise(async (resolve, reject) => {
+      const users = await getAllTelegramUsers();
+      let index = 0;
+      const queue = setInterval(async () => {
+        index++;
+        try {
+          const msg = await bot.sendPhoto(users[index].chat_id, photoId, {
+            caption: message,
+            ...options
+          });
+          // await saveMessage(chatId, msg.message_id);
+        } catch (e) {
+          console.log(e.message);
+        }
+        if (index >= users.length - 1) {
+          clearInterval(queue);
+          resolve(true);
+        }
+      }, messageSendingInterval)
+    })
+}

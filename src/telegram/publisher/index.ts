@@ -1,5 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { massSendMessageThroughQueue, sendMessageWithSave } from '../handlers/utils';
+import { massSendMessageThroughQueue, massSendPhotoThroughQueue, sendMessageWithSave } from '../handlers/utils';
 import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
@@ -54,7 +54,9 @@ export function initPublisherBot() {
     session.setLastAction("init");
     sendMessageWithSave(publisherBot, chat, `Message sending started`);
     if (session.photoPost) {
-        // massSendMessageThroughQueue(Bot, session.textPost || "", )
+        massSendPhotoThroughQueue(Bot, session.photoPost?.img || "", session.photoPost?.text, {
+            parse_mode: "HTML"
+        });
         return;
     }
     if (session.textPost) {
@@ -106,4 +108,29 @@ export function initPublisherBot() {
     }
     session.setLastAction("post_written");
   });
+
+  publisherBot.on("photo", async (msg) => {
+    const chat = await adminCmdPreprocess(publisherBot, msg);
+    if (!chat) return;
+
+    const session = getAdminSession(chat);
+    const action = session.getLastAction();
+
+    if (action === "init_post") {
+        if (!msg.photo || msg.photo.length === 0) {
+            sendMessageWithSave(publisherBot, chat, "No photo in message");
+            return;
+        }
+        const photo = msg.photo[msg.photo.length - 1];  // Use the highest resolution photo
+        session.photoPost = { img: photo.file_id, text: msg.caption};
+        sendMessageWithSave(publisherBot, chat, `Look at your photo post and send it if ok: `);
+        setTimeout(() => {
+            publisherBot.sendPhoto(chat, session.photoPost?.img || "", {
+                caption: session.photoPost?.text,
+                parse_mode: "HTML"
+            });
+        }, 1101);
+        session.setLastAction("post_written");
+    }
+  })
 }
