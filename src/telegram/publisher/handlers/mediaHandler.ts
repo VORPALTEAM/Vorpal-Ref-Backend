@@ -71,10 +71,7 @@ export const mediaHandler = async (
       .pop()}`;
     console.log('loaded photo: ', localFilePath);
     const writer = fs.createWriteStream(localFilePath);
-    /* const msg = await Bot.sendPhoto(chat, file.file_unique_id, {
-            caption: message,
-            ...options
-          }); */
+
     response.data.pipe(writer);
 
     await new Promise((resolve, reject) => {
@@ -109,10 +106,10 @@ export const mediaHandler = async (
         sendMediaWithSave(
           publisherBot,
           chat,
-          mediaFile,
+          newFile,
           session.mediaPost?.text || '',
           type,
-          true,
+          false,
           {
             parse_mode: 'HTML',
           },

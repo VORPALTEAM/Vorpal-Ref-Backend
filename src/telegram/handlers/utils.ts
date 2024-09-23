@@ -199,7 +199,7 @@ export async function massSendMediaThroughQueue(
       const queue = setInterval(async () => {
         index++;
         try {
-          sendMediaWithSave(bot, users[index].chat_id, fileId, message || "", type, true, options)
+          sendMediaWithSave(bot, users[index].chat_id, fileId, message || "", type, false, options)
           // await saveMessage(chatId, msg.message_id);
         } catch (e) {
           console.log(e.message);
