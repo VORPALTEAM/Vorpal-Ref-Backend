@@ -103,42 +103,20 @@ export const mediaHandler = async (
       chat,
       `Look at your photo post and send it if ok: `,
     );
-    retrySendMediaWithTimeout(
-      publisherBot,
-      chat,
-      session,
-      type,
-      10000,   // Retry every 20.5 seconds
-      600000,  // Stop after 10 minutes
-      {
-        parse_mode: 'HTML',
-        reply_markup: session.postKeyboard ? {
-          inline_keyboard: session.postKeyboard
-        } : undefined
-      }
-    ).then((success) => {
-      if (success) {
-        console.log('Media sent successfully after retries.');
-      } else {
-        console.log('Failed to send media within the time limit.');
-      }
-    }).catch((error) => {
-      console.log('Error while sending media:', error);
-    });
-    /* setTimeout(() => {
+    setTimeout(() => {
       if (publisherBot)
         sendMediaWithSave(
           publisherBot,
           chat,
-          session.mediaPost?.img || '',
+          localFilePath,
           session.mediaPost?.text || '',
           type,
-          false,
+          true,
           {
             parse_mode: 'HTML',
           },
         );
-    }, 60000); */
+    }, 5000);
     session.setLastAction('post_written');
   }
 };
