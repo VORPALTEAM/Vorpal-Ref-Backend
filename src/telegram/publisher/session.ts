@@ -1,3 +1,4 @@
+import { TelegramMediaType } from "types";
 import { adminSesionLifetime } from "../../config";
 
 export const sessions = new Map<number, AdminSession>();
@@ -8,7 +9,7 @@ export class AdminSession {
     liveTimer: NodeJS.Timeout;
 
     public textPost?: string;
-    public photoPost?: { img: string, text?: string, video?: boolean};
+    public mediaPost?: { img: string, text?: string, type: TelegramMediaType};
     public postKeyboard?: any;
 
     constructor(
