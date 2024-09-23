@@ -7,7 +7,8 @@ import {
 import TelegramBot from 'node-telegram-bot-api';
 import { getAllTelegramUsers } from '../../models/user';
 import { messageSendingInterval } from '../../config';
-import { TelegramMediaType } from 'types';
+import { TelegramMediaType } from '../../types';
+import { AdminSession } from '../publisher/session';
 
 export async function sendPhotoWithSave(
   bot: TelegramBot,
@@ -51,6 +52,7 @@ export async function sendMediaWithSave(
   options?: TelegramBot.SendMessageOptions,
 ) {
   try {
+    console.log("Path or id to send: ", mediaPath);
     const msg = await (async () => {
       switch (mediaType) {
         case "photo":
@@ -214,4 +216,57 @@ export async function massSendMediaThroughQueue(
         }
       }, messageSendingInterval)
     })
+}
+
+export function retrySendMediaWithTimeout(
+  bot: TelegramBot,
+  chatId: number,
+  session: AdminSession,
+  type: string,
+  intervalTime = 10000,
+  maxDuration = 600000, // Maximum 10 minutes
+  options: TelegramBot.SendMessageOptions = { parse_mode: 'HTML' },
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+
+    const interval = setInterval(async () => {
+      try {
+        const currentTime = Date.now();
+        if (currentTime - startTime >= maxDuration) {
+          clearInterval(interval);
+          console.log('Retry time limit reached, stopping further attempts.');
+          resolve(false); // Resolve as false when the time limit is reached
+          return;
+        }
+
+        // Attempt to send media
+        console.log('Attempting to resend media...');
+        const success = await sendMediaWithSave(
+          bot,
+          chatId,
+          session.mediaPost?.img || '',
+          session.mediaPost?.text || '',
+          type,
+          false,
+          options,
+        );
+
+        // If the media is successfully sent, resolve the Promise
+        if (success) {
+          console.log('Media sent successfully!');
+          clearInterval(interval);
+          resolve(true); // Resolve as true when media is successfully sent
+        } else {
+          console.log('Failed to send media, retrying...');
+          sendMessageWithSave(bot, chatId, "Waiting to send media...")
+        }
+
+      } catch (e) {
+        console.log('Error during retry:', e.message);
+        clearInterval(interval);
+        reject(e); // Reject the Promise on error
+      }
+    }, intervalTime); // Set the retry interval
+  });
 }

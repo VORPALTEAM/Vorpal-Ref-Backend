@@ -3,6 +3,7 @@ import axios from 'axios';
 import fs from 'fs';
 import { Bot } from '../../bot';
 import {
+  retrySendMediaWithTimeout,
   sendMediaWithSave,
   sendMessageWithSave,
   sendPhotoWithSave,
@@ -102,22 +103,30 @@ export const mediaHandler = async (
       chat,
       `Look at your photo post and send it if ok: `,
     );
-    setTimeout(() => {
+    retrySendMediaWithTimeout(
+      publisherBot,
+      chat,
+      session,
+      type,
+      10000,   // Retry every 20.5 seconds
+      600000,  // Stop after 10 minutes
+      {
+        parse_mode: 'HTML',
+        reply_markup: session.postKeyboard ? {
+          inline_keyboard: session.postKeyboard
+        } : undefined
+      }
+    ).then((success) => {
+      if (success) {
+        console.log('Media sent successfully after retries.');
+      } else {
+        console.log('Failed to send media within the time limit.');
+      }
+    }).catch((error) => {
+      console.log('Error while sending media:', error);
+    });
+    /* setTimeout(() => {
       if (publisherBot)
-        /* 
-           // It's working ok: 
-           massSendMediaThroughQueue(Bot, 
-          session.mediaPost?.img || "", 
-          session.mediaPost?.text || "", 
-          session.mediaPost.type,
-          {
-            parse_mode: "HTML",
-            reply_markup: session.postKeyboard ? {
-                inline_keyboard: session.postKeyboard
-            } : undefined
-        });
-        sendMediaWithSave(bot, users[index].chat_id, fileId, message || "", type, false, options)
-        */
         sendMediaWithSave(
           publisherBot,
           chat,
@@ -129,7 +138,7 @@ export const mediaHandler = async (
             parse_mode: 'HTML',
           },
         );
-    }, 120000);
+    }, 60000); */
     session.setLastAction('post_written');
   }
 };
