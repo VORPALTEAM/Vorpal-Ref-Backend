@@ -92,13 +92,17 @@ export async function sendMediaWithSave(
     const fileId = (() => {
       switch (mediaType) {
         case "photo":
-          return msg.photo?.[msg.photo.length - 1].file_id;  // Highest resolution photo
+          return msg.photo?.[msg.photo.length - 1].file_id; // Highest resolution photo
         case "video":
+          return msg.video?.file_id;
         case "audio":
+          return msg.audio?.file_id;
         case "animation":
+          return msg.animation?.file_id;
         case "document":
+          return msg.document?.file_id;
         case "voice":
-          return msg[mediaType]?.file_id;  // For single file media types like video, audio, etc.
+          return msg.voice?.file_id;
         default:
           return null;
       }

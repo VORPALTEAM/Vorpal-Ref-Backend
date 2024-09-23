@@ -87,6 +87,7 @@ export const mediaHandler = async (
       true,
       {},
     );
+    console.log("New file id: ", newFile);
     if (!newFile) {
       sendMessageWithSave(publisherBot, chat, 'Failed to resend photo');
       return;
@@ -114,7 +115,7 @@ export const mediaHandler = async (
             parse_mode: 'HTML',
           },
         );
-    }, 1101);
+    }, 1501);
     session.setLastAction('post_written');
   }
 };
