@@ -25,10 +25,10 @@ export const mediaHandler = async (
 
   if (action === 'init_post') {
     if (!publisherBot) return;
-    if ((!msg.photo || msg.photo.length === 0) && !msg.video) {
+    /* if ((!msg.photo || msg.photo.length === 0) && !msg.video) {
       sendMessageWithSave(publisherBot, chat, 'No media in message');
       return;
-    }
+    }*/
     const mediaFile: string = (() => {
       switch (true) {
         case !!msg.animation:
