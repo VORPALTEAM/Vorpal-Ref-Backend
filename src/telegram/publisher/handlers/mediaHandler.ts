@@ -121,7 +121,7 @@ export const mediaHandler = async (
         sendMediaWithSave(
           publisherBot,
           chat,
-          newFile,
+          session.mediaPost?.img || '',
           session.mediaPost?.text || '',
           type,
           false,
@@ -129,7 +129,7 @@ export const mediaHandler = async (
             parse_mode: 'HTML',
           },
         );
-    }, 9901);
+    }, 20500);
     session.setLastAction('post_written');
   }
 };
