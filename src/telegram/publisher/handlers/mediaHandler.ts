@@ -129,7 +129,7 @@ export const mediaHandler = async (
             parse_mode: 'HTML',
           },
         );
-    }, 20500);
+    }, 120000);
     session.setLastAction('post_written');
   }
 };
