@@ -205,3 +205,5 @@ export type TGInitData = {
         allows_write_to_pm: boolean
     }
 }
+
+export type TelegramMediaType = "audio" | "video" | "photo" | "animation" | "document" | "voice"

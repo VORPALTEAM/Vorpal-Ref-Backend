@@ -97,11 +97,11 @@ export const buyResponse = async (req: Request, res: Response) => {
             res.status(403).send(JSON.stringify({error: "Auth failed"}))
             return;
         }
-        const isAvailable = await isItemAvailableToBuy(userId, body.itemId, body.amount);
+        /* const isAvailable = await isItemAvailableToBuy(userId, body.itemId, body.amount);
         if (!isAvailable.ok) {
             res.status(403).send(JSON.stringify({error: isAvailable.error}))
             return;
-        }
+        } */
         const buy = await buyItem (userId, body.itemId, body.amount);
         res.status(200).send(JSON.stringify(buy));
     } catch (e) {

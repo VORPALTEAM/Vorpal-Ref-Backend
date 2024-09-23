@@ -1,64 +1,117 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { sendMessageWithSave } from '../handlers/utils';
+import fs from 'fs';
+import axios from 'axios';
+import { massSendMediaThroughQueue, massSendMessageThroughQueue, massSendPhotoThroughQueue, sendMessageWithSave, sendPhotoWithSave } from '../handlers/utils';
 import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
 import { notABusyRegex } from '../../utils/text';
-import { setupBotMenu } from './functions';
+import { adminCmdPreprocess, setupBotMenu } from './functions';
+import { Bot } from '../../telegram/bot';
+import { photoDirectory, publisherBot, publisher_api_token } from './initial';
+import { mediaHandler } from './handlers/mediaHandler';
+import { textHandler } from './handlers/textHandler';
+import { TelegramMediaType } from 'types';
 
-const api_token = process.env.TELEGRAM_PUBLISHER_API_TOKEN;
+const mediaTypes: TelegramMediaType[] = ['photo', 'video', 'audio', 'document', 'voice', 'animation'];
 
-export const publisherBot = api_token? new TelegramBot(api_token || '', { polling: true }) : null;
 
 export function initPublisherBot() {
+    if (!fs.existsSync(photoDirectory)) {
+        fs.mkdirSync(photoDirectory, { recursive: true });
+    }
+
   console.log('Publisher started');
   if (!publisherBot) return;
   setupBotMenu(publisherBot, menu);
+  if (!publisherBot) return;
 
-  publisherBot.onText(/\/start/, (msg) => {
-    const chat = msg?.from?.id;
+
+  publisherBot.onText(/\/start/, async (msg) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    sendMessageWithSave(publisherBot, chat, `Started`);
+    sendMessageWithSave(publisherBot, chat, `Choose /newpost to start posting`);
+    const session = getAdminSession(chat);
   });
-  publisherBot.onText(/\/newpost/, (msg) => {
-    const chat = msg?.from?.id;
+  publisherBot.onText(/\/newpost/, async (msg) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    sendMessageWithSave(publisherBot, chat, `Started`);
+    const session = getAdminSession(chat);
+    session.setLastAction("init_post");
+    session.textPost = undefined;
+    session.mediaPost = undefined;
+    session.postKeyboard = undefined;
+    sendMessageWithSave(publisherBot, chat, `All right, a new post. Enter a post conent below:`);
   });
-  publisherBot.onText(/\/addkeyboard/, (msg) => {
-    const chat = msg?.from?.id;
+  publisherBot.onText(/\/addkeyboard/, async (msg) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    sendMessageWithSave(publisherBot, chat, `Started`);
+    const session = getAdminSession(chat);
+    if (!session.textPost && !session.mediaPost) {
+        sendMessageWithSave(publisherBot, chat, `Please, enter the post content at first`);
+        return;
+    }
+    sendMessageWithSave(publisherBot, chat, `Enter message with name and url with space as a Link https://site.com`);
+    session.setLastAction("enter_keyboard");
   });
-  publisherBot.onText(/\/confirmpost/, (msg) => {
-    const chat = msg?.from?.id;
+  publisherBot.onText(/\/confirmpost/, async (msg) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
     if (!chat) return;
-    sendMessageWithSave(publisherBot, chat, `Started`);
+    const session = getAdminSession(chat);
+    console.log("Session info: ", session.textPost, session.mediaPost);
+    if (!session.textPost && !session.mediaPost) {
+        sendMessageWithSave(publisherBot, chat, `Please, create post at first`);
+        return;
+    }
+    session.setLastAction("init");
+    sendMessageWithSave(publisherBot, chat, `Message sending started`);
+    if (session.mediaPost) {
+        massSendMediaThroughQueue(Bot, 
+          session.mediaPost?.img || "", 
+          session.mediaPost?.text || "", 
+          session.mediaPost.type,
+          {
+            parse_mode: "HTML",
+            reply_markup: session.postKeyboard ? {
+                inline_keyboard: session.postKeyboard
+            } : undefined
+        });
+        return;
+    }
+    if (session.textPost) {
+        massSendMessageThroughQueue(Bot, session.textPost || "", {
+            parse_mode: "HTML",
+            reply_markup: session.postKeyboard ? {
+                inline_keyboard: session.postKeyboard
+            } : undefined
+        })
+        return;
+    }
+  });
+  publisherBot.onText(/\/cancelpost/, async (msg) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
+    if (!chat) return;
+    const session = getAdminSession(chat);
+    session.setLastAction("init");
+    session.textPost = undefined;
+    session.mediaPost = undefined;
+    session.postKeyboard = undefined;
+    sendMessageWithSave(publisherBot, chat, `Post creation cancelled`);
   });
 
   publisherBot.on('message', async (msg) => {
-    const chat = msg?.from?.id;
-    console.log('Received: ', chat, msg.text);
-    if (!msg?.text || !notABusyRegex(msg?.text, commands)) {
-      return;
-    }
-    if (!chat) return;
-    const user = await getUserData(String(chat));
-    const isAdmin = user?.role_id === 2;
-    if (!isAdmin) {
-      sendMessageWithSave(
-        publisherBot,
-        chat,
-        `Function allowed for admins only`,
-      );
-      return;
-    }
-    const session = getAdminSession(String(chat));
-    sendMessageWithSave(
-      publisherBot,
-      chat,
-      `Sending text: ${msg.text}, action: ${session.getLastAction()}`,
-    );
-    session.setLastAction('post');
+    await textHandler(msg)
   });
+
+  mediaTypes.forEach((type) => {
+    if (!publisherBot) return;
+    publisherBot.on(type, async (msg) => {
+      await mediaHandler(msg, type)
+    })
+  })
 }

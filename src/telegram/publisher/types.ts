@@ -7,6 +7,7 @@ export const commands = [
     /\/newpost/, // Start post creation
     /\/addkeyboard/, // Add buttons to post
     /\/confirmpost/, // Send post
+    /\/cancelpost/
 ]
 
 export const menu: cmd[] = [
@@ -16,14 +17,18 @@ export const menu: cmd[] = [
     },
     {
         name: "/newpost",
-        description: "Info"
+        description: "New post"
     },
     {
         name: "/addkeyboard",
-        description: "Info"
+        description: "Add keyboard to post"
     },
     {
         name: "/confirmpost",
-        description: "Info"
+        description: "Send post"
+    },
+    {
+        name: "/cancelpost",
+        description: "Cancel post sending"
     }
 ]
