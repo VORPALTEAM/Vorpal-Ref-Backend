@@ -104,6 +104,20 @@ export const mediaHandler = async (
     );
     setTimeout(() => {
       if (publisherBot)
+        /* 
+           // It's working ok: 
+           massSendMediaThroughQueue(Bot, 
+          session.mediaPost?.img || "", 
+          session.mediaPost?.text || "", 
+          session.mediaPost.type,
+          {
+            parse_mode: "HTML",
+            reply_markup: session.postKeyboard ? {
+                inline_keyboard: session.postKeyboard
+            } : undefined
+        });
+        sendMediaWithSave(bot, users[index].chat_id, fileId, message || "", type, false, options)
+        */
         sendMediaWithSave(
           publisherBot,
           chat,
@@ -115,7 +129,7 @@ export const mediaHandler = async (
             parse_mode: 'HTML',
           },
         );
-    }, 1501);
+    }, 9901);
     session.setLastAction('post_written');
   }
 };
