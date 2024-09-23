@@ -109,4 +109,21 @@ export function initPublisherBot() {
     await mediaHandler(msg)
   })
 
+  publisherBot.on("animation", async (msg) => {
+    console.log("Animatiom called");
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
+    if (!chat) return;
+    sendMessageWithSave(publisherBot, chat, `Animation called`);
+    // await mediaHandler(msg)
+  });
+
+  publisherBot.on("video_note", async (msg) => {
+    console.log("Video note called");
+    // await mediaHandler(msg)
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
+    if (!chat) return;
+    sendMessageWithSave(publisherBot, chat, `Video note called`);
+  });
 }
