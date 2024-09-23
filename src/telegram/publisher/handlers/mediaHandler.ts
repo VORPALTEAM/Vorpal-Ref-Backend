@@ -2,13 +2,20 @@ import TelegramBot from 'node-telegram-bot-api';
 import axios from 'axios';
 import fs from 'fs';
 import { Bot } from '../../bot';
-import { sendMediaWithSave, sendMessageWithSave, sendPhotoWithSave } from '../../handlers/utils';
+import {
+  sendMediaWithSave,
+  sendMessageWithSave,
+  sendPhotoWithSave,
+} from '../../handlers/utils';
 import { photoDirectory, publisher_api_token, publisherBot } from '../initial';
 import { adminCmdPreprocess } from '../functions';
 import { getAdminSession } from '../session';
 import { TelegramMediaType } from '../../../types';
 
-export const mediaHandler = async (msg: TelegramBot.Message, type: TelegramMediaType = "animation") => {
+export const mediaHandler = async (
+  msg: TelegramBot.Message,
+  type: TelegramMediaType = 'animation',
+) => {
   if (!publisherBot) return;
   const chat = await adminCmdPreprocess(publisherBot, msg);
   if (!chat) return;
@@ -25,28 +32,34 @@ export const mediaHandler = async (msg: TelegramBot.Message, type: TelegramMedia
     const mediaFile: string = (() => {
       switch (true) {
         case !!msg.animation:
-          return msg.animation.file_id;
+          return msg.animation?.file_id || "";
         case !!msg.video:
-          return msg.video.file_id;
+          return msg.video?.file_id || "";
         case !!msg.photo && msg.photo.length > 0:
-          return msg.photo[msg.photo.length - 1].file_id;
+          return msg.photo && msg.photo.length > 0
+            ? msg.photo[msg.photo.length - 1].file_id
+            : '';
         case !!msg.audio:
-          return msg.audio.file_id;
+          return msg.audio?.file_id || "";
         case !!msg.document:
-          return msg.document.file_id;
+          return msg.document?.file_id || "";
         case !!msg.voice:
-          return msg.voice.file_id;
+          return msg.voice?.file_id || "";
         case !!msg.video_note:
-          return msg.video_note.file_id;
+          return msg.video_note?.file_id || "";
         case !!msg.sticker:
-          return msg.sticker.file_id;
+          return msg.sticker?.file_id || "";
         default:
-          return "";
+          return '';
       }
     })();
+    if (!mediaFile) {
+      sendMessageWithSave(publisherBot, chat, "Media file not found");
+      return;
+    }
     const file = await publisherBot.getFile(mediaFile);
     const fileUrl = `https://api.telegram.org/file/bot${publisher_api_token}/${file.file_path}`;
-    console.log("Url: ", fileUrl);
+    console.log('Url: ', fileUrl);
     const response = await axios({
       url: fileUrl,
       method: 'GET',
@@ -75,7 +88,7 @@ export const mediaHandler = async (msg: TelegramBot.Message, type: TelegramMedia
       '',
       type,
       true,
-      {}
+      {},
     );
     if (!newFile) {
       sendMessageWithSave(publisherBot, chat, 'Failed to resend photo');
@@ -84,7 +97,7 @@ export const mediaHandler = async (msg: TelegramBot.Message, type: TelegramMedia
     session.mediaPost = {
       img: newFile || '',
       text: msg.caption,
-      type
+      type,
     };
     sendMessageWithSave(
       publisherBot,
@@ -102,7 +115,7 @@ export const mediaHandler = async (msg: TelegramBot.Message, type: TelegramMedia
           true,
           {
             parse_mode: 'HTML',
-          }
+          },
         );
     }, 1101);
     session.setLastAction('post_written');
