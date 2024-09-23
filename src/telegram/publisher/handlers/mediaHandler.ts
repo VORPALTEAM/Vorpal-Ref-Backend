@@ -22,6 +22,7 @@ export const mediaHandler = async (msg: TelegramBot.Message) => {
       return;
     }
     const video = msg.video;
+    console.log("Video here", video)
     const photo =
       msg.video ||
       (msg.photo && msg.photo.length > 0
@@ -29,7 +30,7 @@ export const mediaHandler = async (msg: TelegramBot.Message) => {
         : { file_id: '' }); // Use the highest resolution photo
     const file = await publisherBot.getFile(photo.file_id);
     const fileUrl = `https://api.telegram.org/file/bot${publisher_api_token}/${file.file_path}`;
-
+    console.log("Url: ", fileUrl);
     const response = await axios({
       url: fileUrl,
       method: 'GET',

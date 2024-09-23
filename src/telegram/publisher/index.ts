@@ -105,6 +105,7 @@ export function initPublisherBot() {
   })
 
   publisherBot.on("video", async (msg) => {
+    console.log("Video request called");
     await mediaHandler(msg)
   })
 
