@@ -67,7 +67,7 @@ export const InlineKeyboard = (actions: string[], inviter?: string) => {
         break;
       case a.indexOf('dailyReward') > -1:
         row.push({
-          text: duelRefuseText,
+          text: 'Daily reward',
           callback_data: 'dailyReward',
         });
         break;
