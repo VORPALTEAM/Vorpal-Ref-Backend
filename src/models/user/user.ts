@@ -192,7 +192,9 @@ export async function getUserData(telegramId?: string, wallet?: string): Promise
     : `
     SELECT id, role_id, username, inviter_id from "users" WHERE id IN (SELECT user_id FROM "wallets" WHERE wallet = '${wallet}');
   `;
+  console.log("Get user query:", query);
   const result = await runQuery(query, true);
+  console.log("Get user result:", result);
   return !result ? null : result.length > 0 ? result[0] : null;
 }
 
