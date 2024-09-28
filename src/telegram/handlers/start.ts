@@ -35,7 +35,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     const telegramInviter = inviter ? await (async () => {
       if (inviterId && inviterId > 0) {
         console.log("Searching telegram user")
-        const telegramUser = await getUserData(inviter);
+        const telegramUser = await getUserData(String(inviterId).replace(" ", ""));
         console.log("Found: ", telegramUser);
         if (telegramUser) {
           return Number(telegramUser.id);
