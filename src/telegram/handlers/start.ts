@@ -31,16 +31,20 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     // const inviterId = await getUserId(inviterLogin);
     const inviterId = Number(inviter);
+    console.log("Inviter:", inviterId)
     const telegramInviter = inviter ? await (async () => {
       if (inviterId > 0) {
+        console.log("Searching telegram user")
         const telegramUser = await getUserData(inviter);
+        console.log("Found: ", telegramUser);
         if (telegramUser) {
           return Number(telegramUser.id);
         }
         return null;
       }
     })() : null;
-    const inviterFiltered = telegramInviter || inviterId
+    const inviterFiltered = telegramInviter || inviterId;
+    console.log("Using:", inviterFiltered, "From:", telegramInviter);
     const userId = await createUserIfNotExists("user", undefined, inviterFiltered || undefined, linkAuthDataPrev);
 
     /* if (!linkAuthDataPrev.username) {
