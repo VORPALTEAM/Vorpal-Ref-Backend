@@ -132,6 +132,9 @@ export function telegramBotLaunch() {
       case query.data.indexOf('totalRef') > -1:
         await referralTotalCountAction(Bot, query);
         break;
+      case query.data.indexOf('tourtakepart') > -1:
+        await tournamentTakePartHandler(Bot, query)
+        break;
       case query.data.indexOf('refTxnList') > -1:
         await referralLastTxnAction(Bot, query);
         break;

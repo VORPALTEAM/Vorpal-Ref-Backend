@@ -215,8 +215,22 @@ const tableCreationQueries = [
     );`,
     `CREATE TABLE IF NOT EXISTS tournaments (
         id SERIAL PRIMARY KEY,
+        title varchar(256),
+        description varchar(512),
         date_start integer,
         date_end integer
+    );`,
+    `CREATE TABLE IF NOT EXISTS tournament_chats (
+        id SERIAL PRIMARY KEY,
+        tournament_id integer,
+        telegram_chat_id varchar(128),
+        telegram_chat_name varchar(128)
+    );`,
+    `CREATE TABLE IF NOT EXISTS tournament_announces (
+        id SERIAL PRIMARY KEY,
+        tournament_id integer,
+        photo_id varchar(256),
+        post_text TEXT
     );`,
     `CREATE TABLE IF NOT EXISTS tournament_participants (
         id SERIAL PRIMARY KEY,

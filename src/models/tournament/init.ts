@@ -1,14 +1,16 @@
 import { dateSec } from '../../utils/text';
-import { runQuery } from '../../models/connection';
+import { runQuery, runQueryWithParams } from '../../models/connection';
 
-export interface tournament {
-  id: number;
+export interface Tournament {
+  id?: number;
   date_start: number;
   date_end: number;
+  title?: string;
+  description?: string;
   partisipants: number[];
 }
 
-export async function getLastTournament(): Promise<tournament | null> {
+export async function getLastTournament(): Promise<Tournament | null> {
   const query = `SELECT id, date_start FROM tournaments ORDER BY date_start DESC LIMIT 1;`;
   const result = await runQuery(query, true);
   return result && result.length > 0 ? result[0] : null;
@@ -16,14 +18,14 @@ export async function getLastTournament(): Promise<tournament | null> {
 
 export async function getTournamentData(
   id: number,
-): Promise<tournament | null> {
-  const query = `SELECT id, date_start, date_end FROM tournaments WHERE id = ${id};`;
-  const result = await runQuery(query, true);
+): Promise<Tournament | null> {
+  const query = `SELECT id, date_start, date_end, title, description FROM tournaments WHERE id = $1;`;
+  const result = await runQueryWithParams(query, [id], true);
   if (!result || result.length === 0) {
     return null;
   }
-  const partsQuery = `SELECT user_id FROM tournament_participants WHERE tournament_id = ${id}`;
-  const parts = await runQuery(partsQuery, true);
+  const partsQuery = `SELECT user_id FROM tournament_participants WHERE tournament_id = $1`;
+  const parts = await runQueryWithParams(partsQuery, [id], true);
   return {
     id: result[0].id,
     date_start: result[0].date_start,
@@ -32,31 +34,46 @@ export async function getTournamentData(
   };
 }
 
-export async function getActiveTournament(): Promise<tournament | null> {
+export async function isTournamentActive(tourId: number): Promise<boolean> {
   const now = dateSec();
-  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_start <= ${now} AND date_end >= ${now}`;
-  const result = await runQuery(query, true);
-  return result && result.length > 0 ? result[0] : null;
+  const query = `SELECT date_start, date_end FROM tournaments WHERE tourId = $1`;
+  const result = await runQueryWithParams(query, [tourId], true);
+  if (!result || result.length === 0) {
+    return false;
+  }
+  return result[0].date_start <= now && result[0].date_end >= now
+    ? true
+    : false;
+}
+
+export async function getActiveTournaments(): Promise<Tournament[]> {
+  const now = dateSec();
+  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_start <= $1 AND date_end >= $1`;
+  const result = await runQueryWithParams(query, [now], true);
+  return result && result.length > 0 ? result : [];
+}
+
+export async function getFinishedTournaments(): Promise<Tournament[]> {
+  const now = dateSec();
+  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_end <= $1`;
+  const result = await runQueryWithParams(query, [now], true);
+  return result && result.length > 0 ? result : [];
 }
 
 export async function createTournament(
-  dailyDuration = 1,
-): Promise<{ success: boolean; error?: string }> {
-  const activeTournament = await getActiveTournament();
-  if (activeTournament) {
-    return {
-      success: false,
-      error: 'Another tournament is currently active',
-    };
-  }
-
+  data: Tournament,
+): Promise<Tournament | null> {
   const now = dateSec();
-  const newTournamentQuery = `INSERT INTO tournaments (date_start, date_end) VALUES (${now}, ${
-    now + 86400 * dailyDuration
-  })`;
-  await runQuery(newTournamentQuery);
+  const newTournamentQuery = `INSERT INTO tournaments (date_start, date_end, title, description) 
+  VALUES ($1, $2, $3, $4) RETURNING id`;
+  const result = await runQueryWithParams(newTournamentQuery, [
+    data.date_start,
+    data.date_end,
+    data.title || '',
+    data.description || '',
+  ]);
 
-  return {
-    success: true,
-  };
+  return result && result?.length > 0
+    ? { id: Number(result[0].id), ...data }
+    : null;
 }

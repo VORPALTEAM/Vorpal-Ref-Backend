@@ -1,7 +1,8 @@
 import {
     createDuelInTournament,
   createTournament,
-  getActiveTournament,
+  getActiveTournaments,
+  getLastTournament,
   getParticipantsIds,
 } from '../../models/tournament';
 import { getUserData } from '../../models/user';
@@ -9,6 +10,8 @@ import TelegramBot from 'node-telegram-bot-api';
 import { sendMessageWithSave } from '../handlers/utils';
 import { createDuelInTournamentAction } from './tournament';
 import { downloadReferralStats } from './referral';
+import { dateSec } from '../../utils/text';
+import { title } from 'process';
 
 export const adminCmdInfo = {
       help: "Get list of all commands",
@@ -47,12 +50,11 @@ export const adminCmdHandler = async (
   }
   const command = cmdData[1];
   const userId = await getUserData(String(chat));
-  const active = await getActiveTournament();
   if (!userId || userId.role_id !== 2) {
     sendMessageWithSave(bot, chat, `No rights to send admin commands`);
     return;
   }
-  
+  const active = await getLastTournament();  
   switch (command) {
     case admin_commands[0]:
       if (cmdData.length < 4) {
@@ -72,16 +74,29 @@ export const adminCmdHandler = async (
         sendMessageWithSave(bot, chat, `Tournament is now active`);
         return;
       }
-      const tId = await createTournament();
-      if (tId.error) {
+      const date = dateSec();
+      const tour = await createTournament({
+         title: "New tournament",
+         description: "New desctiption",
+         date_start: date + 86400,
+         date_end: date + (2* 86400),
+         partisipants: []
+      });
+      if (!tour) {
         sendMessageWithSave(
           bot,
           chat,
-          `Tournament creation error: ${tId.error}`,
+          `Tournament creation error`,
         );
         return;
       } else {
-        sendMessageWithSave(bot, chat, `New tournament created`);
+        sendMessageWithSave(bot, chat, 
+          `New tournament created \n
+           ${tour.title} \n
+           ${tour.description} \n
+           id: ${tour.id}`, {
+            parse_mode: "HTML"
+          });
         return;
       }
       break;
@@ -90,7 +105,16 @@ export const adminCmdHandler = async (
         sendMessageWithSave(bot, chat, `No active tournament`);
         return;
       }
-      const parts = await getParticipantsIds();
+      if (!cmdData[2]) {
+        sendMessageWithSave(bot, chat, `Enter tournament id as 3rd argument`);
+        return;
+      }
+      const tourId = Number(cmdData[2]);
+      if (isNaN(tourId)) {
+        sendMessageWithSave(bot, chat, `Invalid tournament id`);
+        return;
+      }
+      const parts = await getParticipantsIds(tourId);
       sendMessageWithSave(
         bot,
         chat,
