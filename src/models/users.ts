@@ -1,4 +1,6 @@
-import { runQuery as Q } from './connection';
+import { runQuery as Q, runQueryWithParams } from './connection';
+
+// DEPRECATED!!!
 
 const defaultUserData = {
     login: "",
@@ -27,8 +29,8 @@ export async function updateUser (data = defaultUserData) {
 
     const addr = data.address.toLowerCase()
 
-    const checkQuery = `SELECT * FROM users WHERE address = '${addr}';`
-    const checking = await Q(checkQuery);
+    const checkQuery = `SELECT * FROM users WHERE address = $1;`
+    const checking = await runQueryWithParams(checkQuery, [addr]);
     if (!checking || checking.length < 1) {
         return ({
             success: false,
@@ -36,8 +38,8 @@ export async function updateUser (data = defaultUserData) {
         });
     }
 
-    const updateQuery = `UPDATE users SET login = '${data.login}', rights='${data.rights}' WHERE address = '${addr}';`
-    const updating = await Q(updateQuery)
+    const updateQuery = `UPDATE users SET login = $1, rights= $2 WHERE address = $3;`
+    const updating = await runQueryWithParams(updateQuery, [data.login, data.rights, addr])
     return( {
         success: updating ? true : false,
         err: updating ? "" : "Unknown"
@@ -56,8 +58,8 @@ export async function createUser (data = defaultUserData) {
     
     const addr = data.address.toLowerCase()
 
-    const checkQuery = `SELECT * FROM users WHERE address = '${addr}';`
-    const checking = await Q(checkQuery);
+    const checkQuery = `SELECT * FROM users WHERE address = $1;`
+    const checking = await runQueryWithParams(checkQuery, [addr]);
     if (checking && checking.length > 0) {
         return ({
             success: false,
@@ -65,8 +67,8 @@ export async function createUser (data = defaultUserData) {
         });
     }
 
-    const creationQuery = `INSERT INTO users (login, rights, address) VALUES ('${data.login}', '${data.rights}', '${addr}');`
-    const result = await Q(creationQuery)
+    const creationQuery = `INSERT INTO users (login, rights, address) VALUES ($1, $2, $3);`
+    const result = await runQueryWithParams(creationQuery, [data.login, data.rights, addr])
 
     return( {
         success: result ? true : false,
@@ -89,8 +91,8 @@ export async function deleteUser (address = defaultUserData.address) {
         });
     }
 
-    const checkQuery = `SELECT * FROM users WHERE address = '${addr}';`
-    const checking = await Q(checkQuery);
+    const checkQuery = `SELECT * FROM users WHERE address = $1;`
+    const checking = await runQueryWithParams(checkQuery, [addr]);
     
     if (checking && checking.length < 1) {
         return ({
@@ -99,8 +101,8 @@ export async function deleteUser (address = defaultUserData.address) {
         });
     }
 
-    const deleteQuery = `DELETE FROM users WHERE address = '${addr}';`
-    const result = await Q(deleteQuery)
+    const deleteQuery = `DELETE FROM users WHERE address = $1;`
+    const result = await runQueryWithParams(deleteQuery, [addr])
 
     return( {
         success: result ? true : false,

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { checkTelegramAuth, decodeTgInitData, validateByInitData } from "../utils/auth";
-import { buyItem, getStoreItems, getUserAllItemBalances, getUserItemBalance, isItemAvailableToBuy } from "../models/telegram";
+import { buyItem, getStoreItems, getUserAllItemBalances, getUserItemBalance, isItemAvailableToBuy } from "../models/store";
 import { getUserId } from "../models/user";
 
 export const getStoreItemsResponse = async (req: Request, res: Response) => {

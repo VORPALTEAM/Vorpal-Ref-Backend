@@ -22,11 +22,11 @@ function formatTime (seconds: number): string {
 }
 
 
-export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Message) => {
+export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Message | TelegramBot.CallbackQuery) => {
     if (!msg.from) {
         return;
     }
-    const chatId = msg.chat.id;
+    const chatId = 'chat' in msg ? msg.chat.id : msg.message?.chat.id || msg.from.id;
     const now = dateSec();
     const fromId = msg.from?.id;
     const fromLang = msg.from?.language_code || 'en'

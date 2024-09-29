@@ -1,4 +1,4 @@
-import { massRunQueries, runQuery } from '../connection';
+import { massRunQueries, massRunQueriesWithParams, runQuery, runQueryWithParams } from '../connection';
 import { TelegramAuthData, TelegramAuthNote } from '../../types';
 import {
   decodeTgInitData,
@@ -52,11 +52,11 @@ export async function createUser(
       );
     const creationQuery = `
            INSERT INTO "users" ("inviter_id", "username", "role_id")
-           VALUES (${inviterId || null}, '${userName}', 1)
+           VALUES ($1, $2, 1)
            RETURNING "id";
         `;
 
-    const userCreation = await runQuery(creationQuery, true);
+    const userCreation = await runQueryWithParams (creationQuery, [inviterId || null, userName], true);
 
     if (!userCreation || userCreation.length === 0 || !userCreation[0].id) {
       reject('User creation result is invalid');
@@ -97,7 +97,7 @@ export async function checkIsUserExists(
                 SELECT COUNT(*) from "users" 
                  WHERE "id" IN (SELECT "user_id" FROM "wallets";`);
     }
-    massRunQueries(queries).then((res) => {
+    massRunQueriesWithParams(queries, telegramData ? [telegramData.id] : []).then((res) => {
       res.forEach((row) => {
         if (row && row[0]?.count > 0) {
           userCount += Number(row[0].count);
@@ -118,25 +118,22 @@ export async function assignDataToUser(
   if (!telegramData && !ercWallets && !tonWallets) return;
 
   try {
-    const queries: string[] = [];
+    const tgQueries: string[] = [];
+    const walletQueries: string[] = [];
 
     if (telegramData && telegramData.id) {
-      queries.push(`
+      tgQueries.push(`
                  INSERT INTO "telegram_personal" 
                    ("user_id", "first_name", "last_name", "username", "chat_id")
-                  VALUES (
-                    ${userId}, 
-                    '${telegramData.first_name}', 
-                    '${telegramData.last_name || ''}',
-                    '${telegramData.username || ''}',
-                    '${telegramData.id}'
-                    );
+                  VALUES ( $1, $2, $3, $4, $5 );
                 `);
     }
+    if (tgQueries.length > 0 && telegramData)
+    await massRunQueriesWithParams(tgQueries, [userId, telegramData.first_name, telegramData.last_name || '', telegramData.username || '', telegramData.id]);
 
     if (ercWallets && ercWallets.length > 0) {
       ercWallets.forEach((wallet) => {
-        queries.push(`
+        walletQueries.push(`
           INSER INTO "wallets" 
                ("user_id", "wallet_address", "network_family_id")
              VALUES
@@ -146,15 +143,15 @@ export async function assignDataToUser(
 
     if (tonWallets && tonWallets.length > 0) {
       tonWallets.forEach((wallet) => {
-        queries.push(`
+        walletQueries.push(`
           INSER INTO "wallets" 
                ("user_id", "wallet_address", "network_family_id")
              VALUES
         (${userId}, '${wallet}', 1) ON CONFLICT (wallet_address) DO NOTHING;`);
       });
     }
-
-    await massRunQueries(queries);
+    if (walletQueries.length > 0)
+    await massRunQueriesWithParams(walletQueries, []); // ToDo!!!
     return true;
   } catch (e) {
     console.log(e);

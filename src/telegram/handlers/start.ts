@@ -9,7 +9,7 @@ import { sendMessageWithSave, sendPhotoWithSave, truncateChat } from './utils';
 import { messages } from '../constants';
 import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
-import { createUserIfNotExists, getUserId } from '../../models/user';
+import { createUserIfNotExists, getUserData, getUserId } from '../../models/user';
 
 export const introPhotoPath = '/app/public/entry.png';
 
@@ -30,8 +30,18 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     const inviter = match[1]?.toLowerCase();
 
     // const inviterId = await getUserId(inviterLogin);
-    const inviterId = Number(inviter)
-    const userId = await createUserIfNotExists("user", undefined, inviterId || undefined, linkAuthDataPrev);
+    const inviterId = inviter ? Number(inviter) : undefined;
+    const telegramInviter = inviter ? await (async () => {
+      if (inviterId && inviterId > 0) {
+        const telegramUser = await getUserData(String(inviterId).replace(" ", ""));
+        if (telegramUser) {
+          return Number(telegramUser.id);
+        }
+        return null;
+      }
+    })() : null;
+    const inviterFiltered = telegramInviter || inviterId;
+    const userId = await createUserIfNotExists("user", undefined, inviterFiltered || undefined, linkAuthDataPrev);
 
     /* if (!linkAuthDataPrev.username) {
       SendMessageWithSave(Bot, chatId, messages.noUsername);
@@ -48,7 +58,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     const dateSec = Math.round(new Date().getTime() / 1000);
 
     await sendPhotoWithSave (Bot, chatId, introPhotoPath, messages.duelStart, true, {
-      reply_markup: InlineKeyboard(['enterGame', 'duel', 'joinCommunity', 'referrals']),
+      reply_markup: InlineKeyboard(['enterGame', 'duel', 'joinCommunity', 'referrals', 'dailyReward']),
     });
     // await SendSubscribeMessage(linkAuthDataPrev.id, chatId);
 
