@@ -34,6 +34,20 @@ export async function runQuery (query: string, withReturn: boolean = true): Prom
   }
 }
 
+export async function runQueryWithParams (query: string, params: any[], withReturn: boolean = true): Promise<any[] | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(query, params);
+    return withReturn ? result.rows : [true];
+  } catch (e) {
+    console.error(e.message);
+    console.error(query);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
 export async function massRunQueries(queries: string[], withReturn: boolean = true) {
     return Promise.all(queries.map((query) => {
       return runQuery(query, withReturn);
