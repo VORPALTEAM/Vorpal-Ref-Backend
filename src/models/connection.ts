@@ -53,3 +53,9 @@ export async function massRunQueries(queries: string[], withReturn: boolean = tr
       return runQuery(query, withReturn);
     }));
 }
+
+export async function massRunQueriesWithParams(queries: string[], params: any[], withReturn: boolean = true) {
+  return Promise.all(queries.map((query) => {
+    return runQueryWithParams(query, params, withReturn);
+  }));
+}

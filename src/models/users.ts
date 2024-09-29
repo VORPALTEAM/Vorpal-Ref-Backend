@@ -1,5 +1,7 @@
 import { runQuery as Q, runQueryWithParams } from './connection';
 
+// DEPRECATED!!!
+
 const defaultUserData = {
     login: "",
     rights: "user",
