@@ -1,6 +1,6 @@
 require('dotenv').config();
 import { TelegramAuthData, boxOpenResults } from 'types';
-import { pool, runQuery } from '../connection';
+import { pool, runQuery, runQueryWithParams } from '../connection';
 import { writeLog } from '../log';
 import { getBoxOwner, getUserBalanceRow } from './getters';
 import { getChannelSubscribeList } from '../../telegram/handlers/subscribe';
@@ -19,10 +19,9 @@ export async function createNewBox(
 
   const query = `
     INSERT INTO boxes (owner_id, level, is_open) 
-    VALUES (${userId}, ${level}, false) RETURNING id;`;
-  console.log('Box creation query: ', query);
-  // WriteLog('Box creation query: ', query);
-  const box = await runQuery(query, true);
+    VALUES ($1, $2, false) RETURNING id;`;
+  
+  const box = await runQueryWithParams(query, [userId, level], true);
   return box && box.length > 0 ? box[0].id : null;
 }
 
@@ -33,12 +32,12 @@ export async function giveResources(
 ) : Promise<number> {
   const upsertQuery = `
   INSERT INTO user_balances (user_id, item_id, amount)
-  VALUES (${userId}, ${resourceId}, ${amount})
+  VALUES ($1, $2, $3)
   ON CONFLICT (user_id, item_id) 
-  DO UPDATE SET amount = user_balances.amount + ${amount}
+  DO UPDATE SET amount = user_balances.amount + $3
   RETURNING amount;
   `;
-  const result = await runQuery(upsertQuery);
+  const result = await runQueryWithParams(upsertQuery, [userId, resourceId, amount]);
   return result ? result[0]?.amount || 0 : 0;
 }
 
@@ -50,17 +49,19 @@ export async function updateResourceTransaction(
 ) {
   const time = Math.round(new Date().getTime() / 1000);
   const updateQuery = `INSERT INTO user_balances (user_id, item_id, amount)
-    VALUES (${userId}, ${resourceId}, ${amount})
+    VALUES ($1, $2, $3)
     ON CONFLICT (user_id, item_id)
-    DO UPDATE SET amount = user_balances.amount + ${amount} WHERE user_balances.user_id = ${userId} AND user_balances.item_id = ${resourceId}
+    DO UPDATE SET amount = user_balances.amount + $3
+    WHERE user_balances.user_id = $1 
+    AND user_balances.item_id = $2
     RETURNING *;`;
   const logQuery = `INSERT INTO "resource_txn_log" 
   ("userlogin", "time", "resource", "amount", "reason")
-  VALUES ('${userId}', TO_TIMESTAMP(${time}), '${resourceId}', ${amount}, '${message}');`;
+  VALUES ($1, TO_TIMESTAMP($2), $3, $4, $5);`;
   try {
     await Promise.all([
-       runQuery(updateQuery),
-       runQuery(logQuery)
+       runQueryWithParams(updateQuery, [userId, resourceId, amount]),
+       runQueryWithParams(logQuery, [userId, time, resourceId, amount, message])
     ])
     return true;
   } catch (e) {
@@ -92,8 +93,8 @@ export async function resourceTransactionWithReferrals (userId: number, resource
 }
 
 export async function openBox(boxId: number, telegramData: TelegramAuthData) {
-  const boxCheckQuery = `SELECT is_open FROM boxes WHERE id = ${boxId};`;
-  const check = await pool.query(boxCheckQuery);
+  const boxCheckQuery = `SELECT is_open FROM boxes WHERE id = $1;`;
+  const check = await pool.query(boxCheckQuery, [boxId]);
   if (check.rows.length === 0) {
     return {
       success: false,
@@ -128,11 +129,11 @@ export async function openBox(boxId: number, telegramData: TelegramAuthData) {
   // await connection.query(vrpQuery);
   const rewardId: number = Math.floor(value / 2000) + 2;
   const logQuery = `INSERT INTO box_log (boxId, opening, openResult, openAmount)
-    VALUES (${boxId}, CURRENT_TIMESTAMP, '${rewardId}', ${openAmount});`;
-  const boxCloseQuery = `UPDATE boxes SET is_open = true WHERE id = ${boxId};`;
-  const logs = await pool.query(logQuery);
+    VALUES (${boxId}, CURRENT_TIMESTAMP, $1, $2);`;
+  const boxCloseQuery = `UPDATE boxes SET is_open = true WHERE id = $1;`;
+  const logs = await pool.query(logQuery, [rewardId, openAmount]);
   await  resourceTransactionWithReferrals (owner, rewardId, openAmount, rewardmessage);
-  await pool.query(boxCloseQuery);
+  await pool.query(boxCloseQuery, [boxId]);
   return {
     success: true,
     result: [{

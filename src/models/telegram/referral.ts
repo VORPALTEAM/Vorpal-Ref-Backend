@@ -6,10 +6,18 @@ import {
 } from '../../types';
 import { getUserData } from '../../models/user';
 
+interface ReferralTransactionData {
+  to: number;
+  for: number;
+  resource: number;
+  amount: number;
+  level: number;
+  date?: number;
+}
 
 export async function getUserInviter(user_id: number): Promise<number | null> {
-  const query = `SELECT "inviter_id" FROM "users" WHERE "id" = ${user_id};`;
-  const result = await Q(query);
+  const query = `SELECT "inviter_id" FROM "users" WHERE "id" = $1;`;
+  const result = await runQueryWithParams(query, [user_id]);
   return result && result.length > 0 ? result[0].inviter_id : null;
 }
 
@@ -17,33 +25,23 @@ export async function getUserInviterByTelegramId(userTelegramId: string): Promis
   const user = await getUserData(userTelegramId);
   if (!user) return null;
   const query = `SELECT "inviter_id" FROM "users" WHERE "id" IN 
-  (SELECT user_id FROM "telegram_personal" WHERE chat_id = '${userTelegramId}');`;
-  const result = await Q(query);
+  (SELECT user_id FROM "telegram_personal" WHERE chat_id = $1);`;
+  const result = await runQueryWithParams(query, [userTelegramId]);
   return result && result.length > 0 ? result[0].inviter : "";
 }
 
-export async function writeReferralStats(data: {
-  to: number;
-  for: number;
-  resource: number;
-  amount: number;
-  level: number;
-  date?: number;
-}) {
+export async function writeReferralStats(data: ReferralTransactionData) {
   const dt = data.date || Math.round(new Date().getTime() / 1000);
   const query = `INSERT INTO "telegram_referral_stats"  
   ("recipient", "referrer", "resource", "amount", "reward_date", "level") 
-  VALUES (${data.to}, ${data.for},  ${
-    data.resource
-  }, ${data.amount}, ${dt}, ${data.level});`;
-  console.log("Ref stats update query: ", query )
-  const result = await Q(query, false);
+  VALUES ($1, $2,  $3, $4, $5, $6);`;
+  const result = await runQueryWithParams(query, [data.to, data.for, data.resource, data.amount, dt, data.level], false);
   return result ? true : false;
 }
 
 export async function getReferralList(inviterId: number): Promise<string[]> {
-  const query = `SELECT "id", "username" FROM "users" WHERE "inviter_id" = ${inviterId};`;
-  const result = await Q(query);
+  const query = `SELECT "id", "username" FROM "users" WHERE "inviter_id" = $1;`;
+  const result = await runQueryWithParams(query, [inviterId]);
   return result ? result.map((row) => {
     return String(row.id || ``)
   }) : []
@@ -58,8 +56,7 @@ export async function getReferralCount(inviterId: number): Promise<{level1: numb
       level2: 0
     })
   }
-  /* const query2=`SELECT COUNT(*) FROM "telegram_personal" WHERE "inviter" IN 
-  (SELECT "inviter" FROM "telegram_personal" WHERE "inviter" = '${inviter.toLowerCase()}');`; */
+
   const query2=`SELECT COUNT(*) 
   FROM "users" 
   WHERE "inviter_id" IN (
@@ -81,10 +78,10 @@ export async function getReferralStatsByUserId (userId: number, limit: number) {
     trs.recipient, trs.referrer, trs.resource, 
     trs.amount, trs.reward_date, trs.level
 	FROM "telegram_referral_stats" as trs, items 
-  WHERE trs.recipient = ${userId} 
+  WHERE trs.recipient = $1
   AND items.id = resource
-  ORDER BY reward_date DESC LIMIT ${limit};`;
-  const data = await Q(query);
+  ORDER BY reward_date DESC LIMIT $2;`;
+  const data = await runQueryWithParams(query, [userId, limit]);
 
   return data ? data.map((row: any) => {
     return {
