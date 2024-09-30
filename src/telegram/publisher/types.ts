@@ -7,7 +7,11 @@ export const commands = [
     /\/newpost/, // Start post creation
     /\/addkeyboard/, // Add buttons to post
     /\/confirmpost/, // Send post
-    /\/cancelpost/
+    /\/cancelpost/,
+    /\/newtournament/,
+    /\/confirmtournament/,
+    /\/canceltournament/,
+    /\/tournaments/,
 ]
 
 export const menu: cmd[] = [

@@ -11,6 +11,7 @@ export class AdminSession {
     public textPost?: string;
     public mediaPost?: { img: string, text?: string, type: TelegramMediaType};
     public postKeyboard?: any;
+    public activeAction: "post" | "tournament" = "post";
 
     constructor(
         userId: number
