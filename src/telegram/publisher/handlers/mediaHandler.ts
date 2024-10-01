@@ -114,6 +114,7 @@ export const mediaHandler = async (
           },
         );
     }, 5000);
+    if (session.getLastAction() !== "tournament_announce_entry")
     session.setLastAction('post_written');
   }
 };
