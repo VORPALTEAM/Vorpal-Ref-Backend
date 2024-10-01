@@ -89,6 +89,7 @@ export const cancelTournamentAction = async (msg: TelegramBot.Message) => {
     if (!chat) return;
     const session = getAdminSession(chat);
     session.tournamentEditClose();
+    sendMessageWithSave(publisherBot, chat, "Tournament creation cancelled");
 }
 
 export const announceTournamentAction = async (msg: TelegramBot.Message) => {

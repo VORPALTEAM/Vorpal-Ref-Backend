@@ -26,5 +26,9 @@ export async function getTournamentAnnounceChats (tournamentId: number): Promise
     FROM tournament_chats
     WHERE tournament_id = $1;`;
     const result = await runQueryWithParams(query, [tournamentId]);
-    return result || [];
+    return result?.map(item => ({
+        tournament_id: tournamentId,
+        chat_id: item.telegram_chat_id,
+        chat_name: item.telegram_chat_name
+    })) || [];
 }
