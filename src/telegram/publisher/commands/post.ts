@@ -75,24 +75,29 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
     const chats = await getTournamentAnnounceChats(session.tournamentId);
     console.log("chats to send: ", chats, session.mediaPost.text);
     for (let j = 0; j < chats.length; j++) {
-       sendMediaWithSave(
-        Bot, 
-        Number(chats[j].chat_id), 
-        session.mediaPost?.img || '', 
-        session.mediaPost.text || '',
-        session.mediaPost.type,
-        false,
-        {
-          parse_mode: 'HTML',
-          reply_markup:  {
-                inline_keyboard: [[
-                  {
-                    text: "Register",
-                    callback_data: `tourtakepart${session.tournamentId}`
-                  }
-                ]]
-              },
-        })
+      try {
+        sendMediaWithSave(
+          Bot, 
+          Number(chats[j].chat_id), 
+          session.mediaPost?.img || '', 
+          session.mediaPost.text || '',
+          session.mediaPost.type,
+          false,
+          {
+            parse_mode: 'HTML',
+            reply_markup:  {
+                  inline_keyboard: [[
+                    {
+                      text: "Register",
+                      callback_data: `tourtakepart${session.tournamentId}`
+                    }
+                  ]]
+                },
+          })
+      } catch (e) {
+        console.log("Sending error: ", e);
+      }
+
     }
     return;
   }
