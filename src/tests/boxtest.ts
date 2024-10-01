@@ -15,11 +15,9 @@ async function boxCreateOpenTest () {
     }
     const testUserId = await createUserIfNotExists("user", undefined, undefined, testUser);
     const box = await createNewBox(1, testUserId);
-    console.log("Created: ", box);
     if (box) {
         await openBox (box, testUser);
         const txns = await getUserTransactions(String(testUser.id) || "");
-        console.log("History: ", txns);
     }
 }
 

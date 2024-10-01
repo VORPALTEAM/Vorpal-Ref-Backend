@@ -15,5 +15,3 @@ const telegramTestData: TelegramAuthData = {
 
 const userId = createUser(testUSer.role, '', undefined, telegramTestData);
 
-console.log("Created: ", userId)
-

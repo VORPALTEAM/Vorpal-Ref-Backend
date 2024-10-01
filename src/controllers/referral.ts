@@ -125,7 +125,7 @@ export const withdrawRewardAction = async (req: Request, res: Response) => {
       }));
       return false
     }
-    console.log("Wait for processing")
+
     const withdrawmsg = await withdrawRevenue(postData.address, postData.signature)
 
     res.status(withdrawmsg.success ? 200 : 400).send(JSON.stringify(withdrawmsg));

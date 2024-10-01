@@ -40,7 +40,6 @@ async function SetupRevenueSingle ( tx ) {
             const owner = await FindLinkOwner(link)
             if (owner) {
                 const revenue = valueUSD * 0.05 / price
-                console.log(revenue)
                 await UpdateScheduledBalance(owner, revenue)
                 await CreateVesting(owner, revenue, dateStart, dateEnd)
             }

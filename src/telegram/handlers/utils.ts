@@ -52,7 +52,6 @@ export async function sendMediaWithSave(
   options?: TelegramBot.SendMessageOptions,
 ) {
   try {
-    console.log("Path or id to send: ", mediaPath);
     const msg = await (async () => {
       switch (mediaType) {
         case "photo":

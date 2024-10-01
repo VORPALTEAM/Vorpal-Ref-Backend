@@ -52,14 +52,11 @@ export function checkTelegramAuth(params: TelegramAuthData): {
   const dt: number = new Date().getTime();
   if (dt - Number(params.auth_date) * 1000 > 86400000) {
     // milisecond
-    console.log('Data is outdated: ', params.auth_date);
     return {
       success: false,
       error: 'Data is outdated',
     };
   }
-
-  console.log("Received params: ", params);
 
   const verificationParams: any = { ...params };
   delete verificationParams.hash;
@@ -67,10 +64,10 @@ export function checkTelegramAuth(params: TelegramAuthData): {
   const message = sortedKeys
     .map((key) => `${key}=${verificationParams[key]}`)
     .join('\n');
-  console.log("Formatted data: ", message);
+
   const secretKey = crypto.createHmac('sha256', 'WebAppData').update(token).digest();
   const hash = crypto.createHmac('sha256', secretKey).update(message).digest('hex');
-  console.log('Hashes: ', hash, params.hash);
+
   if (hash !== params.hash) {
     console.log('Hash comparision failed!');
     return {

@@ -68,7 +68,6 @@ export const checkAvailableResponse = async (req: Request, res: Response) => {
 
 export const buyResponse = async (req: Request, res: Response) => {
     const body = req.body;
-    console.log("Buy request body: ", req.body);
     if (!body.telegramInitData && !body.telegramData.id) {
         res.status(400).send(JSON.stringify({error: "Auth data wrong or not provided"}))
     }

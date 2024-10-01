@@ -60,7 +60,6 @@ export const mediaHandler = async (
     }
     const file = await publisherBot.getFile(mediaFile);
     const fileUrl = `https://api.telegram.org/file/bot${publisher_api_token}/${file.file_path}`;
-    console.log('Url: ', fileUrl);
     const response = await axios({
       url: fileUrl,
       method: 'GET',
@@ -70,7 +69,6 @@ export const mediaHandler = async (
     const localFilePath = `${photoDirectory}/${file.file_path
       ?.split('/')
       .pop()}`;
-    console.log('loaded photo: ', localFilePath);
     const writer = fs.createWriteStream(localFilePath);
 
     response.data.pipe(writer);
@@ -88,7 +86,6 @@ export const mediaHandler = async (
       true,
       {},
     );
-    console.log("New file id: ", newFile);
     if (!newFile) {
       sendMessageWithSave(publisherBot, chat, 'Failed to resend photo');
       return;

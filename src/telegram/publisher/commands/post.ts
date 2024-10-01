@@ -67,13 +67,15 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
     sendMessageWithSave(publisherBot, chat, `Please, create post at first`);
     return;
   }
+  console.log(session.getLastAction());
   if (session.getLastAction() === "tournament_announce_entry") {
+    console.log("Tournament type to send");
     if (!session.tournamentId || !session.mediaPost) {
         sendMessageWithSave(publisherBot, chat, "Tournament id or media not setup");
         return;
     }
     const chats = await getTournamentAnnounceChats(session.tournamentId);
-    console.log("chats to send: ", chats, session.mediaPost.text);
+    console.log("Chats to send: ", chats, session.mediaPost.text);
     for (let j = 0; j < chats.length; j++) {
       try {
         sendMediaWithSave(
