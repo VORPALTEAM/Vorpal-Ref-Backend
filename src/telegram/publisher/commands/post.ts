@@ -101,6 +101,10 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
       }
 
     }
+    session.setLastAction('init');
+    return;
+  }
+  if (session.getLastAction() !== "post_written") {
     return;
   }
   session.setLastAction('init');
