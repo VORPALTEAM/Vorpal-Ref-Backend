@@ -2,6 +2,7 @@ import {
   getLastTournament,
   getParticipantsIds,
   isTournamentActive,
+  isTournamentRegistrationAvailable,
   takePartInTournament,
 } from '../../models/tournament';
 import TelegramBot from 'node-telegram-bot-api';
@@ -22,11 +23,11 @@ export const tournamentTakePartHandler = async (
   if (!chat) return;
   const tournamentId = tourId || (await getLastTournament())?.id;
   if (!tournamentId) {
-    sendMessageWithSave(bot, chat, 'Tournment is not available');
+    sendMessageWithSave(bot, chat, 'Tournment is not found');
     return;
   }
-  const active = await isTournamentActive(tournamentId);
-  if (!active) {
+  const available = await isTournamentRegistrationAvailable(tournamentId);
+  if (!available) {
     sendMessageWithSave(bot, chat, 'Tournment is not available');
     return;
   }

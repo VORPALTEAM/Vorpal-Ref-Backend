@@ -34,6 +34,16 @@ export async function getTournamentData(
   };
 }
 
+export async function isTournamentRegistrationAvailable (tourId: number): Promise<boolean> {
+  const now = dateSec();
+  const query = `SELECT date_start, date_end FROM tournaments WHERE tourId = $1`;
+  const result = await runQueryWithParams(query, [tourId], true);
+  if (!result || result.length === 0) {
+    return false;
+  }
+  return result[0].date_start >= now
+}
+
 export async function isTournamentActive(tourId: number): Promise<boolean> {
   const now = dateSec();
   const query = `SELECT date_start, date_end FROM tournaments WHERE tourId = $1`;
@@ -42,8 +52,6 @@ export async function isTournamentActive(tourId: number): Promise<boolean> {
     return false;
   }
   return result[0].date_start <= now && result[0].date_end >= now
-    ? true
-    : false;
 }
 
 export async function getActiveTournaments(): Promise<Tournament[]> {
