@@ -59,6 +59,7 @@ export function initPublisherBot() {
   publisherBot.onText(/\/confirmpost/, actions.confirmPostAction);
   publisherBot.onText(/\/cancelpost/, actions.cancelPostAction);
   publisherBot.onText(/\/newtournament/, actions.newTournamentAction);
+  publisherBot.onText(/\/announcetournament/, actions.announceTournamentAction);
   publisherBot.onText(/\/confirmtournament/, actions.confirmTournamentAction);
   publisherBot.onText(/\/canceltournament/, actions.cancelTournamentAction);
   publisherBot.onText(/\/tournaments/, actions.listOfTournamentsAction);

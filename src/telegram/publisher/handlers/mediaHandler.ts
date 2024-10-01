@@ -24,7 +24,7 @@ export const mediaHandler = async (
   const session = getAdminSession(chat);
   const action = session.getLastAction();
 
-  if (action === 'init_post') {
+  if (action === 'init_post' || action === "tournament_announce_entry") {
     if (!publisherBot) return;
     /* if ((!msg.photo || msg.photo.length === 0) && !msg.video) {
       sendMessageWithSave(publisherBot, chat, 'No media in message');

@@ -91,6 +91,16 @@ export const cancelTournamentAction = async (msg: TelegramBot.Message) => {
     session.tournamentEditClose();
 }
 
+export const announceTournamentAction = async (msg: TelegramBot.Message) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
+    if (!chat) return;
+    const session = getAdminSession(chat);
+    session.setLastAction("tournament_id_to_send");
+    sendMessageWithSave(publisherBot, chat, "Enter tournament id:");
+}
+
+
 export const addAnnounceChatAction = async (query: TelegramBot.CallbackQuery) => {
     if (!publisherBot) return;
     const chat = await adminCmdPreprocess(publisherBot, query);
@@ -104,6 +114,6 @@ export const addAnnounceChatAction = async (query: TelegramBot.CallbackQuery) =>
     }
     session.tournamentId = tourId;
     session.setLastAction("tournament_chat_entry");
-    sendMessageWithSave(publisherBot, chat, "Now enter chats, in name in each new row");
+    sendMessageWithSave(publisherBot, chat, "Now enter chats, id name in each new row");
     return;    
 }

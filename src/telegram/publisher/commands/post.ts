@@ -2,12 +2,14 @@ import TelegramBot from 'node-telegram-bot-api';
 import {
   massSendMediaThroughQueue,
   massSendMessageThroughQueue,
+  sendMediaWithSave,
   sendMessageWithSave,
 } from '../../handlers/utils';
 import { adminCmdPreprocess } from '../functions';
 import { publisherBot } from '../initial';
 import { getAdminSession } from '../session';
 import { Bot } from '../../bot';
+import { getTournamentAnnounceChats } from '../../../models/tournament';
 
 export const startAction = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -63,6 +65,34 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
   console.log('Session info: ', session.textPost, session.mediaPost);
   if (!session.textPost && !session.mediaPost) {
     sendMessageWithSave(publisherBot, chat, `Please, create post at first`);
+    return;
+  }
+  if (session.getLastAction() === "tournament_announce_entry") {
+    if (!session.tournamentId || !session.mediaPost) {
+        sendMessageWithSave(publisherBot, chat, "Tournament id or media not setup");
+        return;
+    }
+    const chats = await getTournamentAnnounceChats(session.tournamentId);
+    for (let j = 0; j < chats.length; j++) {
+       sendMediaWithSave(
+        Bot, 
+        Number(chats[j].chat_id), 
+        session.mediaPost?.img || '', 
+        session.mediaPost.text || '',
+        session.mediaPost.type,
+        false,
+        {
+          parse_mode: 'HTML',
+          reply_markup:  {
+                inline_keyboard: [[
+                  {
+                    text: "Register",
+                    callback_data: `tourtakepart${session.tournamentId}`
+                  }
+                ]]
+              },
+        })
+    }
     return;
   }
   session.setLastAction('init');

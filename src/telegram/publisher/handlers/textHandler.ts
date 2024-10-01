@@ -17,6 +17,17 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     const session = getAdminSession(chat);
     const action = session.getLastAction();
+    if (action === "tournament_id_to_send") {
+        const tourId = Number(msg.text.split(" ")[0]);
+        if (isNaN(tourId)) {
+            sendMessageWithSave(publisherBot, chat, "Invalid id, try again");
+            return;
+        }
+        session.tournamentId = tourId;
+        session.setLastAction("tournament_announce_entry");
+        sendMessageWithSave(publisherBot, chat, "Now enter the post with photo jr another media");
+        return;
+    }
     if (action === "tournament_chat_entry") {
         const chats: string[][] = msg.text?.split(`\n`).map((item) => {
             return item.split(" ")
@@ -38,7 +49,8 @@ export const textHandler = async (msg: TelegramBot.Message) => {
                 }
             }
         })
-        sendMessageWithSave(publisherBot, chat, "Announce chats updated");
+        sendMessageWithSave(publisherBot, chat, 
+            "Announce chats updated, say /announcetournament to send announce");
         return;
     }
     if (action === "tournament_entry") {

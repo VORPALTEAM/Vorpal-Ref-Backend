@@ -9,6 +9,7 @@ export const commands = [
     /\/confirmpost/, // Send post
     /\/cancelpost/,
     /\/newtournament/,
+    /\/announcetournament/,
     /\/confirmtournament/,
     /\/canceltournament/,
     /\/tournaments/,
@@ -26,6 +27,10 @@ export const menu: cmd[] = [
     {
         name: "/newtournament",
         description: "New tournament"
+    },
+    {
+        name: "/announcetournament",
+        description: "Send tournament announce"
     },
     {
         name: "/tournaments",

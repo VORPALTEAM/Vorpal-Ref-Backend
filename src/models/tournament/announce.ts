@@ -19,7 +19,7 @@ export async function addChatForTournamentAnnounce (data: TournamentChatData) {
     return !!result;
 }
 
-export async function gedTournamentAnnounceChats (tournamentId: number): Promise<TournamentChatData[]> {
+export async function getTournamentAnnounceChats (tournamentId: number): Promise<TournamentChatData[]> {
     const query = `
     SELECT 
     tournament_id, telegram_chat_id, telegram_chat_name 
