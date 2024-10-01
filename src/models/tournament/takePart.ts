@@ -1,5 +1,5 @@
 import { runQuery, runQueryWithParams } from "../../models/connection";
-import { getActiveTournaments, getTournamentData, isTournamentActive } from "./init";
+import { isTournamentActive } from "./init";
 import { createDuel } from "../../models/telegram";
 
 export async function isUserInTournament (userId: number, tourId: number) {

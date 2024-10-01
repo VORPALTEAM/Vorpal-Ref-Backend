@@ -4,6 +4,7 @@ import { adminCmdPreprocess } from "../functions";
 import { getAdminSession } from "../session";
 import { sendMessageWithSave } from "../../handlers/utils";
 import { createTournament, getActiveTournaments } from "../../../models/tournament";
+import { dateSecFormat } from "../../../utils/text";
 
 export const newTournamentAction = async (msg: TelegramBot.Message) => {
     if (!publisherBot) return;
@@ -31,10 +32,11 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
     }
     for (let j = 0; j < tours.length; j++) {
         sendMessageWithSave(publisherBot, chat, 
-            `${tours[j].title || "No title"} \n
+            `id: ${tours[j].id || "not found"}
+             ${tours[j].title || "No title"} \n
              ${tours[j].description || "No description"} \n
-             Starts at: ${tours[j].date_start} \n
-             Finish at: ${tours[j].date_end}`);
+             Starts at: ${tours[j].date_start ? dateSecFormat(Number(tours[j].date_start)) : "not found"} \n
+             Finish at: ${tours[j].date_end ? dateSecFormat(Number(tours[j].date_end)) : "not found"}`);
         await new Promise((resolve) => {
             setTimeout(() => {
                 resolve(true)
@@ -57,7 +59,7 @@ export const confirmTournamentAction = async (msg: TelegramBot.Message) => {
     }
     const newTournamentId = await createTournament(tour);
     sendMessageWithSave(publisherBot, chat, `
-           Tournament is now open, id ${newTournamentId}: \n
+           Tournament is now open, id ${newTournamentId?.id}: \n
             Title: ${tour.title || "No title"} \n
             Description: ${tour.description || "No description"} \n
             Date start: ${tour.date_start} \n

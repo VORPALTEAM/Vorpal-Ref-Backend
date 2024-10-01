@@ -28,6 +28,10 @@ export const menu: cmd[] = [
         description: "New tournament"
     },
     {
+        name: "/tournaments",
+        description: "List of tournaments"
+    },
+    {
         name: "/addkeyboard",
         description: "Add keyboard to post"
     },
