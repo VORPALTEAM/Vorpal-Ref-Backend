@@ -73,6 +73,7 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
         return;
     }
     const chats = await getTournamentAnnounceChats(session.tournamentId);
+    console.log("chats to send: ", chats, session.mediaPost.text);
     for (let j = 0; j < chats.length; j++) {
        sendMediaWithSave(
         Bot, 
