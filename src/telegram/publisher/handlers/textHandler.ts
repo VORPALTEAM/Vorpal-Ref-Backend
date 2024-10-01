@@ -18,22 +18,24 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     const action = session.getLastAction();
     if (action === "tournament_entry") {
         const data = msg.text.split(`\n`);
+        let dateStart: number;
+        let dateEnd: number;
         if (data.length !== 4) {
             sendMessageWithSave(publisherBot, chat, "Invalid number of data");
             return;
         }
         try {
-           const date = new Date(data[2]).getTime();
-           const date2 = new Date(data[3]).getTime();
+            dateStart = Math.round(new Date(data[2]).getTime() / 1000);
+            dateEnd = Math.round(new Date(data[3]).getTime() / 1000);
         } catch (e) {
             sendMessageWithSave(publisherBot, chat, "Invalid date format");
             return;
         }
-        
+
         session.tournamentEditUpdate("title", data[0]);
         session.tournamentEditUpdate("description", data[1]);
-        session.tournamentEditUpdate("date_start", new Date(data[2]).getTime());
-        session.tournamentEditUpdate("date_end", new Date(data[3]).getTime());
+        session.tournamentEditUpdate("date_start", dateStart);
+        session.tournamentEditUpdate("date_end", dateEnd);
         sendMessageWithSave(publisherBot, chat, `
             Tournament data is now written: \n
             Title: ${data[0]} \n

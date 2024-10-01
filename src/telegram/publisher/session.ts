@@ -54,6 +54,7 @@ export class AdminSession {
     tournamentEditClose() {
         this.editableTournament = {};
         this.activeAction = "post";
+        this.setLastAction("tournament_closed");
     }
 
     destroy() {

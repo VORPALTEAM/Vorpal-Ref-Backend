@@ -24,6 +24,10 @@ export const menu: cmd[] = [
         description: "New post"
     },
     {
+        name: "/newtournament",
+        description: "New tournament"
+    },
+    {
         name: "/addkeyboard",
         description: "Add keyboard to post"
     },
@@ -34,5 +38,13 @@ export const menu: cmd[] = [
     {
         name: "/cancelpost",
         description: "Cancel post sending"
+    },
+    {
+        name: "/confirmtournament",
+        description: "Create tournament"
+    },
+    {
+        name: "/canceltournament",
+        description: "Cancel tournament creation"
     }
 ]
