@@ -118,3 +118,14 @@ export const addAnnounceChatAction = async (query: TelegramBot.CallbackQuery) =>
     sendMessageWithSave(publisherBot, chat, "Now enter chats, id name in each new row");
     return;    
 }
+
+export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, query);
+    if (!chat) return;
+    if (!query.data) return;
+    const session = getAdminSession(chat);
+    sendMessageWithSave(publisherBot, chat, "Participants:");
+    session.setLastAction("TOUR_MEMBERS_MANAGE");
+    
+}
