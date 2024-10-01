@@ -1,4 +1,4 @@
-import { runQueryWithParams } from "models/connection";
+import { runQueryWithParams } from "../../models/connection";
 
 export interface TournamentChatData {
     tournament_id: number;
