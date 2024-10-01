@@ -94,6 +94,7 @@ export const textHandler = async (msg: TelegramBot.Message) => {
                 parse_mode: "HTML"
             });
         }, 1101);
+        session.setLastAction("post_written");
         return;
     }
     if (action === "enter_keyboard") {
