@@ -1,5 +1,6 @@
 import { TelegramMediaType } from "types";
 import { adminSesionLifetime } from "../../config";
+import { Tournament } from "../../models/tournament";
 
 export const sessions = new Map<number, AdminSession>();
 
@@ -10,6 +11,7 @@ export class AdminSession {
 
     public textPost?: string;
     public mediaPost?: { img: string, text?: string, type: TelegramMediaType};
+    public editableTournament?: Tournament
     public postKeyboard?: any;
     public activeAction: "post" | "tournament" = "post";
 
@@ -35,6 +37,23 @@ export class AdminSession {
 
     getLastAction() {
         return this.lastAction;
+    }
+
+    tournamentEditStart() {
+        this.editableTournament = {};
+        this.activeAction = "tournament";
+    }
+
+    tournamentEditUpdate(key: keyof Tournament, value: any) {
+        this.editableTournament = {
+            ...this.editableTournament,  
+            [key]: value               
+        };
+    }
+
+    tournamentEditClose() {
+        this.editableTournament = {};
+        this.activeAction = "post";
     }
 
     destroy() {

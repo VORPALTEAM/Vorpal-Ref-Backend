@@ -3,11 +3,11 @@ import { runQuery, runQueryWithParams } from '../../models/connection';
 
 export interface Tournament {
   id?: number;
-  date_start: number;
-  date_end: number;
+  date_start?: number;
+  date_end?: number;
   title?: string;
   description?: string;
-  partisipants: number[];
+  partisipants?: number[];
 }
 
 export async function getLastTournament(): Promise<Tournament | null> {
@@ -48,7 +48,7 @@ export async function isTournamentActive(tourId: number): Promise<boolean> {
 
 export async function getActiveTournaments(): Promise<Tournament[]> {
   const now = dateSec();
-  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_start <= $1 AND date_end >= $1`;
+  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_end >= $1`;
   const result = await runQueryWithParams(query, [now], true);
   return result && result.length > 0 ? result : [];
 }

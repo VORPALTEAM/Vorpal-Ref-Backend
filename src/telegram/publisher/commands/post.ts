@@ -22,6 +22,7 @@ export const newPostAction = async (msg: TelegramBot.Message) => {
   const chat = await adminCmdPreprocess(publisherBot, msg);
   if (!chat) return;
   const session = getAdminSession(chat);
+  session.activeAction = "post";
   session.setLastAction('init_post');
   session.textPost = undefined;
   session.mediaPost = undefined;

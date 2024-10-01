@@ -16,6 +16,34 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     const session = getAdminSession(chat);
     const action = session.getLastAction();
+    if (action === "tournament_entry") {
+        const data = msg.text.split(`\n`);
+        if (data.length !== 4) {
+            sendMessageWithSave(publisherBot, chat, "Invalid number of data");
+            return;
+        }
+        try {
+           const date = new Date(data[2]).getTime();
+           const date2 = new Date(data[3]).getTime();
+        } catch (e) {
+            sendMessageWithSave(publisherBot, chat, "Invalid date format");
+            return;
+        }
+        
+        session.tournamentEditUpdate("title", data[0]);
+        session.tournamentEditUpdate("description", data[1]);
+        session.tournamentEditUpdate("date_start", new Date(data[2]).getTime());
+        session.tournamentEditUpdate("date_end", new Date(data[3]).getTime());
+        sendMessageWithSave(publisherBot, chat, `
+            Tournament data is now written: \n
+            Title: ${data[0]} \n
+            Description: ${data[1]} \n
+            Date start: ${data[2]} \n
+            Date finish: ${data[3]} \n
+            Ender /confirmtournament to start or /canceltournament to return
+            `);
+        return;
+    }
     if (action === "init_post") {
         if (!publisherBot) return;
         session.textPost = msg.text;
