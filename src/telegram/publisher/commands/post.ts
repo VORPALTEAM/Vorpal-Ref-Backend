@@ -105,6 +105,7 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
     return;
   }
   if (session.getLastAction() !== "post_written") {
+    sendMessageWithSave(publisherBot, chat, `Previous acton was not for post edit. Action: ${session.getLastAction()}`)
     return;
   }
   session.setLastAction('init');
