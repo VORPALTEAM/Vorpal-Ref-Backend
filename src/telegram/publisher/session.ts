@@ -11,7 +11,8 @@ export class AdminSession {
 
     public textPost?: string;
     public mediaPost?: { img: string, text?: string, type: TelegramMediaType};
-    public editableTournament?: Tournament
+    public editableTournament?: Tournament;
+    public tournamentId: number;
     public postKeyboard?: any;
     public activeAction: "post" | "tournament" = "post";
 

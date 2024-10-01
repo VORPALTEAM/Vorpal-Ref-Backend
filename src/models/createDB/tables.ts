@@ -224,7 +224,8 @@ const tableCreationQueries = [
         id SERIAL PRIMARY KEY,
         tournament_id integer,
         telegram_chat_id varchar(128),
-        telegram_chat_name varchar(128)
+        telegram_chat_name varchar(128),
+        UNIQUE (tournament_id, telegram_chat_id)
     );`,
     `CREATE TABLE IF NOT EXISTS tournament_announces (
         id SERIAL PRIMARY KEY,

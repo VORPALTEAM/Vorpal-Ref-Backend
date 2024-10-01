@@ -15,7 +15,7 @@ export const newTournamentAction = async (msg: TelegramBot.Message) => {
     sendMessageWithSave(publisherBot, chat, 
         `All rigtht, a new tournament. \n
         Enter the title, description, date_start, date_end below \n
-        Every item on the new row, date format: dd:mm:YYYY hh:mm`);
+        Every item on the new row, date format: mm:dd:YYYY hh:mm`);
     session.setLastAction("tournament_entry");
 }
 
@@ -36,7 +36,22 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
              ${tours[j].title || "No title"} \n
              ${tours[j].description || "No description"} \n
              Starts at: ${tours[j].date_start ? dateSecFormat(Number(tours[j].date_start)) : "not found"} \n
-             Finish at: ${tours[j].date_end ? dateSecFormat(Number(tours[j].date_end)) : "not found"}`);
+             Finish at: ${tours[j].date_end ? dateSecFormat(Number(tours[j].date_end)) : "not found"}`, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: 'Add announce chats',
+                                callback_data: `addAnnounce_${tours[j].id}`,
+                            },
+                            {
+                                text: 'Manage members',
+                                callback_data: `members_${tours[j].id}`,
+                            }
+                        ]
+                    ]
+                }
+             });
         await new Promise((resolve) => {
             setTimeout(() => {
                 resolve(true)
@@ -74,4 +89,21 @@ export const cancelTournamentAction = async (msg: TelegramBot.Message) => {
     if (!chat) return;
     const session = getAdminSession(chat);
     session.tournamentEditClose();
+}
+
+export const addAnnounceChatAction = async (query: TelegramBot.CallbackQuery) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, query);
+    if (!chat) return;
+    if (!query.data) return;
+    const session = getAdminSession(chat);    
+    const tourId = Number(query.data.replace("addAnnounce_", ""));
+    if (isNaN(tourId)) {
+        sendMessageWithSave(publisherBot, chat, "Invalid tournament id");
+        return;
+    }
+    session.tournamentId = tourId;
+    session.setLastAction("tournament_chat_entry");
+    sendMessageWithSave(publisherBot, chat, "Now enter chats, in name in each new row");
+    return;    
 }

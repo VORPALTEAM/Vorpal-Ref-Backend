@@ -5,6 +5,7 @@ import { adminCmdPreprocess } from "../functions";
 import { publisherBot } from "../initial";
 import { getAdminSession } from "../session";
 import { commands } from "../types";
+import { addChatForTournamentAnnounce } from "../../../models/tournament";
 
 
 export const textHandler = async (msg: TelegramBot.Message) => {
@@ -16,6 +17,30 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     const session = getAdminSession(chat);
     const action = session.getLastAction();
+    if (action === "tournament_chat_entry") {
+        const chats: string[][] = msg.text?.split(`\n`).map((item) => {
+            return item.split(" ")
+        });
+        if (!chats) {
+            sendMessageWithSave(publisherBot, chat, "No chats present");
+            return;
+        }
+        chats.forEach((row) => {
+            if (row.length === 2) {
+                const id = row[0];
+                const name = row[1];
+                if (!isNaN(Number(id))) {
+                    addChatForTournamentAnnounce({
+                        tournament_id: session.tournamentId,
+                        chat_id: id,
+                        chat_name: name
+                    })
+                }
+            }
+        })
+        sendMessageWithSave(publisherBot, chat, "Announce chats updated");
+        return;
+    }
     if (action === "tournament_entry") {
         const data = msg.text.split(`\n`);
         let dateStart: number;

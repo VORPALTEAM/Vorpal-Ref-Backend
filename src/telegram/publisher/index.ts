@@ -19,6 +19,7 @@ import { mediaHandler } from './handlers/mediaHandler';
 import { textHandler } from './handlers/textHandler';
 import { TelegramMediaType } from 'types';
 import * as actions from './commands';
+import { callbackHandler } from './handlers';
 
 const mediaTypes: TelegramMediaType[] = [
   'photo',
@@ -61,6 +62,9 @@ export function initPublisherBot() {
   publisherBot.onText(/\/confirmtournament/, actions.confirmTournamentAction);
   publisherBot.onText(/\/canceltournament/, actions.cancelTournamentAction);
   publisherBot.onText(/\/tournaments/, actions.listOfTournamentsAction);
+
+  publisherBot.on('callback_query', callbackHandler);
+
 
   publisherBot.on('message', async (msg) => {
     await textHandler(msg);
