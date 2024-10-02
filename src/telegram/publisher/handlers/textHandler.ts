@@ -6,6 +6,7 @@ import { publisherBot } from "../initial";
 import { getAdminSession } from "../session";
 import { commands } from "../types";
 import { addChatForTournamentAnnounce } from "../../../models/tournament";
+import { createTournamentDuel } from "../commands";
 
 
 export const textHandler = async (msg: TelegramBot.Message) => {
@@ -17,6 +18,10 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     const session = getAdminSession(chat);
     const action = session.getLastAction();
+    if (action === "TOUR_MEMBERS_MANAGE") {
+        createTournamentDuel(msg);
+        return;
+    }
     if (action === "tournament_id_to_send") {
         const tourId = Number(msg.text.split(" ")[0]);
         if (isNaN(tourId)) {
@@ -83,6 +88,7 @@ export const textHandler = async (msg: TelegramBot.Message) => {
             `);
         return;
     }
+
     if (action === "init_post") {
         if (!publisherBot) return;
         session.textPost = msg.text;

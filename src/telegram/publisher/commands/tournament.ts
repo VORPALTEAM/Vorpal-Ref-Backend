@@ -3,8 +3,11 @@ import { publisherBot } from "../initial";
 import { adminCmdPreprocess } from "../functions";
 import { getAdminSession } from "../session";
 import { sendMessageWithSave } from "../../handlers/utils";
-import { createTournament, getActiveTournaments, getParticipantsIds } from "../../../models/tournament";
+import { createDuelInTournament, createTournament, getActiveTournaments, getParticipantsIds, getTournamentAnnounceChats } from "../../../models/tournament";
 import { dateSecFormat } from "../../../utils/text";
+import { getUserData } from "../../../models/user";
+import { Bot } from "../../bot";
+import { basicStartappLink } from "../../constants";
 
 export const newTournamentAction = async (msg: TelegramBot.Message) => {
     if (!publisherBot) return;
@@ -139,4 +142,55 @@ export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
         ${participants.map(p => `${p} \n`)}`);
     session.setLastAction("TOUR_MEMBERS_MANAGE");
     
+}
+
+export const createTournamentDuel = async (msg: TelegramBot.Message) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, msg);
+    if (!chat) return;
+    const cmds = msg.text?.split(" ");
+    if (!cmds || cmds.length !== 3) { // format: id1 id2 send announce ? 1 : 0
+        sendMessageWithSave(publisherBot, chat, "Invalid duel command");
+        return;
+    }
+    const session = getAdminSession(chat);
+    const tourId = session.tournamentId;
+    if (!tourId) {
+        sendMessageWithSave(publisherBot, chat, "Tournament not found");
+        return;       
+    }
+    const part1 = await getUserData(cmds[0]);
+    const part2 = await getUserData(cmds[1]);
+    if (!part1 || !part2) {
+        sendMessageWithSave(publisherBot, chat, "One of players not found");
+        return;              
+    }
+    const newDuel = await createDuelInTournament(part1.id, part2.id, tourId);
+    if (!newDuel.success) {
+        sendMessageWithSave(publisherBot, chat,`Duel creation failed, error: ${newDuel.error}`);
+        return;             
+    }
+    const inviteText = `
+                  Staerted a duel in ournament
+                  between ${part1.username} and ${part2.username}
+                  <a>${basicStartappLink}</a>
+                `
+    if (cmds[2] === "1") { // Send duel announce in tour chats
+        const chats = await getTournamentAnnounceChats(session.tournamentId); 
+        for (let j = 0; j < chats.length; j++) {
+            try {
+                sendMessageWithSave(Bot, Number(chats[j].chat_id), inviteText, {
+                    parse_mode: "HTML"
+                });
+            } catch (e) {
+                sendMessageWithSave(publisherBot, chat, `Failed to send announce, error: ${e}`);
+            }
+        }
+    }
+    sendMessageWithSave(Bot, Number(cmds[0]), inviteText, {
+        parse_mode: "HTML"
+    });
+    sendMessageWithSave(Bot, Number(cmds[1]), inviteText, {
+        parse_mode: "HTML"
+    });
 }
