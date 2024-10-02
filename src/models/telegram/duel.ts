@@ -2,9 +2,10 @@ import md5 from 'md5';
 import { duel_lifetime } from '../../config';
 import { DuelInfo } from '../../types';
 import { getValueByKey, setValueByKey } from '../common';
-import { runQuery as Q } from '../connection';
+import { runQuery as Q, runQueryWithParams } from '../connection';
 import { getPersonalDataById } from './personal';
 import { getAuthData, getUserById, getUserData } from '../../models/user';
+import { notifyAdminDuelTournamentResult } from '../../telegram/publisher/commands';
 
 const onlineCountKey = 'DUEL_ONLINE_COUNT';
 
@@ -142,8 +143,13 @@ export async function finishDuel(duelId: number, winner: number | null) {
     console.log("Duel id not presented");
     return false;
   }
-  const query = `UPDATE "duels" SET is_finished = true, winner_id = ${winner} WHERE "id" = ${duelId};`;
-  const result = await Q(query, false);
+  const query = `UPDATE "duels" SET is_finished = true, winner_id = $1 WHERE "id" = $2;`;
+  const checkTournamentQuery = "SELECT tournament_id FROM duel_in_tournament WHERE duel_id = $1;";
+  const checkResult = await runQueryWithParams(checkTournamentQuery, [duelId], true);
+  const result = await runQueryWithParams(query, [winner, duelId], false);
+  if (result && checkResult && checkResult.length > 0) {
+    notifyAdminDuelTournamentResult(duelId, checkResult[0].tournament_id, winner || undefined);
+  }
   return result ? true : false;
 }
 

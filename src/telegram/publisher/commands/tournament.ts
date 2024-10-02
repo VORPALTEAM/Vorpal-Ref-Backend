@@ -3,11 +3,12 @@ import { publisherBot } from "../initial";
 import { adminCmdPreprocess } from "../functions";
 import { getAdminSession } from "../session";
 import { sendMessageWithSave } from "../../handlers/utils";
-import { createDuelInTournament, createTournament, getActiveTournaments, getParticipantsIds, getTournamentAnnounceChats } from "../../../models/tournament";
+import { addTournamentAdmin, createDuelInTournament, createTournament, getActiveTournaments, getParticipantsIds, getTournamentAdmins, getTournamentAnnounceChats } from "../../../models/tournament";
 import { dateSecFormat } from "../../../utils/text";
-import { getUserData } from "../../../models/user";
+import { getUserById, getUserData, getUserTelegramChat } from "../../../models/user";
 import { Bot } from "../../bot";
 import { basicStartappLink } from "../../constants";
+import { getUserInviterByTelegramId } from "models/telegram/referral";
 
 export const newTournamentAction = async (msg: TelegramBot.Message) => {
     if (!publisherBot) return;
@@ -76,6 +77,10 @@ export const confirmTournamentAction = async (msg: TelegramBot.Message) => {
         return;
     }
     const newTournamentId = await createTournament(tour);
+    const adminData = await getUserData (String(session.userId));
+    if (newTournamentId?.id && adminData) {
+        addTournamentAdmin(newTournamentId.id, adminData.id);
+    }
     sendMessageWithSave(publisherBot, chat, `
            Tournament is now open, id ${newTournamentId?.id}: \n
             Title: ${tour.title || "No title"} \n
@@ -172,7 +177,7 @@ export const createTournamentDuel = async (msg: TelegramBot.Message) => {
         return;             
     }
     const inviteText = `
-                  Staerted a duel in ournament
+                  Started a duel in ournament
                   between ${part1.username} and ${part2.username}
                   <a>${basicStartappLink}</a>
                 `
@@ -195,4 +200,20 @@ export const createTournamentDuel = async (msg: TelegramBot.Message) => {
         parse_mode: "HTML"
     });
     sendMessageWithSave(publisherBot, chat, `Duel created, id ${newDuel.duelId}`);
+}
+
+export async function notifyAdminDuelTournamentResult (duelId: number, tourId: number,
+    winnerId?: number
+) {
+    const admins = await getTournamentAdmins(tourId);
+    const winnerData = winnerId ? await getUserById(winnerId) : null;
+    admins.forEach(async (id) => {
+        if (!publisherBot) return;
+        const chat = await getUserTelegramChat(id)
+        if (!chat) return;
+        sendMessageWithSave(publisherBot, Number(chat), 
+        `Duel in tournament finished, 
+        duel id: ${duelId},
+        winner: ${winnerData?.username || "none"}`)
+    });
 }
