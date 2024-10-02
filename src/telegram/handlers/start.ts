@@ -17,6 +17,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
   const chatId = msg.chat.id;
   // saveMessage(chatId, msg.message_id);
   if (!msg.from) return;
+  console.log("Type: ", msg.chat.type, "id: ", chatId);
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') { 
     return;
   }
