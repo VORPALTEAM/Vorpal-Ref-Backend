@@ -141,6 +141,7 @@ export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
         `Participants: \n
         ${participants.map(p => `${p} \n`)}`);
     session.setLastAction("TOUR_MEMBERS_MANAGE");
+    session.tournamentId = tourId;
     
 }
 
