@@ -46,6 +46,7 @@ export async function isTournamentRegistrationAvailable (tourId: number): Promis
 
 export async function isTournamentActive(tourId: number): Promise<boolean> {
   const now = dateSec();
+  console.log("Tour id: ", tourId);
   const query = `SELECT date_start, date_end FROM tournaments WHERE tourId = $1`;
   const result = await runQueryWithParams(query, [tourId], true);
   console.log("Query result: ", result, now);
