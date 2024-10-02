@@ -17,6 +17,9 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
   const chatId = msg.chat.id;
   // saveMessage(chatId, msg.message_id);
   if (!msg.from) return;
+  if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') { 
+    return;
+  }
   try {
     const linkAuthDataPrev: TelegramAuthData = {
       auth_date: getDaylyAuthDate(),
