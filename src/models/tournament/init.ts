@@ -68,6 +68,10 @@ export async function getFinishedTournaments(): Promise<Tournament[]> {
   return result && result.length > 0 ? result : [];
 }
 
+export async function getUserTournamentDuelCount (userId: number, tourId: number) {
+    
+}
+
 export async function createTournament(
   data: Tournament,
 ): Promise<Tournament | null> {

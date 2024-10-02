@@ -3,7 +3,7 @@ import { publisherBot } from "../initial";
 import { adminCmdPreprocess } from "../functions";
 import { getAdminSession } from "../session";
 import { sendMessageWithSave } from "../../handlers/utils";
-import { createTournament, getActiveTournaments } from "../../../models/tournament";
+import { createTournament, getActiveTournaments, getParticipantsIds } from "../../../models/tournament";
 import { dateSecFormat } from "../../../utils/text";
 
 export const newTournamentAction = async (msg: TelegramBot.Message) => {
@@ -125,7 +125,18 @@ export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
     if (!chat) return;
     if (!query.data) return;
     const session = getAdminSession(chat);
-    sendMessageWithSave(publisherBot, chat, "Participants:");
+    const tourId = Number(query.data.replace("members_", ""));
+    if (isNaN(tourId)) {
+        sendMessageWithSave(publisherBot, chat, "Invalid tournament id");
+        return;
+    }
+    const participants = await getParticipantsIds(tourId);
+
+    sendMessageWithSave(publisherBot, chat,
+        participants.length === 0 ? 
+        "Tehere are no participants now" :
+        `Participants: \n
+        ${participants.map(p => `${p} \n`)}`);
     session.setLastAction("TOUR_MEMBERS_MANAGE");
     
 }
