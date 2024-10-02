@@ -37,7 +37,7 @@ export async function createDuelInTournament (user1: number, user2: number, tour
     if (!active) {
         return({
             success: false,
-            error: "Duel is not active"
+            error: "Tournament is not active"
         })
     }
     const duelId = await createDuel (user1, user2)
