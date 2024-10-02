@@ -194,4 +194,5 @@ export const createTournamentDuel = async (msg: TelegramBot.Message) => {
     sendMessageWithSave(Bot, Number(cmds[1]), inviteText, {
         parse_mode: "HTML"
     });
+    sendMessageWithSave(publisherBot, chat, `Duel created, id ${newDuel.duelId}`);
 }
