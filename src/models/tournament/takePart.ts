@@ -68,7 +68,8 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
         winner_id
     ) AS duel_wins ON duel_wins.winner_id = p.user_id
     WHERE 
-      p.tournament_id = $1;`;
+      p.tournament_id = $1
+    ORDER BY duel_wins DESC;`;
     
     const result = await runQueryWithParams(query, [tourId], true);
     return result ? result.map((row) => {
@@ -78,7 +79,6 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
             wins: row.duel_wins
         }
     }): []
-
 }
 
 export async function createDuelInTournament (user1: number, user2: number, tourId: number) {
