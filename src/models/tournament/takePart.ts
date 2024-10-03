@@ -2,12 +2,17 @@ import { runQuery, runQueryWithParams } from "../../models/connection";
 import { isTournamentActive } from "./init";
 import { createDuel } from "../../models/telegram";
 
+export interface TourPlayerData {
+    chat_id: string;
+    username: string;
+    wins: number;
+}
+
 export async function isUserInTournament (userId: number, tourId: number) {
     const query = "SELECT COUNT(*) FROM tournament_participants WHERE user_id = $1 AND tournament_id = $2";
     const count = await runQueryWithParams(query, [userId, tourId]);
     return count && count.length > 0 && count[0].count > 0 ? true : false
 }
-
 
 export async function takePartInTournament (userId: number, tourId: number) {
     if (await isUserInTournament(userId, tourId)) {
@@ -30,6 +35,50 @@ export async function getParticipantsIds (tourId: number): Promise<string[]> {
     WHERE t.user_id = p.user_id AND p.tournament_id = $1;`;
     const result = await runQueryWithParams(query, [tourId], true);
     return !result ? [] : result.map(p => p.chat_id)
+}
+
+export async function getParticipantsData (tourId: number): Promise<TourPlayerData[]> {
+    const query = `
+    SELECT 
+      t.chat_id, 
+      p.user_id, 
+      u.username,
+      COALESCE(duel_wins.wins_count, 0) AS duel_wins
+    FROM 
+      telegram_personal AS t
+    JOIN 
+      tournament_participants AS p ON t.user_id = p.user_id
+    JOIN 
+      users AS u ON u.id = t.user_id
+    LEFT JOIN (
+    SELECT 
+        winner_id, 
+        COUNT(*) AS wins_count
+    FROM 
+        duels
+    WHERE 
+        winner_id IN (
+            SELECT p.user_id 
+            FROM tournament_participants AS p 
+            WHERE p.tournament_id = $1
+        )
+    AND 
+        id IN (SELECT duel_id FROM duel_in_tournament WHERE tournament_id = $1)
+    GROUP BY 
+        winner_id
+    ) AS duel_wins ON duel_wins.winner_id = p.user_id
+    WHERE 
+      p.tournament_id = $1;`;
+    
+    const result = await runQueryWithParams(query, [tourId], true);
+    return result ? result.map((row) => {
+        return {
+            chat_id: row.chat_id,
+            username: row.username,
+            wins: row.duel_wins
+        }
+    }): []
+
 }
 
 export async function createDuelInTournament (user1: number, user2: number, tourId: number) {

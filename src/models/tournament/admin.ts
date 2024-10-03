@@ -31,3 +31,14 @@ export async function isTournamentAdmin(
   const result = await runQueryWithParams(query, [tourId, userId], true);
   return result && result.length > 0 ? result[0].count > 0 : false;
 }
+
+export async function getUserTournamentWinsCount (userId: number, tourId: number): Promise<number> {
+    const query = `
+     SELECT COUNT(*) FROM duels 
+     WHERE winner_id = $1
+     AND id IN 
+     (SELECT duel_id FROM duel_in_tournament WHERE tournament_id = $2);
+    `;
+    const result = await runQueryWithParams(query, [userId, tourId], true);
+    return result && result.length > 0 ? result[0].count : 0;
+}
