@@ -208,8 +208,10 @@ export async function notifyAdminDuelTournamentResult (duelId: number, tourId: n
     const admins = await getTournamentAdmins(tourId);
     const winnerData = winnerId ? await getUserById(winnerId) : null;
     admins.forEach(async (id) => {
+        console.log("Admin id:", id)
         if (!publisherBot) return;
         const chat = await getUserTelegramChat(id)
+        console.log("Admin chat:", chat)
         if (!chat) return;
         sendMessageWithSave(publisherBot, Number(chat), 
         `Duel in tournament finished, 

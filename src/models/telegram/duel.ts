@@ -147,7 +147,9 @@ export async function finishDuel(duelId: number, winner: number | null) {
   const checkTournamentQuery = "SELECT tournament_id FROM duel_in_tournament WHERE duel_id = $1;";
   const checkResult = await runQueryWithParams(checkTournamentQuery, [duelId], true);
   const result = await runQueryWithParams(query, [winner, duelId], false);
+  console.log("Condition: ", result, checkResult);
   if (result && checkResult && checkResult.length > 0) {
+    console.log("Notifying winner...")
     notifyAdminDuelTournamentResult(duelId, checkResult[0].tournament_id, winner || undefined);
   }
   return result ? true : false;
