@@ -22,6 +22,7 @@ import { sendMessageWithSave, sendPhotoWithSave } from './utils';
 import { saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
 import { createUserIfNotExists } from '../../models/user';
+import { isUserInAnyActiveTourament, isUserInTournament } from '../../models/tournament';
 
 export const invitePhotoPath = '/app/public/duel.png';
 
@@ -68,6 +69,11 @@ export const duelCreationHandler = async (
   } */
   const dateSec = Math.round(new Date().getTime() / 1000);
   const userLastDuel = await getDuelDataByUser(existUserId);
+  const isInTournament = await isUserInAnyActiveTourament(existUserId);
+  if (isInTournament) {
+    sendMessageWithSave(Bot, chatId, "You nou in active tournament. Wait for the administrator invite you");
+    return;
+  }
   if (!userLastDuel) {
     await createDuel(existUserId);
   } else {

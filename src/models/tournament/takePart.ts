@@ -1,6 +1,7 @@
 import { runQuery, runQueryWithParams } from "../../models/connection";
 import { isTournamentActive } from "./init";
 import { createDuel } from "../../models/telegram";
+import { dateSec } from "../../utils/text";
 
 export interface TourPlayerData {
     chat_id: string;
@@ -12,6 +13,18 @@ export async function isUserInTournament (userId: number, tourId: number) {
     const query = "SELECT COUNT(*) FROM tournament_participants WHERE user_id = $1 AND tournament_id = $2";
     const count = await runQueryWithParams(query, [userId, tourId]);
     return count && count.length > 0 && count[0].count > 0 ? true : false
+}
+
+export async function isUserInAnyActiveTourament (userId: number) {
+    const now = dateSec();
+    const query = `
+    SELECT COUNT(*) 
+    FROM tournament_participants 
+    WHERE user_id = $1 AND tournament_id IN (
+      SELECT id FROM tournaments WHERE date_start < $2 AND date_end > $2;
+    );`;
+    const result = await runQueryWithParams(query, [userId, now], true);
+    return result && result.length > 0 ? result[0].count : 0
 }
 
 export async function takePartInTournament (userId: number, tourId: number) {
