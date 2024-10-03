@@ -205,8 +205,11 @@ export const createTournamentDuel = async (msg: TelegramBot.Message) => {
 export async function notifyAdminDuelTournamentResult (duelId: number, tourId: number,
     winnerId?: number
 ) {
+    console.log("Notirying called");
     const admins = await getTournamentAdmins(tourId);
+    console.log("Admin list:", admins);
     const winnerData = winnerId ? await getUserById(winnerId) : null;
+    console.log("Winner data: ", winnerData);
     admins.forEach(async (id) => {
         console.log("Admin id:", id)
         if (!publisherBot) return;
