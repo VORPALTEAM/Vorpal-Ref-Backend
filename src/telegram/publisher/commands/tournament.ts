@@ -12,6 +12,7 @@ import {
   getParticipantsIds,
   getTournamentAdmins,
   getTournamentAnnounceChats,
+  getTournamentDuels,
 } from '../../../models/tournament';
 import { dateSecFormat } from '../../../utils/text';
 import {
@@ -82,6 +83,10 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
                 text: 'Manage members',
                 callback_data: `members_${tours[j].id}`,
               },
+              {
+                text: 'Manage duels',
+                callback_data: `duels_${tours[j].id}`,
+              }
             ],
           ],
         },
@@ -195,6 +200,32 @@ export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
   session.setLastAction('TOUR_MEMBERS_MANAGE');
   session.tournamentId = tourId;
 };
+
+export const manageDuelsAction = async (query: TelegramBot.CallbackQuery) => {
+    if (!publisherBot) return;
+    const chat = await adminCmdPreprocess(publisherBot, query);
+    if (!chat) return;
+    if (!query.data) return;
+    const session = getAdminSession(chat);  
+    const tourId = Number(query.data.replace('duels_', ''));
+    if (isNaN(tourId)) {
+      sendMessageWithSave(publisherBot, chat, 'Invalid tournament id');
+      return;
+    }  
+    const duels = await getTournamentDuels(tourId);
+    sendMessageWithSave(
+        publisherBot,
+        chat,
+        duels.length === 0
+          ? 'Tehere are no duels now'
+          : `Participants: \n
+            ${duels.map(
+              (p) => `${p.id} ${p.user1} ${p.user2} win: ${p.winner} \n`,
+            )}`,
+      );
+    session.setLastAction('TOUR_DUELS_MANAGE');
+    session.tournamentId = tourId;
+}
 
 export const createTournamentDuel = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
