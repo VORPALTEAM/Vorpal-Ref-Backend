@@ -11,7 +11,7 @@ import {
 import { getUserData } from '../../models/user';
 import { getAdminSession } from './session';
 import { commands, menu } from './types';
-import { notABusyRegex } from '../../utils/text';
+import { dateSec, dateSecFormat, notABusyRegex } from '../../utils/text';
 import { adminCmdPreprocess, setupBotMenu } from './functions';
 import { Bot } from '../../telegram/bot';
 import { photoDirectory, publisherBot, publisher_api_token } from './initial';
@@ -63,6 +63,12 @@ export function initPublisherBot() {
   publisherBot.onText(/\/confirmtournament/, actions.confirmTournamentAction);
   publisherBot.onText(/\/canceltournament/, actions.cancelTournamentAction);
   publisherBot.onText(/\/tournaments/, actions.listOfTournamentsAction);
+  publisherBot.onText(/\/timenow/, (msg) => {
+    const chat = msg.chat.id;
+    if (!chat || !publisherBot) return;
+    const text = dateSecFormat(dateSec());
+    sendMessageWithSave(publisherBot, chat, `Time on server: ${text}`)
+  });  
 
   publisherBot.on('callback_query', callbackHandler);
 
