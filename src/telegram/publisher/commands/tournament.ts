@@ -321,6 +321,7 @@ export async function notifyDuelCancel (duelId: number, tourId: number) {
   admins.forEach(async (id) => {
     if (!publisherBot) return;
     const chat = await getUserTelegramChat(id);
+    console.log("Admin chat: ", chat)
     if (!chat) return;
     sendMessageWithSave(
       publisherBot,
