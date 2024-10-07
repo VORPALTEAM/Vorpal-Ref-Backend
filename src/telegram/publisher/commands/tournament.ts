@@ -66,14 +66,14 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
                tours[j].date_start
                  ? dateSecFormat(Number(tours[j].date_start))
                  : 'not found'
-             } \n ${tours[j]?.date_start && now - Number(tours[j].date_start) > 0 ? 
-              `Starts at: ${formatTime(now - Number(tours[j].date_start))}`: ""}
+             } \n ${tours[j]?.date_start && Number(tours[j].date_start) - now > 0 ? 
+              `Starts at: ${formatTime(Number(tours[j].date_start) - now)}`: ""}
              Finish at: ${
                tours[j].date_end
                  ? dateSecFormat(Number(tours[j].date_end))
                  : 'not found'
-             } \n ${tours[j]?.date_end && now - Number(tours[j].date_end ) > 0 ? 
-              `Ends at: ${formatTime(now - Number(tours[j].date_end ))}`: ""}`,
+             } \n ${tours[j]?.date_end && Number(tours[j].date_end) - now > 0 ? 
+              `Ends at: ${formatTime(Number(tours[j].date_end) - now)}`: ""}`,
       {
         reply_markup: {
           inline_keyboard: [
