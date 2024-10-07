@@ -7,19 +7,7 @@ import { InlineKeyboard } from './keyboard';
 import { getChannelSubscribeList, sendSubscribeMessage } from './subscribe';
 import { createUserIfNotExists } from '../../models/user';
 import { addDailyRewardNote, getUserLastRewardDate } from '../../models/rewards/daily';
-import { dateSec } from '../../utils/text';
-
-function formatTime (seconds: number): string {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-
-    const hoursStr = hours.toString().padStart(2, '0');
-    const minutesStr = minutes.toString().padStart(2, '0');
-    const secsStr = secs.toString().padStart(2, '0');
-
-    return `${hoursStr}:${minutesStr}:${secsStr}`;
-}
+import { dateSec, formatTime } from '../../utils/text';
 
 
 export const dailyRewardHandler = async (bot: TelegramBot, msg: TelegramBot.Message | TelegramBot.CallbackQuery) => {

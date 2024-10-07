@@ -14,7 +14,7 @@ import {
   getTournamentAnnounceChats,
   getTournamentDuels,
 } from '../../../models/tournament';
-import { dateSecFormat } from '../../../utils/text';
+import { dateSec, dateSecFormat, formatTime } from '../../../utils/text';
 import {
   getUserById,
   getUserData,
@@ -54,6 +54,7 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
     );
     return;
   }
+  const now = dateSec();
   for (let j = 0; j < tours.length; j++) {
     sendMessageWithSave(
       publisherBot,
@@ -65,12 +66,14 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
                tours[j].date_start
                  ? dateSecFormat(Number(tours[j].date_start))
                  : 'not found'
-             } \n
+             } \n ${tours[j]?.date_start && now - Number(tours[j].date_start) > 0 ? 
+              `Starts at: ${formatTime(now - Number(tours[j].date_start))}`: ""}
              Finish at: ${
                tours[j].date_end
                  ? dateSecFormat(Number(tours[j].date_end))
                  : 'not found'
-             }`,
+             } \n ${tours[j]?.date_end && now - Number(tours[j].date_end ) > 0 ? 
+              `Ends at: ${formatTime(now - Number(tours[j].date_end ))}`: ""}`,
       {
         reply_markup: {
           inline_keyboard: [

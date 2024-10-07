@@ -26,3 +26,15 @@ export function dateSecFormat(timeSec: number): string {
 
   return `${day}:${month}:${year} ${hours}:${minutes}`;
 }
+
+export function formatTime (seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const hoursStr = hours.toString().padStart(2, '0');
+  const minutesStr = minutes.toString().padStart(2, '0');
+  const secsStr = secs.toString().padStart(2, '0');
+
+  return `${hoursStr}:${minutesStr}:${secsStr}`;
+}
