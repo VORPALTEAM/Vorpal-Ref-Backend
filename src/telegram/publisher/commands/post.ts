@@ -9,7 +9,7 @@ import { adminCmdPreprocess } from '../functions';
 import { publisherBot } from '../initial';
 import { getAdminSession } from '../session';
 import { Bot } from '../../bot';
-import { getTournamentAnnounceChats, isTournamentActive } from '../../../models/tournament';
+import { getTournamentAnnounceChats, isTournamentActive, isTournamentAnnounced } from '../../../models/tournament';
 
 export const startAction = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -72,8 +72,7 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
         return;
     }
     const chats = await getTournamentAnnounceChats(session.tournamentId);
-    const isActive = await isTournamentActive(session.tournamentId);
-    console.log("Is active:", isActive);
+    const isActive = await isTournamentAnnounced(session.tournamentId);
     for (let j = 0; j < chats.length; j++) {
       try {
         sendMediaWithSave(
