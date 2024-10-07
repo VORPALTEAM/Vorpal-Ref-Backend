@@ -13,6 +13,7 @@ export const commands = [
     /\/confirmtournament/,
     /\/canceltournament/,
     /\/tournaments/,
+    /\/tournamentsfinished/,
     /\/timenow/,
 ]
 
@@ -37,6 +38,10 @@ export const menu: cmd[] = [
         name: "/tournaments",
         description: "List of tournaments"
     },
+    {
+        name: "/tournamentsfinished",
+        description: "List of finished tournaments"
+    }, 
     {
         name: "/addkeyboard",
         description: "Add keyboard to post"

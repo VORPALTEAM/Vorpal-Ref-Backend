@@ -63,6 +63,7 @@ export function initPublisherBot() {
   publisherBot.onText(/\/confirmtournament/, actions.confirmTournamentAction);
   publisherBot.onText(/\/canceltournament/, actions.cancelTournamentAction);
   publisherBot.onText(/\/tournaments/, actions.listOfTournamentsAction);
+  publisherBot.onText(/\/tournamentsfinished/, actions.listOfFinishedTours);
   publisherBot.onText(/\/timenow/, (msg) => {
     const chat = msg.chat.id;
     if (!chat || !publisherBot) return;

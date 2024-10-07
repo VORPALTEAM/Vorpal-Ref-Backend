@@ -226,6 +226,12 @@ const tableCreationQueries = [
         admin_id integer,
         UNIQUE (tournament_id, admin_id)
     );`,
+    `CREATE TABLE IF NOT EXISTS tournament_winners (
+      id SERIAL PRIMARY KEY,
+      tournament_id integer,
+      user_id integer,
+      place integer
+    );`,
     `CREATE TABLE IF NOT EXISTS tournament_chats (
         id SERIAL PRIMARY KEY,
         tournament_id integer,
