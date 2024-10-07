@@ -9,7 +9,7 @@ import { adminCmdPreprocess } from '../functions';
 import { publisherBot } from '../initial';
 import { getAdminSession } from '../session';
 import { Bot } from '../../bot';
-import { getTournamentAnnounceChats } from '../../../models/tournament';
+import { getTournamentAnnounceChats, isTournamentActive } from '../../../models/tournament';
 
 export const startAction = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -62,20 +62,17 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
   const chat = await adminCmdPreprocess(publisherBot, msg);
   if (!chat) return;
   const session = getAdminSession(chat);
-  console.log('Session info: ', session.textPost, session.mediaPost);
   if (!session.textPost && !session.mediaPost) {
     sendMessageWithSave(publisherBot, chat, `Please, create post at first`);
     return;
   }
-  console.log(session.getLastAction());
   if (session.getLastAction() === "tournament_announce_entry") {
-    console.log("Tournament type to send");
     if (!session.tournamentId || !session.mediaPost) {
         sendMessageWithSave(publisherBot, chat, "Tournament id or media not setup");
         return;
     }
     const chats = await getTournamentAnnounceChats(session.tournamentId);
-    console.log("Chats to send: ", chats, session.mediaPost.text);
+    const isActive = await isTournamentActive(session.tournamentId);
     for (let j = 0; j < chats.length; j++) {
       try {
         sendMediaWithSave(
@@ -87,14 +84,14 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
           false,
           {
             parse_mode: 'HTML',
-            reply_markup:  {
+            reply_markup:  isActive ? {
                   inline_keyboard: [[
                     {
                       text: "Register",
                       callback_data: `tourtakepart${session.tournamentId}`
                     }
                   ]]
-                },
+                } : undefined,
           })
       } catch (e) {
         console.log("Sending error: ", e);
