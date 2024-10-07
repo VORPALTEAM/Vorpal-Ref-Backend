@@ -48,6 +48,7 @@ export async function isTournamentActive(tourId: number): Promise<boolean> {
   const now = dateSec();
   const query = `SELECT date_start, date_end FROM tournaments WHERE id = $1`;
   const result = await runQueryWithParams(query, [tourId], true);
+  console.log("Found:", result, now);
   if (!result || result.length === 0) {
     return false;
   }

@@ -73,6 +73,7 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
     }
     const chats = await getTournamentAnnounceChats(session.tournamentId);
     const isActive = await isTournamentActive(session.tournamentId);
+    console.log("Is active:", isActive);
     for (let j = 0; j < chats.length; j++) {
       try {
         sendMediaWithSave(

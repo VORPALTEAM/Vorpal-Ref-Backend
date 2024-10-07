@@ -30,7 +30,7 @@ export const textHandler = async (msg: TelegramBot.Message) => {
         }
         session.tournamentId = tourId;
         session.setLastAction("tournament_announce_entry");
-        sendMessageWithSave(publisherBot, chat, "Now enter the post with photo jr another media");
+        sendMessageWithSave(publisherBot, chat, "Now enter the post with photo or another media");
         return;
     }
     if (action === "tournament_chat_entry") {

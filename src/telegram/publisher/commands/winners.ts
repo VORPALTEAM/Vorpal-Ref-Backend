@@ -82,3 +82,15 @@ export const listOfFinishedTours = async (msg: TelegramBot.Message) => {
       });
     }      
 }
+// getWinners_
+export const getWinnersAction  = (query: TelegramBot.CallbackQuery) => {
+  if (!publisherBot) return;
+}
+// setWinners_
+export const setWinnersAction  = (query: TelegramBot.CallbackQuery) => {
+  if (!publisherBot) return;  
+}
+
+export const setWinnersTextFilter = (text: string) => {
+  if (!publisherBot) return;
+}
