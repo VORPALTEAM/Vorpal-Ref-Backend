@@ -163,6 +163,7 @@ export async function getDuelUsers (duelId: number): Promise<string[]> {
     WHERE d.id =  $1;
   `
   const result = await runQueryWithParams(query, [duelId], true);
+  console.log("User query result:", result)
   return result?.map(item => item.chat_id) || []
 }
 
@@ -172,7 +173,7 @@ export async function deleteDuel(duelId: number) {
   const tourId = await isDuelInTournament(duelId);
   console.log("In tour: ", tourId)
   if (tourId > 0) {
-    notifyDuelCancel(duelId, tourId)
+    await notifyDuelCancel(duelId, tourId)
   }
   const result = await runQueryWithParams(query, [duelId], false);
   return result ? true : false;
