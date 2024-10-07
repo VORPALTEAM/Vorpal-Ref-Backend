@@ -64,6 +64,10 @@ export const listOfFinishedTours = async (msg: TelegramBot.Message) => {
             inline_keyboard: [
               [
                 {
+                  text: 'Get members',
+                  callback_data: `members_${tours[j].id}`
+                },
+                {
                   text: 'Get winners',
                   callback_data: `getWinners_${tours[j].id}`,
                 },
