@@ -317,6 +317,7 @@ export async function notifyAdminDuelTournamentResult(
 export async function notifyDuelCancel (duelId: number, tourId: number) {
   const admins = await getTournamentAdmins(tourId);
   const parts = await getDuelUsers(duelId);
+  console.log("Admins, parts:", admins, parts)
   admins.forEach(async (id) => {
     if (!publisherBot) return;
     const chat = await getUserTelegramChat(id);
