@@ -23,6 +23,7 @@ import {
 import { Bot } from '../../bot';
 import { basicStartappLink } from '../../constants';
 import { getUserInviterByTelegramId } from 'models/telegram/referral';
+import { getDuelUsers } from '../../../models/telegram';
 
 export const newTournamentAction = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -35,7 +36,7 @@ export const newTournamentAction = async (msg: TelegramBot.Message) => {
     chat,
     `All rigtht, a new tournament. \n
         Enter the title, description, date_start, date_end below \n
-        Every item on the new row, date format: mm:dd:YYYY hh:mm`,
+        Every item on the new row, date format: YYYY-MM-DDTHH:MM:SSZ`,
   );
   session.setLastAction('tournament_entry');
 };
@@ -309,6 +310,22 @@ export async function notifyAdminDuelTournamentResult(
       `Duel in tournament finished, 
         duel id: ${duelId},
         winner: ${winnerData?.username || 'none'}`,
+    );
+  });
+}
+
+export async function notifyDuelCancel (duelId: number, tourId: number) {
+  const admins = await getTournamentAdmins(tourId);
+  const parts = await getDuelUsers(duelId);
+  admins.forEach(async (id) => {
+    if (!publisherBot) return;
+    const chat = await getUserTelegramChat(id);
+    if (!chat) return;
+    sendMessageWithSave(
+      publisherBot,
+      Number(chat),
+      `Duel in tournament cancelled between, 
+        ${parts.join(', ')}, please recreate it`,
     );
   });
 }

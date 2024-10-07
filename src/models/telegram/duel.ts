@@ -5,7 +5,8 @@ import { getValueByKey, setValueByKey } from '../common';
 import { runQuery as Q, runQueryWithParams } from '../connection';
 import { getPersonalDataById } from './personal';
 import { getAuthData, getUserById, getUserData } from '../../models/user';
-import { notifyAdminDuelTournamentResult } from '../../telegram/publisher/commands';
+import { notifyAdminDuelTournamentResult, notifyDuelCancel } from '../../telegram/publisher/commands';
+import { isDuelInActiveTournament } from '../tournament';
 
 const onlineCountKey = 'DUEL_ONLINE_COUNT';
 
@@ -154,10 +155,25 @@ export async function finishDuel(duelId: number, winner: number | null) {
   return result ? true : false;
 }
 
+export async function getDuelUsers (duelId: number): Promise<string[]> {
+  const query = `
+    SELECT tp.chat_id 
+    FROM telegram_personal tp
+    JOIN duels d ON tp.user_id = d.user_1_id OR tp.user_id = d.user_2_id
+    WHERE d.id =  $1);
+  `
+  const result = await runQueryWithParams(query, [duelId], true);
+  return result?.map(item => item.chat_id) || []
+}
+
 export async function deleteDuel(duelId: number) {
-  const query = `DELETE FROM "duels" WHERE "id" = ${duelId};`;
-  console.log('Delete duel called');
-  const result = await Q(query, false);
+
+  const query = `DELETE FROM "duels" WHERE "id" = $1;`;
+  const tourId = await isDuelInActiveTournament(duelId);
+  if (tourId > 0) {
+    notifyDuelCancel(duelId, tourId)
+  }
+  const result = await runQueryWithParams(query, [duelId], false);
   return result ? true : false;
 }
 

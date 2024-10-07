@@ -123,3 +123,12 @@ export async function isDuelInTournament (duelId: number): Promise<boolean> {
     const result = await runQuery(checkQuery, true);
     return result && result[0]?.count > 0 ? true : false;
 } 
+
+export async function isDuelInActiveTournament (duelId: number): Promise<number> {
+    const now = dateSec();
+    const checkQuery = `SELECT tournament_id FROM "duel_in_tournament" 
+    WHERE duel_id = $1 AND tournament_id IN 
+    (SELECT id FROM tournaments WHERE date_end < $2);`;
+    const result = await runQueryWithParams(checkQuery, [duelId, now], true);
+    return result && result.length > 0 ? result[0].tournament_id : 0;
+}
