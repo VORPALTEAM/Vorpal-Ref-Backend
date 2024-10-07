@@ -63,7 +63,7 @@ export async function getActiveTournaments(): Promise<Tournament[]> {
 
 export async function getFinishedTournaments(): Promise<Tournament[]> {
   const now = dateSec();
-  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_end <= $1`;
+  const query = `SELECT id, date_start, date_end FROM tournaments WHERE date_end < $1`;
   const result = await runQueryWithParams(query, [now], true);
   return result && result.length > 0 ? result : [];
 }
