@@ -6,7 +6,7 @@ import { publisherBot } from "../initial";
 import { getAdminSession } from "../session";
 import { commands } from "../types";
 import { addChatForTournamentAnnounce } from "../../../models/tournament";
-import { createTournamentDuel } from "../commands";
+import { createTournamentDuel, setWinnersTextFilter } from "../commands";
 
 
 export const textHandler = async (msg: TelegramBot.Message) => {
@@ -18,6 +18,10 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     const session = getAdminSession(chat);
     const action = session.getLastAction();
+    if (action === "winner_setup") {
+        setWinnersTextFilter(msg.text || "", chat)
+        return;
+    }
     if (action === "TOUR_MEMBERS_MANAGE") {
         createTournamentDuel(msg);
         return;

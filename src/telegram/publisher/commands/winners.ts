@@ -25,6 +25,7 @@ import { Bot } from '../../bot';
 import { basicStartappLink } from '../../constants';
 import { getUserInviterByTelegramId } from 'models/telegram/referral';
 import { getDuelUsers } from '../../../models/telegram';
+import { getWinners, setWinner } from '../../../models/tournament/winners';
 
 export const listOfFinishedTours = async (msg: TelegramBot.Message) => {
     if (!publisherBot) return;
@@ -83,14 +84,73 @@ export const listOfFinishedTours = async (msg: TelegramBot.Message) => {
     }      
 }
 // getWinners_
-export const getWinnersAction  = (query: TelegramBot.CallbackQuery) => {
+export const getWinnersAction  = async (query: TelegramBot.CallbackQuery) => {
   if (!publisherBot) return;
+  const chat = await adminCmdPreprocess(publisherBot, query);
+  if (!chat) return;
+  if (!query.data) return;
+  const session = getAdminSession(chat);  
+  const tourId = Number(query.data.replace('getWinners_', ''));
+  session.tournamentId = tourId;
+  if (isNaN(tourId)) {
+    sendMessageWithSave(publisherBot, chat, 'Invalid tournament id');
+    return;
+  }  
+  const winners = await getWinners(tourId);
+  sendMessageWithSave(publisherBot, chat,  winners.length === 0 ?
+    "Winners is not setup" :`
+         Winners:
+         ${winners.map((row) => `${row.user_id}, place: ${row.place}`)}
+    `)
 }
 // setWinners_
-export const setWinnersAction  = (query: TelegramBot.CallbackQuery) => {
+export const setWinnersAction  = async (query: TelegramBot.CallbackQuery) => {
   if (!publisherBot) return;  
+  const chat = await adminCmdPreprocess(publisherBot, query);
+  if (!chat) return;
+  if (!query.data) return;
+  const session = getAdminSession(chat);  
+  const tourId = Number(query.data.replace('setWinners_', ''));
+  if (isNaN(tourId)) {
+    sendMessageWithSave(publisherBot, chat, 'Invalid tournament id');
+    return;
+  }  
+  session.setLastAction("winner_setup");
+  sendMessageWithSave(publisherBot, chat, `
+       Now enter the winner rows Id place format
+    `)
 }
 
-export const setWinnersTextFilter = (text: string) => {
+export const setWinnersTextFilter = async (text: string, chat: number) => {
   if (!publisherBot) return;
+  const session = getAdminSession(chat);  
+  if (!session.tournamentId) {
+    sendMessageWithSave(publisherBot, chat, "No tournament id");
+    return;   
+  }
+  text.split(`\n`).map(async (row) => {
+    if (!publisherBot) return;
+    const werbs = row.split(" ");
+    if (werbs.length !== 2) {
+      sendMessageWithSave(publisherBot, chat, "Invalid row");
+      return;
+    }
+    if (isNaN(Number(werbs[0])) || isNaN(Number(werbs[1]))) {
+      sendMessageWithSave(publisherBot, chat, "Invalid params");
+      return;     
+    }
+    const userData = await getUserData(werbs[0]);
+    if (!userData) {
+      sendMessageWithSave(publisherBot, chat, "User not found");
+      return;     
+    }
+    setWinner({
+           tournament_id: session.tournamentId,
+           user_id: userData.id,
+           place: Number(werbs[1])
+    });
+    sendMessageWithSave(publisherBot, chat, "Winners is setup, now you can get it");   
+  });
+
+  // setWinner()
 }
