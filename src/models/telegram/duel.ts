@@ -6,7 +6,7 @@ import { runQuery as Q, runQueryWithParams } from '../connection';
 import { getPersonalDataById } from './personal';
 import { getAuthData, getUserById, getUserData } from '../../models/user';
 import { notifyAdminDuelTournamentResult, notifyDuelCancel } from '../../telegram/publisher/commands';
-import { isDuelInActiveTournament } from '../tournament';
+import { isDuelInActiveTournament, isDuelInTournament } from '../tournament';
 
 const onlineCountKey = 'DUEL_ONLINE_COUNT';
 
@@ -167,9 +167,9 @@ export async function getDuelUsers (duelId: number): Promise<string[]> {
 }
 
 export async function deleteDuel(duelId: number) {
-  console.log("Delete called");
+  console.log("Delete called", duelId);
   const query = `DELETE FROM "duels" WHERE "id" = $1;`;
-  const tourId = await isDuelInActiveTournament(duelId);
+  const tourId = await isDuelInTournament(duelId);
   console.log("In tour: ", tourId)
   if (tourId > 0) {
     notifyDuelCancel(duelId, tourId)

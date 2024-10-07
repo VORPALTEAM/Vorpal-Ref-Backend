@@ -118,10 +118,10 @@ export async function createDuelInTournament (user1: number, user2: number, tour
     })
 }
 
-export async function isDuelInTournament (duelId: number): Promise<boolean> {
-    const checkQuery = `SELECT count(*) FROM "duel_in_tournament" WHERE duel_id = ${duelId};`;
+export async function isDuelInTournament (duelId: number): Promise<number> {
+    const checkQuery = `SELECT tournament_id FROM "duel_in_tournament" WHERE duel_id = ${duelId};`;
     const result = await runQuery(checkQuery, true);
-    return result && result[0]?.count > 0 ? true : false;
+    return result && result.length > 0 ? result[0].tournament_id : 0;
 } 
 
 export async function isDuelInActiveTournament (duelId: number): Promise<number> {
