@@ -160,7 +160,7 @@ export async function getDuelUsers (duelId: number): Promise<string[]> {
     SELECT tp.chat_id 
     FROM telegram_personal tp
     JOIN duels d ON tp.user_id = d.user_1_id OR tp.user_id = d.user_2_id
-    WHERE d.id =  $1);
+    WHERE d.id =  $1;
   `
   const result = await runQueryWithParams(query, [duelId], true);
   return result?.map(item => item.chat_id) || []
