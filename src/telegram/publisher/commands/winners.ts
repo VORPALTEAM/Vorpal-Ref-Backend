@@ -125,6 +125,14 @@ export const setWinnersAction  = async (query: TelegramBot.CallbackQuery) => {
     `)
 }
 
+async function notifyWinner (winnerTelegramId: number, username: string, place: number) {
+   const messageText = `
+        Congradulations! ${username}, you have reached ${place} place in our last
+        tournament! Ask @ivemaker to get your prize!
+   `
+   sendMessageWithSave(Bot, winnerTelegramId, messageText);
+}
+
 export const setWinnersTextFilter = async (text: string, chat: number) => {
   if (!publisherBot) return;
   const session = getAdminSession(chat);  
@@ -153,7 +161,8 @@ export const setWinnersTextFilter = async (text: string, chat: number) => {
            user_id: userData.id,
            place: Number(werbs[1])
     });
-    sendMessageWithSave(publisherBot, chat, "Winners is setup, now you can get it");   
+    notifyWinner(Number(werbs[0]), userData.username, Number(werbs[1]));
+    sendMessageWithSave(publisherBot, chat, "Winner is setup successful!");   
   });
 
   // setWinner()
