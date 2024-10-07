@@ -120,6 +120,7 @@ export const confirmTournamentAction = async (msg: TelegramBot.Message) => {
   }
   const newTournamentId = await createTournament(tour);
   const adminData = await getUserData(String(session.userId));
+  console.log("Data on creation:", newTournamentId, adminData, session.userId)
   if (newTournamentId?.id && adminData) {
     addTournamentAdmin(newTournamentId.id, adminData.id);
   }
@@ -317,11 +318,9 @@ export async function notifyAdminDuelTournamentResult(
 export async function notifyDuelCancel (duelId: number, tourId: number) {
   const admins = await getTournamentAdmins(tourId);
   const parts = await getDuelUsers(duelId);
-  console.log("Admins, parts:", admins, parts)
   admins.forEach(async (id) => {
     if (!publisherBot) return;
     const chat = await getUserTelegramChat(id);
-    console.log("Admin chat: ", chat)
     if (!chat) return;
     sendMessageWithSave(
       publisherBot,

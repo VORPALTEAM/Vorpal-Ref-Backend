@@ -168,10 +168,8 @@ export async function getDuelUsers (duelId: number): Promise<string[]> {
 }
 
 export async function deleteDuel(duelId: number) {
-  console.log("Delete called", duelId);
   const query = `DELETE FROM "duels" WHERE "id" = $1;`;
   const tourId = await isDuelInTournament(duelId);
-  console.log("In tour: ", tourId)
   if (tourId > 0) {
     await notifyDuelCancel(duelId, tourId)
   }
