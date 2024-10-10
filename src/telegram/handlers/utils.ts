@@ -10,6 +10,8 @@ import { messageSendingInterval } from '../../config';
 import { TelegramMediaType } from '../../types';
 import { AdminSession } from '../publisher/session';
 
+let sendingInterval: NodeJS.Timer;
+
 export async function sendPhotoWithSave(
   bot: TelegramBot,
   chatId: number,
@@ -154,11 +156,12 @@ export async function massSendMessageThroughQueue(bot: TelegramBot, message: str
     return new Promise(async (resolve, reject) => {
       const users = await getAllTelegramUsers();
       let index = 0;
-      const queue = setInterval(async () => {
+      if (sendingInterval) clearInterval(sendingInterval);
+      sendingInterval = setInterval(async () => {
         index++;
         await sendMessageWithSave(bot, users[index].chat_id,message, options)
         if (index >= users.length - 1) {
-          clearInterval(queue);
+          clearInterval(sendingInterval);
           resolve(true);
         }
       }, messageSendingInterval)
@@ -171,7 +174,8 @@ export async function massSendPhotoThroughQueue(
     return new Promise(async (resolve, reject) => {
       const users = await getAllTelegramUsers();
       let index = 0;
-      const queue = setInterval(async () => {
+      if (sendingInterval) clearInterval(sendingInterval);
+      sendingInterval = setInterval(async () => {
         index++;
         try {
           isVideo? 
@@ -188,7 +192,7 @@ export async function massSendPhotoThroughQueue(
           console.log(e.message);
         }
         if (index >= users.length - 1) {
-          clearInterval(queue);
+          clearInterval(sendingInterval);
           resolve(true);
         }
       }, messageSendingInterval)
@@ -201,7 +205,8 @@ export async function massSendMediaThroughQueue(
     return new Promise(async (resolve, reject) => {
       const users = await getAllTelegramUsers();
       let index = 0;
-      const queue = setInterval(async () => {
+      if (sendingInterval) clearInterval(sendingInterval);
+      sendingInterval = setInterval(async () => {
         index++;
         try {
           sendMediaWithSave(bot, users[index].chat_id, fileId, message || "", type, false, options)
@@ -210,7 +215,7 @@ export async function massSendMediaThroughQueue(
           console.log(e.message);
         }
         if (index >= users.length - 1) {
-          clearInterval(queue);
+          clearInterval(sendingInterval);
           resolve(true);
         }
       }, messageSendingInterval)
@@ -228,12 +233,12 @@ export function retrySendMediaWithTimeout(
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
-
-    const interval = setInterval(async () => {
+    if (sendingInterval) clearInterval(sendingInterval);
+    sendingInterval = setInterval(async () => {
       try {
         const currentTime = Date.now();
         if (currentTime - startTime >= maxDuration) {
-          clearInterval(interval);
+          clearInterval(sendingInterval);
           console.log('Retry time limit reached, stopping further attempts.');
           resolve(false); // Resolve as false when the time limit is reached
           return;
@@ -254,7 +259,7 @@ export function retrySendMediaWithTimeout(
         // If the media is successfully sent, resolve the Promise
         if (success) {
           console.log('Media sent successfully!');
-          clearInterval(interval);
+          clearInterval(sendingInterval);
           resolve(true); // Resolve as true when media is successfully sent
         } else {
           console.log('Failed to send media, retrying...');
@@ -263,9 +268,13 @@ export function retrySendMediaWithTimeout(
 
       } catch (e) {
         console.log('Error during retry:', e.message);
-        clearInterval(interval);
+        clearInterval(sendingInterval);
         reject(e); // Reject the Promise on error
       }
     }, intervalTime); // Set the retry interval
   });
+}
+
+export function stopSendingQueue () {
+  if (sendingInterval) clearInterval(sendingInterval);
 }

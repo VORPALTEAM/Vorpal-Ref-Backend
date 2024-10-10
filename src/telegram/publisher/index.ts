@@ -2,18 +2,12 @@ import TelegramBot from 'node-telegram-bot-api';
 import fs from 'fs';
 import axios from 'axios';
 import {
-  massSendMediaThroughQueue,
-  massSendMessageThroughQueue,
-  massSendPhotoThroughQueue,
   sendMessageWithSave,
   sendPhotoWithSave,
 } from '../handlers/utils';
-import { getUserData } from '../../models/user';
-import { getAdminSession } from './session';
 import { commands, menu } from './types';
 import { dateSec, dateSecFormat, notABusyRegex } from '../../utils/text';
 import { adminCmdPreprocess, setupBotMenu } from './functions';
-import { Bot } from '../../telegram/bot';
 import { photoDirectory, publisherBot, publisher_api_token } from './initial';
 import { mediaHandler } from './handlers/mediaHandler';
 import { textHandler } from './handlers/textHandler';

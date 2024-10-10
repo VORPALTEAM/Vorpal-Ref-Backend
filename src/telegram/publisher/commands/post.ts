@@ -4,6 +4,7 @@ import {
   massSendMessageThroughQueue,
   sendMediaWithSave,
   sendMessageWithSave,
+  stopSendingQueue,
 } from '../../handlers/utils';
 import { adminCmdPreprocess } from '../functions';
 import { publisherBot } from '../initial';
@@ -143,9 +144,11 @@ export const cancelPostAction = async (msg: TelegramBot.Message) => {
   const chat = await adminCmdPreprocess(publisherBot, msg);
   if (!chat) return;
   const session = getAdminSession(chat);
+  stopSendingQueue ();
   session.setLastAction('init');
   session.textPost = undefined;
   session.mediaPost = undefined;
   session.postKeyboard = undefined;
   sendMessageWithSave(publisherBot, chat, `Post creation cancelled`);
 };
+
