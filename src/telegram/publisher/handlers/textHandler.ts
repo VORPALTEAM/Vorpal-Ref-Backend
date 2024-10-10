@@ -6,7 +6,7 @@ import { publisherBot } from "../initial";
 import { getAdminSession } from "../session";
 import { commands } from "../types";
 import { addChatForTournamentAnnounce } from "../../../models/tournament";
-import { createTournamentDuel, setWinnersTextFilter } from "../commands";
+import { createTournamentDuel, prolongTournament, setWinnersTextFilter } from "../commands";
 
 
 export const textHandler = async (msg: TelegramBot.Message) => {
@@ -35,6 +35,10 @@ export const textHandler = async (msg: TelegramBot.Message) => {
         session.tournamentId = tourId;
         session.setLastAction("tournament_announce_entry");
         sendMessageWithSave(publisherBot, chat, "Now enter the post with photo or another media");
+        return;
+    }
+    if (action === "prolong_tournament") {
+        prolongTournament(msg);
         return;
     }
     if (action === "tournament_chat_entry") {
@@ -92,7 +96,7 @@ export const textHandler = async (msg: TelegramBot.Message) => {
             `);
         return;
     }
-
+   
     if (action === "init_post") {
         if (!publisherBot) return;
         session.textPost = msg.text;

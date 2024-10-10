@@ -4,7 +4,8 @@ import {
   getWinnersAction,
   manageDuelsAction,
   manageMembersAction,
-  setWinnersAction,
+  prolongAction,
+  setWinnersAction
 } from '../commands';
 
 export const callbackHandler = async (query: TelegramBot.CallbackQuery) => {
@@ -24,6 +25,9 @@ export const callbackHandler = async (query: TelegramBot.CallbackQuery) => {
       break;
     case query.data.indexOf('setWinners_') > -1:
       setWinnersAction(query);
+      break;
+    case query.data.indexOf('prolong_') > -1:
+      prolongAction(query);
       break;
   }
 };

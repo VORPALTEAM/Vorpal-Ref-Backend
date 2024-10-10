@@ -78,3 +78,11 @@ export async function getUserTournamentWinsCount (userId: number, tourId: number
     const result = await runQueryWithParams(query, [userId, tourId], true);
     return result && result.length > 0 ? result[0].count : 0;
 }
+
+
+export async function updateTournamentTime (tourId: number, timestamp: number) {
+   if (isNaN(timestamp)) return;
+   const query = "UPDATE tournaments SET date_end = $1 WHERE id = $2";
+   const result = await runQueryWithParams(query, [timestamp, tourId], true);
+   return result;
+}

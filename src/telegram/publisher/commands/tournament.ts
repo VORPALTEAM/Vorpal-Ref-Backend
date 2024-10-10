@@ -90,6 +90,10 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
               {
                 text: 'Manage duels',
                 callback_data: `duels_${tours[j].id}`,
+              },
+              {
+                text: 'Update finish time',
+                callback_data: `prolong_${tours[j].id}`,
               }
             ],
           ],
