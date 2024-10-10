@@ -57,13 +57,12 @@ export const prolongTournament = async (msg: TelegramBot.Message) => {
         case msg.text === "cancel":
             session.setLastAction("none");
             sendMessageWithSave(publisherBot, chat, "Time updating cancelled");
-            break;
+            return;
         case msg.text === "now":
             date = dateSec();
             break;
         default:
             date = Math.round(new Date(msg.text).getTime() / 1000);
-            return;
     }
     if (!date || isNaN(date) || !session.tournamentId) {
         sendMessageWithSave(publisherBot, chat, "Invalid entry");
