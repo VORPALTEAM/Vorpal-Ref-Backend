@@ -34,11 +34,11 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     const inviter = match[1]?.toLowerCase();
     // If this is a tournament registration
-    console.log("Tour condition: ", inviter, inviter.indexOf("registerTour_"));
-    if (inviter.indexOf("registerTour_") > -1) {
+    console.log("Tour condition: ", inviter, inviter.indexOf("registertour_"));
+    if (inviter.indexOf("registertour_") > -1) {
        console.log("Tour registration started...");
        try {
-         const tourId = Number(inviter.replace("registerTour_", ""));
+         const tourId = Number(inviter.replace("registertour_", ""));
          console.log("Found tour id:", tourId)
          if (isNaN(tourId)) {
           console.log("Invalid id")

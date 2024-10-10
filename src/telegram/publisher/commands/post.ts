@@ -89,7 +89,7 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
                   inline_keyboard: [[
                     {
                       text: "Register",
-                      url: `${inviteLink}registerTour_${session.tournamentId}`
+                      url: `${inviteLink}registertour_${session.tournamentId}`
                     }
                   ]]
                 } : undefined,
