@@ -10,7 +10,7 @@ import { messages } from '../constants';
 import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
 import { createUserIfNotExists, getUserData, getUserId } from '../../models/user';
-import { getParticipantsIds, isTournamentActive, takePartInTournament } from '../../models/tournament';
+import { getParticipantsIds, isTournamentActive, isTournamentAnnounced, takePartInTournament } from '../../models/tournament';
 
 export const introPhotoPath = '/app/public/entry.png';
 
@@ -18,7 +18,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
   const chatId = msg.chat.id;
   // saveMessage(chatId, msg.message_id);
   if (!msg.from) return;
-  console.log("Type: ", msg.chat.type, "id: ", chatId);
+
   if (msg.chat.type === 'group' || msg.chat.type === 'supergroup') { 
     return;
   }
@@ -34,10 +34,14 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     const inviter = match[1]?.toLowerCase();
     // If this is a tournament registration
+    console.log("Tour condition: ", inviter, inviter.indexOf("registerTour_"));
     if (inviter.indexOf("registerTour_") > -1) {
+       console.log("Tour registration started...");
        try {
          const tourId = Number(inviter.replace("registerTour_", ""));
+         console.log("Found tour id:", tourId)
          if (isNaN(tourId)) {
+          console.log("Invalid id")
           sendMessageWithSave(Bot, chatId, "Invaid tournament id");
           return;
          }
@@ -47,13 +51,16 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
           undefined,
           msg.from,
          );
+         console.log("User id:", userId)
          const participants = await getParticipantsIds(tourId);
          if (participants.indexOf(String(chatId)) > -1) {
+          console.log("Already in tour")
            sendMessageWithSave(Bot, chatId, 'You already in this tournament');
            return;
          }
-         const isActive = await isTournamentActive(tourId);
+         const isActive = await isTournamentAnnounced(tourId);
          if (!isActive) {
+          console.log("Not active");
           sendMessageWithSave(
             Bot,
             chatId,
@@ -61,7 +68,8 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
           );
           return;
          }
-         await takePartInTournament(userId, tourId);
+         const registration = await takePartInTournament(userId, tourId);
+         console.log("Registration result:", registration)
          sendMessageWithSave(
            Bot,
            chatId,
