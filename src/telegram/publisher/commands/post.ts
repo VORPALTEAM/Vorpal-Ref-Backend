@@ -10,6 +10,7 @@ import { publisherBot } from '../initial';
 import { getAdminSession } from '../session';
 import { Bot } from '../../bot';
 import { getTournamentAnnounceChats, isTournamentActive, isTournamentAnnounced } from '../../../models/tournament';
+import { inviteLink } from '../../constants';
 
 export const startAction = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -88,7 +89,7 @@ export const confirmPostAction = async (msg: TelegramBot.Message) => {
                   inline_keyboard: [[
                     {
                       text: "Register",
-                      callback_data: `tourtakepart${session.tournamentId}`
+                      url: `${inviteLink}registerTour_${session.tournamentId}`
                     }
                   ]]
                 } : undefined,

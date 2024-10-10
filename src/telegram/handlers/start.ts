@@ -10,6 +10,7 @@ import { messages } from '../constants';
 import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/history';
 import { Bot } from '../bot';
 import { createUserIfNotExists, getUserData, getUserId } from '../../models/user';
+import { getParticipantsIds, isTournamentActive, takePartInTournament } from '../../models/tournament';
 
 export const introPhotoPath = '/app/public/entry.png';
 
@@ -32,7 +33,46 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     };
 
     const inviter = match[1]?.toLowerCase();
-
+    // If this is a tournament registration
+    if (inviter.indexOf("registerTour_") > -1) {
+       try {
+         const tourId = Number(inviter.replace("registerTour_", ""));
+         if (isNaN(tourId)) {
+          sendMessageWithSave(Bot, chatId, "Invaid tournament id");
+          return;
+         }
+         const userId = await createUserIfNotExists(
+          'user',
+          undefined,
+          undefined,
+          msg.from,
+         );
+         const participants = await getParticipantsIds(tourId);
+         if (participants.indexOf(String(chatId)) > -1) {
+           sendMessageWithSave(Bot, chatId, 'You already in this tournament');
+           return;
+         }
+         const isActive = await isTournamentActive(tourId);
+         if (!isActive) {
+          sendMessageWithSave(
+            Bot,
+            chatId,
+            "Tournament is not active",
+          );
+          return;
+         }
+         await takePartInTournament(userId, tourId);
+         sendMessageWithSave(
+           Bot,
+           chatId,
+           'Welcome to a tournament. Wait for duel creation',
+         );
+         return;
+       } catch (e) {
+         sendMessageWithSave(Bot, chatId, `Failed on tournament registration: ${e}`);
+         return;
+       }
+    }
     // const inviterId = await getUserId(inviterLogin);
     const inviterId = inviter ? Number(inviter) : undefined;
     const telegramInviter = inviter ? await (async () => {
