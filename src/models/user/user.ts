@@ -95,9 +95,9 @@ export async function checkIsUserExists(
     if (wallets && wallets.length > 0) {
       queries.push(`
                 SELECT COUNT(*) from "users" 
-                 WHERE "id" IN (SELECT "user_id" FROM "wallets";`);
+                 WHERE "id" IN (SELECT "user_id" FROM "wallets");`);
     }
-    massRunQueriesWithParams(queries, telegramData ? [telegramData.id] : []).then((res) => {
+    massRunQueries(queries).then((res) => {
       res.forEach((row) => {
         if (row && row[0]?.count > 0) {
           userCount += Number(row[0].count);

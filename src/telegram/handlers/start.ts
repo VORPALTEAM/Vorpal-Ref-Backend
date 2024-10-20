@@ -35,6 +35,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     const inviter = match[1]?.toLowerCase();
     const isNewRef = inviter && inviter.indexOf("ref") === 0;
+    console.log("Is new ref:", isNewRef);
     // If this is a tournament registration
     if (inviter && inviter.indexOf("registertour_") > -1) {
        console.log("Tour registration started...");
@@ -78,7 +79,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     }
     // const inviterId = await getUserId(inviterLogin);
     const inviterId = inviter ? Number(inviter) : undefined;
-    const telegramInviter = inviter ? await (async () => {
+    const telegramInviter = inviter && !isNewRef ? await (async () => {
       if (inviterId && inviterId > 0) {
         const telegramUser = await getUserData(String(inviterId).replace(" ", ""));
         if (telegramUser) {
@@ -89,6 +90,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     })() : null;
     const newRefInviter = isNewRef ? await (async () => {
        const refId = await getUserByReferralLink(inviter);
+       console.log("Found ref id:", refId)
        if (!refId) {
         sendMessageWithSave(Bot, chatId, "Your referral is unknown");
        }
