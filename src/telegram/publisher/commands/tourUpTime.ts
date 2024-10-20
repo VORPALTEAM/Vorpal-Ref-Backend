@@ -23,7 +23,6 @@ import {
 } from '../../../models/user';
 import { Bot } from '../../bot';
 import { basicStartappLink } from '../../constants';
-import { getUserInviterByTelegramId } from 'models/telegram/referral';
 import { getDuelUsers } from '../../../models/telegram';
 
 export const prolongAction = async (query: TelegramBot.CallbackQuery) => {

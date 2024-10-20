@@ -11,7 +11,7 @@ import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/histo
 import { Bot } from '../bot';
 import { createUserIfNotExists, getUserData, getUserId } from '../../models/user';
 import { getParticipantsIds, isTournamentActive, isTournamentAnnounced, takePartInTournament } from '../../models/tournament';
-import { getUserByReferralLink } from 'models/telegram/referral';
+import { getUserByReferralLink } from '../../models/telegram/referral';
 
 export const introPhotoPath = '/app/public/entry.png';
 
