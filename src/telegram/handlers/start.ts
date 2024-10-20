@@ -35,11 +35,8 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     const inviter = match[1]?.toLowerCase();
     const isNewRef = inviter && inviter.indexOf("ref") > -1;
-    console.log("Conditions:", inviter, inviter ? inviter?.indexOf("ref") : "not str");
-    console.log("Is new ref:", isNewRef);
     // If this is a tournament registration
     if (inviter && inviter.indexOf("registertour_") > -1) {
-       console.log("Tour registration started...");
        try {
          const tourId = Number(inviter.replace("registertour_", ""));
          if (isNaN(tourId)) {
@@ -90,8 +87,9 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
       }
     })() : null;
     const newRefInviter = isNewRef ? await (async () => {
+      console.log("Invite link:", inviter);
        const refId = await getUserByReferralLink(inviter);
-       console.log("Found ref id:", refId)
+       console.log("Found ref id:", refId);
        if (!refId) {
         sendMessageWithSave(Bot, chatId, "Your referral is unknown");
        }
