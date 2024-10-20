@@ -35,7 +35,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
 
     const inviter = match[1]?.toLowerCase();
     const isNewRef = inviter && inviter.indexOf("ref") === 0;
-    console.log("Conditions:", inviter, inviter.indexOf("ref"));
+    console.log("Conditions:", inviter);
     console.log("Is new ref:", isNewRef);
     // If this is a tournament registration
     if (inviter && inviter.indexOf("registertour_") > -1) {
