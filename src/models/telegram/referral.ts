@@ -172,6 +172,7 @@ export async function getUserByReferralLink(
    `;
 
   const result = await runQuery(query, true);
+  console.log("Query:", query)
   console.log("Result:", result)
   return result && result.length > 0 ? result[0].user_id : null;
 }
