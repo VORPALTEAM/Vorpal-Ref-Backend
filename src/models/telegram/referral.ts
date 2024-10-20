@@ -151,7 +151,7 @@ export async function getReferralTotalRewardsByUser(
 export async function getUserReferralLink(
   userId: number,
 ): Promise<string | null> {
-  const newLink = `ref${generateRandomString(64)}`.toLowerCase();
+  const newLink = `ref${generateRandomString(16)}`.toLowerCase();
   const query = `
     INSERT INTO public.referral_links(user_id, link)
     VALUES ($1, $2)
