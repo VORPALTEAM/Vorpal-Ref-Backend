@@ -7,6 +7,9 @@ import { getAdminSession } from "../session";
 import { commands } from "../types";
 import { addChatForTournamentAnnounce } from "../../../models/tournament";
 import { createTournamentDuel, prolongTournament, setWinnersTextFilter } from "../commands";
+import { getUserByTeleramUsername } from "../../../models/user";
+import { getUserReferralLink } from "../../../models/telegram/referral";
+import { inviteLink } from "../../constants";
 
 
 export const textHandler = async (msg: TelegramBot.Message) => {
@@ -18,6 +21,24 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     const session = getAdminSession(chat);
     const action = session.getLastAction();
+    if (msg.text.indexOf(" ") > 0) {
+        const werbs = msg.text.split(" ");
+        if (werbs[0] === "refCmd" && werbs.length > 1) {
+            const userUsername = werbs[1].toLowerCase();
+            const userId = await getUserByTeleramUsername(userUsername);
+            if (!userId) {
+                sendMessageWithSave(publisherBot, chat, "User not found");
+                return;
+            }
+            const link = await getUserReferralLink(userId);
+            sendMessageWithSave(publisherBot, chat, `
+                User link: \n
+                ${link}
+                ${inviteLink}${link}
+                `);
+                return;
+        }
+    }
     if (action === "winner_setup") {
         setWinnersTextFilter(msg.text || "", chat)
         return;

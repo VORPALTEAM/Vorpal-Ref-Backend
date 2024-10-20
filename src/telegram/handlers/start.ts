@@ -11,6 +11,7 @@ import { deleteMessagesByChatId, saveMessage } from '../../models/telegram/histo
 import { Bot } from '../bot';
 import { createUserIfNotExists, getUserData, getUserId } from '../../models/user';
 import { getParticipantsIds, isTournamentActive, isTournamentAnnounced, takePartInTournament } from '../../models/tournament';
+import { getUserByReferralLink } from 'models/telegram/referral';
 
 export const introPhotoPath = '/app/public/entry.png';
 
@@ -33,6 +34,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
     };
 
     const inviter = match[1]?.toLowerCase();
+    const isNewRef = inviter && inviter.indexOf("ref") === 0;
     // If this is a tournament registration
     if (inviter && inviter.indexOf("registertour_") > -1) {
        console.log("Tour registration started...");
@@ -85,7 +87,14 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
         return null;
       }
     })() : null;
-    const inviterFiltered = telegramInviter || inviterId;
+    const newRefInviter = isNewRef ? await (async () => {
+       const refId = await getUserByReferralLink(inviter);
+       if (!refId) {
+        sendMessageWithSave(Bot, chatId, "Your referral is unknown");
+       }
+       return refId
+    })(): null;
+    const inviterFiltered = telegramInviter || newRefInviter || inviterId;
     const userId = await createUserIfNotExists("user", undefined, inviterFiltered || undefined, linkAuthDataPrev);
 
     /* if (!linkAuthDataPrev.username) {

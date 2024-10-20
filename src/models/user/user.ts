@@ -260,6 +260,12 @@ export async function getUserTelegramChat(userId: number): Promise<string | null
   }
 }
 
+export async function getUserByTeleramUsername (username: string): Promise<number | null> {
+    const query = "SELECT user_id FROM telegram_personal WHERE username = $1;";
+    const result = await runQueryWithParams(query, [username], true);
+    return result && result.length > 0 ? result[0].user_id : null
+}
+
 export async function getAllTelegramUsers() {
   const query = `SELECT chat_id, username, first_name FROM telegram_personal;`;
   const result = await runQuery(query, true);

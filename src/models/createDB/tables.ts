@@ -51,6 +51,12 @@ const tableCreationQueries = [
       date_end DATE,
       status varchar(16)
    );`,
+   `CREATE TABLE IF NOT EXISTS "referral_links" (
+      id serial PRIMARY KEY,
+      user_id integer,
+      link varchar(128),
+      unique(user_id, link)
+   );`,
    `CREATE TABLE IF NOT EXISTS "user_quest_status" (
       id serial PRIMARY KEY,
       user_id integer,
