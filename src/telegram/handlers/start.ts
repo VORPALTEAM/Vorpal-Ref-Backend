@@ -87,9 +87,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
       }
     })() : null;
     const newRefInviter = isNewRef ? await (async () => {
-      console.log("Invite link:", inviter);
        const refId = await getUserByReferralLink(inviter);
-       console.log("Found ref id:", refId);
        if (!refId) {
         sendMessageWithSave(Bot, chatId, "Your referral is unknown");
        }
