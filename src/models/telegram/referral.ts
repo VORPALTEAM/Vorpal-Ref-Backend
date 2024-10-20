@@ -1,4 +1,4 @@
-import { runQuery as Q, runQuery, runQueryWithParams } from '../connection';
+import { runQuery as Q, runQueryWithParams } from '../connection';
 import {
   ReferralStatsData,
   TelegramAuthData,
@@ -165,14 +165,12 @@ export async function getUserReferralLink(
 export async function getUserByReferralLink(
   link: string,
 ): Promise<number | null> {
-  console.log("Link:", link)
+  const arg = link.replace(" ", "").toLowerCase();
   const query = `
    SELECT user_id FROM referral_links
-   WHERE link = '${link}';
+   WHERE link = $1;
    `;
 
-  const result = await runQuery(query, true);
-  console.log("Query:", query)
-  console.log("Result:", result)
+  const result = await runQueryWithParams(query, [arg], true);
   return result && result.length > 0 ? result[0].user_id : null;
 }
