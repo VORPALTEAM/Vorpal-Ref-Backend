@@ -63,6 +63,12 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
       `id: ${tours[j].id || 'not found'}
              ${tours[j].title || 'No title'} \n
              ${tours[j].description || 'No description'} \n
+             Register finish at: ${
+               tours[j].date_announce
+                 ? dateSecFormat(Number(tours[j].date_announce))
+                 : 'not found'
+             } \n ${tours[j]?.date_announce && Number(tours[j].date_announce) - now > 0 ? 
+              `Time to: ${formatTime(Number(tours[j].date_announce) - now)}`: ""}
              Starts at: ${
                tours[j].date_start
                  ? dateSecFormat(Number(tours[j].date_start))
