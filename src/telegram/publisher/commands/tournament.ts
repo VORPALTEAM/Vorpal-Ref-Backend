@@ -35,7 +35,7 @@ export const newTournamentAction = async (msg: TelegramBot.Message) => {
     publisherBot,
     chat,
     `All rigtht, a new tournament. \n
-        Enter the title, description, date_start, date_end below \n
+        Enter the title, description, date_announce, date_start, date_end below \n
         Every item on the new row, date format: YYYY-MM-DDTHH:MM:SSZ`,
   );
   session.setLastAction('tournament_entry');
