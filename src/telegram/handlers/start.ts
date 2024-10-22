@@ -59,7 +59,7 @@ export const startHandler = async (bot: TelegramBot, msg: TelegramBot.Message, m
           sendMessageWithSave(
             Bot,
             chatId,
-            "Tournament is not active",
+            "Tournament registration is already finished",
           );
           return;
          }
