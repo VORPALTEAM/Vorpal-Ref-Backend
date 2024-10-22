@@ -3,6 +3,7 @@ import { runQuery, runQueryWithParams } from '../../models/connection';
 
 export interface Tournament {
   id?: number;
+  date_announce?: number;
   date_start?: number;
   date_end?: number;
   title?: string;
@@ -57,13 +58,13 @@ export async function isTournamentActive(tourId: number): Promise<boolean> {
 
 export async function isTournamentAnnounced(tourId: number): Promise<boolean> {
   const now = dateSec();
-  const query = `SELECT date_start, date_end FROM tournaments WHERE id = $1`;
+  const query = `SELECT date_announce FROM tournaments WHERE id = $1`;
   const result = await runQueryWithParams(query, [tourId], true);
   console.log("Found:", result, now);
   if (!result || result.length === 0) {
     return false;
   }
-  return result[0].date_start >= now;
+  return result[0].date_announce >= now;
 }
 
 
@@ -89,9 +90,10 @@ export async function createTournament(
   data: Tournament,
 ): Promise<Tournament | null> {
   const now = dateSec();
-  const newTournamentQuery = `INSERT INTO tournaments (date_start, date_end, title, description) 
-  VALUES ($1, $2, $3, $4) RETURNING id`;
+  const newTournamentQuery = `INSERT INTO tournaments (date_announce, date_start, date_end, title, description) 
+  VALUES ($1, $2, $3, $4, $5) RETURNING id`;
   const result = await runQueryWithParams(newTournamentQuery, [
+    data.date_announce,
     data.date_start,
     data.date_end,
     data.title || '',

@@ -89,15 +89,17 @@ export const textHandler = async (msg: TelegramBot.Message) => {
     }
     if (action === "tournament_entry") {
         const data = msg.text.split(`\n`);
+        let dateAnnounce: number;
         let dateStart: number;
         let dateEnd: number;
-        if (data.length !== 4) {
+        if (data.length !== 5) {
             sendMessageWithSave(publisherBot, chat, "Invalid number of data");
             return;
         }
         try {
-            dateStart = Math.round(new Date(data[2]).getTime() / 1000);
-            dateEnd = Math.round(new Date(data[3]).getTime() / 1000);
+            dateAnnounce = Math.round(new Date(data[2]).getTime() / 1000);
+            dateStart = Math.round(new Date(data[3]).getTime() / 1000);
+            dateEnd = Math.round(new Date(data[4]).getTime() / 1000);
         } catch (e) {
             sendMessageWithSave(publisherBot, chat, "Invalid date format");
             return;
@@ -105,14 +107,16 @@ export const textHandler = async (msg: TelegramBot.Message) => {
 
         session.tournamentEditUpdate("title", data[0]);
         session.tournamentEditUpdate("description", data[1]);
+        session.tournamentEditUpdate("date_announce", dateAnnounce);
         session.tournamentEditUpdate("date_start", dateStart);
         session.tournamentEditUpdate("date_end", dateEnd);
         sendMessageWithSave(publisherBot, chat, `
             Tournament data is now written: \n
             Title: ${data[0]} \n
             Description: ${data[1]} \n
-            Date start: ${data[2]} \n
-            Date finish: ${data[3]} \n
+            Date register: ${data[2]} \n
+            Date start: ${data[3]} \n
+            Date finish: ${data[4]} \n
             Ender /confirmtournament to start or /canceltournament to return
             `);
         return;

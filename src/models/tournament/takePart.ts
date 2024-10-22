@@ -34,8 +34,8 @@ export async function takePartInTournament (userId: number, tourId: number) {
             error: "User already registered"
         })
     }
-    const query = `INSERT INTO tournament_participants (user_id, tournament_id) VALUES
-    ($1 , $2);`;
+    const query = `INSERT INTO tournament_participants (user_id, tournament_id, duel_count) VALUES
+    ($1 , $2, 0);`;
     return({
         success: (await runQueryWithParams(query, [userId, tourId])) ? true : false
     })
@@ -56,6 +56,7 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
       t.chat_id, 
       p.user_id, 
       u.username,
+      p.duel_count,
       COALESCE(duel_wins.wins_count, 0) AS duel_wins
     FROM 
       telegram_personal AS t
@@ -89,6 +90,7 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
         return {
             chat_id: row.chat_id,
             username: row.username,
+            duelCount: row.duel_count,
             wins: row.duel_wins
         }
     }): []
@@ -131,4 +133,20 @@ export async function isDuelInActiveTournament (duelId: number): Promise<number>
     (SELECT id FROM tournaments WHERE date_end < $2);`;
     const result = await runQueryWithParams(checkQuery, [duelId, now], true);
     return result && result.length > 0 ? result[0].tournament_id : 0;
+}
+
+export async function updateParticipantDuelCount (duelId: number): Promise<boolean> {
+    const query = `
+    UPDATE tournament_participants SET duel_count = duel_count + 1
+    WHERE tournament_id IN 
+    (SELECT tournament_id FROM duel_in_tournament WHERE duel_id = $1)
+    AND 
+    (user_id IN 
+    (SELECT user_1_id FROM duels WHERE id = $1)
+    OR 
+    user_id IN
+    (SELECT user_2_id FROM duels WHERE id = $1));
+    `
+    const result = await runQueryWithParams(query, [duelId], false);
+    return !!result;
 }

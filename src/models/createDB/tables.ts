@@ -223,6 +223,7 @@ const tableCreationQueries = [
         id SERIAL PRIMARY KEY,
         title varchar(256),
         description varchar(512),
+        date_announce integer,
         date_start integer,
         date_end integer
     );`,
@@ -255,6 +256,7 @@ const tableCreationQueries = [
         id SERIAL PRIMARY KEY,
         tournament_id integer,
         user_id integer,
+        duel_count integer,
         UNIQUE (user_id, tournament_id)
     );`,
     `CREATE TABLE IF NOT EXISTS duel_in_tournament (

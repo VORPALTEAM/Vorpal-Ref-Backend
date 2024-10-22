@@ -6,7 +6,7 @@ import { runQuery as Q, runQueryWithParams } from '../connection';
 import { getPersonalDataById } from './personal';
 import { getAuthData, getUserById, getUserData } from '../../models/user';
 import { notifyAdminDuelTournamentResult, notifyDuelCancel } from '../../telegram/publisher/commands';
-import { isDuelInActiveTournament, isDuelInTournament } from '../tournament';
+import { isDuelInActiveTournament, isDuelInTournament, updateParticipantDuelCount } from '../tournament';
 
 const onlineCountKey = 'DUEL_ONLINE_COUNT';
 
@@ -151,6 +151,7 @@ export async function finishDuel(duelId: number, winner: number | null) {
 
   if (result && checkResult && checkResult.length > 0) {
     notifyAdminDuelTournamentResult(duelId, checkResult[0].tournament_id, winner || undefined);
+    updateParticipantDuelCount(duelId);
   }
   return result ? true : false;
 }
