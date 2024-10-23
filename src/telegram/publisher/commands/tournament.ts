@@ -67,20 +67,29 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
                tours[j].date_announce
                  ? dateSecFormat(Number(tours[j].date_announce))
                  : 'not found'
-             } \n ${tours[j]?.date_announce && Number(tours[j].date_announce) - now > 0 ? 
-              `Time to: ${formatTime(Number(tours[j].date_announce) - now)}`: ""}
+             } \n ${
+        tours[j]?.date_announce && Number(tours[j].date_announce) - now > 0
+          ? `Time to: ${formatTime(Number(tours[j].date_announce) - now)}`
+          : ''
+      }
              Starts at: ${
                tours[j].date_start
                  ? dateSecFormat(Number(tours[j].date_start))
                  : 'not found'
-             } \n ${tours[j]?.date_start && Number(tours[j].date_start) - now > 0 ? 
-              `Time to: ${formatTime(Number(tours[j].date_start) - now)}`: ""}
+             } \n ${
+        tours[j]?.date_start && Number(tours[j].date_start) - now > 0
+          ? `Time to: ${formatTime(Number(tours[j].date_start) - now)}`
+          : ''
+      }
              Finish at: ${
                tours[j].date_end
                  ? dateSecFormat(Number(tours[j].date_end))
                  : 'not found'
-             } \n ${tours[j]?.date_end && Number(tours[j].date_end) - now > 0 ? 
-              `Time to: ${formatTime(Number(tours[j].date_end) - now)}`: ""}`,
+             } \n ${
+        tours[j]?.date_end && Number(tours[j].date_end) - now > 0
+          ? `Time to: ${formatTime(Number(tours[j].date_end) - now)}`
+          : ''
+      }`,
       {
         reply_markup: {
           inline_keyboard: [
@@ -93,6 +102,8 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
                 text: 'Manage members',
                 callback_data: `members_${tours[j].id}`,
               },
+            ],
+            [
               {
                 text: 'Manage duels',
                 callback_data: `duels_${tours[j].id}`,
@@ -100,8 +111,14 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
               {
                 text: 'Update finish time',
                 callback_data: `prolong_${tours[j].id}`,
-              }
+              },
             ],
+            [
+              {
+                text: 'Create duel round',
+                callback_data: `round_${tours[j].id}`,
+              }
+            ]
           ],
         },
       },
@@ -130,7 +147,7 @@ export const confirmTournamentAction = async (msg: TelegramBot.Message) => {
   }
   const newTournamentId = await createTournament(tour);
   const adminData = await getUserData(String(session.userId));
-  console.log("Data on creation:", newTournamentId, adminData, session.userId)
+  console.log('Data on creation:', newTournamentId, adminData, session.userId);
   if (newTournamentId?.id && adminData) {
     addTournamentAdmin(newTournamentId.id, adminData.id);
   }
@@ -209,7 +226,7 @@ export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
       ? 'Tehere are no participants now'
       : `Participants: \n
         ${participants.map(
-          (p) => `${p.chat_id} ${p.username} win: ${p.wins} \n`,
+          (p) => `${p.chat_id} ${p.username} play: ${p.play} win: ${p.wins} \n`,
         )}`,
   );
   session.setLastAction('TOUR_MEMBERS_MANAGE');
@@ -217,30 +234,30 @@ export const manageMembersAction = async (query: TelegramBot.CallbackQuery) => {
 };
 
 export const manageDuelsAction = async (query: TelegramBot.CallbackQuery) => {
-    if (!publisherBot) return;
-    const chat = await adminCmdPreprocess(publisherBot, query);
-    if (!chat) return;
-    if (!query.data) return;
-    const session = getAdminSession(chat);  
-    const tourId = Number(query.data.replace('duels_', ''));
-    if (isNaN(tourId)) {
-      sendMessageWithSave(publisherBot, chat, 'Invalid tournament id');
-      return;
-    }  
-    const duels = await getTournamentDuels(tourId);
-    sendMessageWithSave(
-        publisherBot,
-        chat,
-        duels.length === 0
-          ? 'Tehere are no duels now'
-          : `Participants: \n
+  if (!publisherBot) return;
+  const chat = await adminCmdPreprocess(publisherBot, query);
+  if (!chat) return;
+  if (!query.data) return;
+  const session = getAdminSession(chat);
+  const tourId = Number(query.data.replace('duels_', ''));
+  if (isNaN(tourId)) {
+    sendMessageWithSave(publisherBot, chat, 'Invalid tournament id');
+    return;
+  }
+  const duels = await getTournamentDuels(tourId);
+  sendMessageWithSave(
+    publisherBot,
+    chat,
+    duels.length === 0
+      ? 'Tehere are no duels now'
+      : `Participants: \n
             ${duels.map(
               (p) => `${p.id} ${p.user1} ${p.user2} win: ${p.winner} \n`,
             )}`,
-      );
-    session.setLastAction('TOUR_DUELS_MANAGE');
-    session.tournamentId = tourId;
-}
+  );
+  session.setLastAction('TOUR_DUELS_MANAGE');
+  session.tournamentId = tourId;
+};
 
 export const createTournamentDuel = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -325,7 +342,7 @@ export async function notifyAdminDuelTournamentResult(
   });
 }
 
-export async function notifyDuelCancel (duelId: number, tourId: number) {
+export async function notifyDuelCancel(duelId: number, tourId: number) {
   const admins = await getTournamentAdmins(tourId);
   const parts = await getDuelUsers(duelId);
   admins.forEach(async (id) => {

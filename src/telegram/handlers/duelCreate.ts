@@ -11,10 +11,6 @@ import {
   getDuelDataByUser,
 } from '../../models/telegram';
 import {
-  duelConfirmText,
-  duelRefuseText,
-  duelText,
-  inviteLink,
   messages,
   startText,
 } from '../constants';
@@ -69,11 +65,11 @@ export const duelCreationHandler = async (
   } */
   const dateSec = Math.round(new Date().getTime() / 1000);
   const userLastDuel = await getDuelDataByUser(existUserId);
-  const isInTournament = await isUserInAnyActiveTourament(existUserId);
+  /* const isInTournament = await isUserInAnyActiveTourament(existUserId);
   if (isInTournament) {
     sendMessageWithSave(Bot, chatId, "You nou in active tournament. Wait for the administrator invite you");
     return;
-  }
+  } */
   if (!userLastDuel) {
     await createDuel(existUserId);
   } else {

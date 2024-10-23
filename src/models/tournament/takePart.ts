@@ -6,6 +6,7 @@ import { dateSec } from "../../utils/text";
 export interface TourPlayerData {
     chat_id: string;
     username: string;
+    play: number;
     wins: number;
 }
 
@@ -90,7 +91,7 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
         return {
             chat_id: row.chat_id,
             username: row.username,
-            duelCount: row.duel_count,
+            play: row.duel_count,
             wins: row.duel_wins
         }
     }): []

@@ -1,7 +1,4 @@
 import { runQuery, runQueryWithParams } from '../../models/connection';
-import { isTournamentActive } from './init';
-import { createDuel } from '../../models/telegram';
-import { dateSec } from '../../utils/text';
 
 export interface TourWinnerInfo {
     tournament_id: number;
@@ -12,8 +9,8 @@ export interface TourWinnerInfo {
 export async function setWinner(data: TourWinnerInfo): Promise<boolean> {
   const query = `
     INSERT INTO public.tournament_winners(
-	tournament_id, user_id, place)
-	VALUES ($1, $2, $3);
+	  tournament_id, user_id, place)
+  	VALUES ($1, $2, $3);
     `;
   const result = await runQueryWithParams(
     query,
