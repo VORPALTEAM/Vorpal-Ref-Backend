@@ -29,5 +29,8 @@ export const callbackHandler = async (query: TelegramBot.CallbackQuery) => {
     case query.data.indexOf('prolong_') > -1:
       prolongAction(query);
       break;
+    case query.data.indexOf('round_') > -1:
+      prolongAction(query);
+      break;
   }
 };

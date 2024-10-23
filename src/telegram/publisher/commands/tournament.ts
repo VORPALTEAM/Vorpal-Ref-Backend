@@ -357,3 +357,9 @@ export async function notifyDuelCancel(duelId: number, tourId: number) {
     );
   });
 }
+
+export const createRoundAction = async (query: TelegramBot.CallbackQuery) => {
+  // ToDo
+}
+
+
