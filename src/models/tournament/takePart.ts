@@ -8,6 +8,7 @@ export interface TourPlayerData {
     username: string;
     play: number;
     wins: number;
+    id: number;
 }
 
 export async function isUserInTournament (userId: number, tourId: number) {
@@ -51,7 +52,7 @@ export async function getParticipantsIds (tourId: number): Promise<string[]> {
     return !result ? [] : result.map(p => p.chat_id)
 }
 
-export async function getParticipantsData (tourId: number): Promise<TourPlayerData[]> {
+export async function getParticipantsData (tourId: number, duelFree = false): Promise<TourPlayerData[]> {
     const query = `
     SELECT 
       t.chat_id, 
@@ -79,6 +80,10 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
         )
     AND 
         id IN (SELECT duel_id FROM duel_in_tournament WHERE tournament_id = $1)
+    ${duelFree ? `
+    AND p.user_id NOT IN (SELECT user_1_id FROM duels WHERE is_finished = false)
+    AND p.user_id NOT IN (SELECT user_2_id FROM duels WHERE is_finished = false)
+        ` : ""}
     GROUP BY 
         winner_id
     ) AS duel_wins ON duel_wins.winner_id = p.user_id
@@ -92,7 +97,8 @@ export async function getParticipantsData (tourId: number): Promise<TourPlayerDa
             chat_id: row.chat_id,
             username: row.username,
             play: row.duel_count,
-            wins: row.duel_wins
+            wins: row.duel_wins,
+            id: row.user_id
         }
     }): []
 }

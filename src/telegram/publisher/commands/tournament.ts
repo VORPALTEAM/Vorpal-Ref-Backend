@@ -13,6 +13,7 @@ import {
   getTournamentAdmins,
   getTournamentAnnounceChats,
   getTournamentDuels,
+  TourPlayerData,
 } from '../../../models/tournament';
 import { dateSec, dateSecFormat, formatTime } from '../../../utils/text';
 import {
@@ -23,7 +24,7 @@ import {
 import { Bot } from '../../bot';
 import { basicStartappLink } from '../../constants';
 import { getUserInviterByTelegramId } from '../../../models/telegram/referral';
-import { getDuelUsers } from '../../../models/telegram';
+import { getDuelUsers, isUserInDuel } from '../../../models/telegram';
 
 export const newTournamentAction = async (msg: TelegramBot.Message) => {
   if (!publisherBot) return;
@@ -117,8 +118,8 @@ export const listOfTournamentsAction = async (msg: TelegramBot.Message) => {
               {
                 text: 'Create duel round',
                 callback_data: `round_${tours[j].id}`,
-              }
-            ]
+              },
+            ],
           ],
         },
       },
@@ -358,8 +359,83 @@ export async function notifyDuelCancel(duelId: number, tourId: number) {
   });
 }
 
-export const createRoundAction = async (query: TelegramBot.CallbackQuery) => {
-  // ToDo
+function groupPlayersByTournamentGameCount(players: TourPlayerData[]): {
+  pairs: TourPlayerData[][];
+  unpaired: TourPlayerData[];
+} {
+  const playGroups: { [key: number]: TourPlayerData[] } = {};
+
+  players.forEach((player) => {
+    if (!playGroups[player.play]) {
+      playGroups[player.play] = [];
+    }
+    playGroups[player.play].push(player);
+  });
+
+  const pairs: TourPlayerData[][] = [];
+  const unpaired: TourPlayerData[] = [];
+
+  for (const play in playGroups) {
+    const group = playGroups[play];
+    let i = 0;
+
+    while (i < group.length - 1) {
+      const player1 = group[i];
+      const player2 = group[i + 1];
+
+      if (player1.chat_id !== player2.chat_id) {
+        pairs.push([player1, player2]);
+        i += 2;
+      } else {
+        unpaired.push(player1);
+        i += 1;
+      }
+    }
+
+    if (i === group.length - 1) {
+      unpaired.push(group[i]);
+    }
+  }
+
+  return { pairs, unpaired };
 }
 
-
+export const createRoundAction = async (query: TelegramBot.CallbackQuery) => {
+  if (!publisherBot) return;
+  const chat = await adminCmdPreprocess(publisherBot, query);
+  if (!chat) return;
+  if (!query.data) return;
+  const tourId = Number(query.data.replace('round_', ''));
+  const participants = await getParticipantsData(tourId, true);
+  const groupPairData = groupPlayersByTournamentGameCount(participants);
+  const pairs: TourPlayerData[][] = groupPairData.pairs;
+  const unpaired: TourPlayerData[] = groupPairData.unpaired;
+  const duels: number[] = [];
+  for (let j = 0; j < pairs.length; j++) {
+    const newDuel = await createDuelInTournament(
+      pairs[j][0].id,
+      pairs[j][1].id,
+      tourId,
+    );
+    if (newDuel.duelId) {
+      duels.push(newDuel.duelId);
+    }
+  }
+  sendMessageWithSave(
+    publisherBot,
+    chat,
+    `
+    Created duel ids: \n
+    ${duels.join(', ')} \n
+    Not created for pairs:
+    ${
+      unpaired.length > 0
+        ? unpaired.map(
+            (item) =>
+              `${item.chat_id} ${item.username} games: ${item.play} wins: ${item.wins} \n`,
+          )
+        : 'none'
+    }
+    `,
+  );
+};
