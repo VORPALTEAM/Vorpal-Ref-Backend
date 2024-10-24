@@ -1,6 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import {
   addAnnounceChatAction,
+  createRoundAction,
   getWinnersAction,
   manageDuelsAction,
   manageMembersAction,
@@ -30,7 +31,7 @@ export const callbackHandler = async (query: TelegramBot.CallbackQuery) => {
       prolongAction(query);
       break;
     case query.data.indexOf('round_') > -1:
-      prolongAction(query);
+      createRoundAction(query);
       break;
   }
 };
